@@ -4,9 +4,7 @@
  */
 
 var Code      = require('../../../consts/code');
-var userDao   = require('../../../dao/userDao');
 var playerDao = require('../../../dao/playerDao');
-var taskDao   = require('../../../dao/taskDao');
 var gameDao   = require('../../../dao/gameDao');
 
 var async     = require('async');
@@ -38,7 +36,7 @@ Handler.prototype.entry = function (msg, session, next) {
         return;
     }
 
-    var userId, player, task, USER;
+    var userId, player;
     async.waterfall([
         function (cb) {
             console.log("cd waterfall  ***************************");
@@ -64,9 +62,8 @@ Handler.prototype.entry = function (msg, session, next) {
                 return;
             }
 
-            userId = user.userId;
-            USER =user;
-            playerDao.getPlayerByUserId(user.userId, cb);
+            userId = user.id;
+            playerDao.get_player_by_id(user.id, cb);
         }, function (res, cb) {
             console.log('after getplayer--- ');
             // generate session and register chat status
@@ -80,13 +77,13 @@ Handler.prototype.entry = function (msg, session, next) {
                 next(null, {code: Code.OK});
                 return;
             }
-            session.set('playerId', player.playerId);
+            session.set('playerId', player.id);
             session.push('playerId', function(err) {
                 if(err) {
                     console.error('set rid for session service failed! error is : %j', err.stack);
                 }
             });
-            next(null,{code:Code.OK,msg:'get user player task ok',initdata:{user:USER,player:player}});
+            next(null,{code:Code.OK,msg:'get user player task ok',player:player});
         }
     ], function (err) {
         if (err) {
@@ -94,8 +91,6 @@ Handler.prototype.entry = function (msg, session, next) {
             return;
         }
         console.log('get all data player user task');
-        //next(null,{code:Code.OK,msg:'get user player task ok',initdata:{user:USER,player:player,task:task}});
-        //next(null, {code: Code.OK, player: player});
     });
 
 };

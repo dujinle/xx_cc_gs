@@ -1,5 +1,5 @@
 var tokenService = require('../../../util/token');
-var userDao      = require('../../../dao/userDao');
+var playerDao      = require('../../../dao/playerDao');
 var Code         = require('../../../consts/code');
 
 var DEFAULT_SECRET = 'secret';
@@ -46,7 +46,7 @@ remote.auth = function (token, cb) {
     }
 
     console.log('authRemote 解密出userid',res.userId);
-    userDao.getUserById(res.userId, function (err, user) {
+    playerDao.get_player_by_id(res.userId, function (err, user) {
         if (err) {
             console.log(err);
             console.log('auth getuserbyid err');

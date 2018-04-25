@@ -10,16 +10,18 @@ CREATE TABLE player(
 	player_id VARCHAR(32),\
 	phone_num VARCHAR(20),\
 	nick_name VARCHAR(64),\
-	fangka_num INT,\
-	round_num INT,\
-	all_score INT,\
-	win_num INT,\
-	lose_num INT,\
-	fangka_history INT,\
-	invalid_fangka INT,\
+	sex        INT DEFAULT 0,\
+	fangka_num INT DEFAULT 0,\
+	round_num INT DEFAULT 0,\
+	all_score INT DEFAULT 0,\
+	win_num INT DEFAULT 0,\
+	lose_num INT DEFAULT 0,\
+	fangka_history INT DEFAULT 0,\
+	invalid_fangka INT DEFAULT 0,\
 	gonghui_id VARCHAR(12),\
 	loginCount INT DEFAULT 0,\
 	createTime BIGINT,\
+	continueLoginDays INT,\
 	lastLoginTime BIGINT\
 );
 
@@ -38,10 +40,11 @@ CREATE TABLE buy_fangka(
 CREATE TABLE game_history(
 	id INT PRIMARY KEY AUTO_INCREMENT,\
 	player_id  INT,\
-	renshu     INT,\
+	renshu     INT DEFAULT 0,\
 	status     INT,\
-	use_fangka INT,\
+	use_fangka INT DEFAULT 0,\
 	game_status INT,\
+	creat_time  BIGINT,\
 	room_num   INT\
 );
 
@@ -54,7 +57,7 @@ CREATE TABLE gonghui(
 	telphone    VARCHAR(20),\
 	level       INT,\
 	fangka_num  INT,\
-	danjia      INT,\
+	danjia      FLOAT,\
 	gonghui_name VARCHAR(64),\
 	gonggao     VARCHAR(240),\
 	xuanyan     VARCHAR(240)\
@@ -64,6 +67,7 @@ CREATE TABLE xufangka(
 	id INT PRIMARY KEY AUTO_INCREMENT,\
 	gonghui_id  INT,\
 	player_id   INT,\
+	phone_num   VARCHAR(20),\
 	player_name VARCHAR(64),\
 	creat_time  BIGINT,\
 	xuaka_status INT\
@@ -77,8 +81,6 @@ CREATE TABLE gonghui_ans(
 	gonghui_name VARCHAR(64),\
 	level        INT,\
 	money        FLOAT,\
-	gonggao      VARCHAR(240),\
-	xuanyan      VARCHAR(240),\
 	creat_time   BIGINT,\
 	status       INT\
 );

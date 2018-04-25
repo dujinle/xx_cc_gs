@@ -6,10 +6,9 @@ var routeUtil = require('./app/util/routeUtil');
  * Init app for client.
  */
 var app = pomelo.createApp();
-app.set('name', 'zhajinhua-server');
+app.set('name', 'xx_cc_gs-server');
 //app.set('aroute','enjoypuke.top');
 //app.set('aroute','187j615c32.iok.la');
-app.set('aroute','192.168.10.203');
 app.configure('production|development',function () {
 	var mysql = require('./config/mysql');
 	app.set('mysql',mysql[app.get('env')]);
@@ -65,7 +64,6 @@ app.configure('production|development', 'game', function () {
 
 
 // start app
-console.log("get aroute:" + app.get('aroute'));
 app.start();
 
 process.on('uncaughtException', function(err) {

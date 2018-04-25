@@ -9,37 +9,22 @@
  */
 
 var Player = function(opts){
-    this.playerId = opts.playerId;      //玩家id  角色id
-    this.userId = opts.userId;          //用户id
+    this.id = opts.id;      //玩家id  角色id
+    this.player_id = opts.player_id;          //wx用户id
 	this.phone_num = opts.phone_num;
-    this.userName = opts.userName;
-    this.password = opts.password;
-    this.nickName = opts.nickName;
-	this.imei = opts.imei;
-	this.fangka = opts.fangka;
-    this.gender = opts.gender;          //性别
+    this.nick_name = opts.nick_name;
+	this.fangka_num = opts.fangka_num;
+    this.gender = opts.sex;          //性别
     this.createTime = opts.createTime;  //
-    this.signature = opts.signature;    //签名
-    this.level = opts.level;            //等级
-    this.vip = opts.vip;                //vip等级
-    this.gold = opts.gold;              //
-    this.diamond = opts.diamond;        //
-    this.playTimes = opts.playTimes;    //
-    this.winTimes = opts.winTimes;      //
-    this.loseTimes = opts.loseTimes;    //
-    this.jinBiKa = opts.jinBiKa;        //
-    this.huanPaiKa = opts.huanPaiKa;  //
-    this.fanBeiKa = opts.fanBeiKa;    //
-    this.continueLoginDays = opts.continueLoginDays;  //连续在线天数
-    this.portrait = opts.portrait;      //头像--标识方式待定
-    this.gift01 = opts.gift01;
-    this.gift02 = opts.gift02;
-    this.gift03 = opts.gift03;
-    this.gift04 = opts.gift04;
-    this.gift05 = opts.gift05;
-    this.recharge =opts.recharge;
-    this.tree = opts.tree;
-    this.status = opts.status;
+	this.round_num = opts.round_num;
+	this.all_score = opts.all_score;
+	this.win_num = opts.win_num;
+	this.lose_num = opts.lose_num;
+	this.fangka_history = opts.fangka_history;
+	this.invalid_fangka = opts.invalid_fangka;
+	this.gonghui_id = opts.gonghui_id;
+	this.lastLoginTime = opts.lastLoginTime;
+	this.continueLoginDays = opts.continueLoginDays;
 };
 
 module.exports = Player;

@@ -31,11 +31,9 @@ handler.queryEntry = function(msg, session, next) {
 	// select connector
 	var res = connectors[0];//dispatcher.dispatch(uid, connectors); // select a connector from all the connectors
 	// do something with res
-	var host = this.app.get('aroute');
-	console.log("get host route:" + host);
 	next(null, {
 		code: 200,
-		host: host,
+		host: res.host,
 		port: res.clientPort
 	});
 };

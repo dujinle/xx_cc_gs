@@ -89,3 +89,7 @@ utils.random6num = function(){
 	return Num;
 };
 
+utils.get_uuid = function(){
+	var uuid = Date.now() + "" + Math.round(Math.random() * 10000);
+	return uuid.substring(0,16);
+};
