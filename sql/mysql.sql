@@ -1,49 +1,86 @@
-drop database if exists chat;
-create database chat character set utf8;
-use chat
+drop database if exists paijiu_data;
+create database paijiu_data character set utf8;
+use paijiu_data
 CREATE TABLE game_broadcast(_id INT PRIMARY KEY AUTO_INCREMENT, broadcast_type INT, broadcast_content VARCHAR(120)NOT NULL);
 
 INSERT INTO game_broadcast  (broadcast_type,broadcast_content) VALUES (1,'你大爷的坑死老子了');
 
-CREATE TABLE user(userId INT PRIMARY KEY AUTO_INCREMENT,\
+CREATE TABLE player(
+	id INT PRIMARY KEY AUTO_INCREMENT,\
+	player_id VARCHAR(32),\
 	phone_num VARCHAR(20),\
-	name VARCHAR(20),\
-	password VARCHAR(20) DEFAULT 0,\
-	imei VARCHAR(36),\
+	nick_name VARCHAR(64),\
+	fangka_num INT,\
+	round_num INT,\
+	all_score INT,\
+	win_num INT,\
+	lose_num INT,\
+	fangka_history INT,\
+	invalid_fangka INT,\
+	gonghui_id VARCHAR(12),\
 	loginCount INT DEFAULT 0,\
+	createTime BIGINT,\
 	lastLoginTime BIGINT\
 );
 
-CREATE TABLE player(playerId INT PRIMARY KEY AUTO_INCREMENT,\
-	userName VARCHAR(20),\
-	nickName VARCHAR(20),\
-	phone_num VARCHAR(20),\
-	password VARCHAR(20) DEFAULT 0,\
-	signature VARCHAR(120) DEFAULT '你大爷的坑死老子了',\
-	userId INT DEFAULT 1,\
-	fangka INT DEFAULT 10,\
-	gender INT DEFAULT 1,\
-	level INT DEFAULT 0,\
-	vip INT DEFAULT 0,\
-	playTimes INT DEFAULT 0,\
-	winTimes INT DEFAULT 0,\
-	loseTimes INT DEFAULT 0,\
-	portrait INT DEFAULT 0,\
-	recharge float DEFAULT 0.0,\
-	tree INT DEFAULT 0,\
-	createTime BIGINT,\
-	continueLoginDays INT DEFAULT 0,\
-	status INT DEFAULT 0,\
-	huanPaiKa INT DEFAULT 0,\
-	fanBeiKa INT DEFAULT 0,\
-	jinBiKa INT DEFAULT 0,\
-	gift01 float(25) DEFAULT 0.0,\
-	gift02 float(25) DEFAULT 0.0,\
-	gift03 float(25) DEFAULT 0.0,\
-	gift04 float(25) DEFAULT 0.0,\
-	gift05 float(25) DEFAULT 0.0,\
-	gold float(25) DEFAULT 0.0,\
-	diamond float(25) DEFAULT 0.0\
+CREATE TABLE buy_fangka(
+	id INT PRIMARY KEY AUTO_INCREMENT,\
+	order_id   VARCHAR(32),\
+	player_id  INT,\
+	fangka_num INT,\
+	status     INT,\
+	creat_time BIGINT,\
+	pay_time   BIGINT,\
+	danjia     FLOAT,\
+	zongjia    FLOAT\
+);
+
+CREATE TABLE game_history(
+	id INT PRIMARY KEY AUTO_INCREMENT,\
+	player_id  INT,\
+	renshu     INT,\
+	status     INT,\
+	use_fangka INT,\
+	game_status INT,\
+	room_num   INT\
+);
+
+CREATE TABLE gonghui(
+	id INT PRIMARY KEY AUTO_INCREMENT,\
+	gonghui_id  VARCHAR(16),\
+	player_id   INT,\
+	player_name VARCHAR(64),\
+	renshu      INT,\
+	telphone    VARCHAR(20),\
+	level       INT,\
+	fangka_num  INT,\
+	danjia      INT,\
+	gonghui_name VARCHAR(64),\
+	gonggao     VARCHAR(240),\
+	xuanyan     VARCHAR(240)\
+);
+
+CREATE TABLE xufangka(
+	id INT PRIMARY KEY AUTO_INCREMENT,\
+	gonghui_id  INT,\
+	player_id   INT,\
+	player_name VARCHAR(64),\
+	creat_time  BIGINT,\
+	xuaka_status INT\
+);
+
+CREATE TABLE gonghui_ans(
+	id INT PRIMARY KEY AUTO_INCREMENT,\
+	player_id    INT,\
+	player_name  VARCHAR(64),\
+	telphone     VARCHAR(20),\
+	gonghui_name VARCHAR(64),\
+	level        INT,\
+	money        FLOAT,\
+	gonggao      VARCHAR(240),\
+	xuanyan      VARCHAR(240),\
+	creat_time   BIGINT,\
+	status       INT\
 );
 
 CREATE TABLE feedback(
@@ -53,136 +90,36 @@ CREATE TABLE feedback(
 	content VARCHAR(480)\
 );
 
-CREATE TABLE task(
-	taskId INT PRIMARY KEY AUTO_INCREMENT,\
-	playerId INT,\
-	userId INT,\
-	loginTimes INT,\
-	playTimes INT,\
-	winTimes INT,\
-	allInTimes INT,\
-	useHuanpaika INT,\
-	useJinbika INT,\
-	useFanbeika INT,\
-	monthRecharge float(25)\
-);
 
-CREATE TABLE zjh_game_room(
+CREATE TABLE game_room(
 	rid INT PRIMARY KEY AUTO_INCREMENT,\
 	room_num VARCHAR(6),\
-	master INT,\
+	fangzhu_id INT,\
+	fangzhu_name VARCHAR(64),\
 	first_fapai INT DEFAULT 0,\
-	max_pai VARCHAR(20) DEFAULT '0*0',\
-	master_name VARCHAR(20),\
 	game_type VARCHAR(10),\
-	winner VARCHAR(10) DEFAULT 'null',\
+	wait_time BIGINT,\
 	timeout_mark BIGINT,\
-	open_mark INT DEFAULT 0,\
-	men_mark INT DEFAULT 0,\
 	player_num INT DEFAULT 0,\
-	current_chip INT DEFAULT 0,\
-	current_player INT DEFAULT 0,\
-	basic_chip INT DEFAULT 100,\
-	all_chip INT DEFAULT 0,\
-	start_golds VARCHAR(240) DEFAULT 'null',\
+	real_num   INT DEFAULT 0,\
+	zhuang_location INT,\
+	zhuang_score    INT,\
 	round INT DEFAULT 0,\
-	total_round INT DEFAULT 0,\
 	location1 VARCHAR(20) DEFAULT 'null',\
 	location2 VARCHAR(20) DEFAULT 'null',\
 	location3 VARCHAR(20) DEFAULT 'null',\
 	location4 VARCHAR(20) DEFAULT 'null',\
-	location5 VARCHAR(20) DEFAULT 'null',\
 	is_gaming INT DEFAULT 0,\
 	is_game_1 INT DEFAULT -1,\
 	is_game_2 INT DEFAULT -1,\
 	is_game_3 INT DEFAULT -1,\
 	is_game_4 INT DEFAULT -1,\
-	is_game_5 INT DEFAULT -1,\
 	pai1 VARCHAR(240),\
 	pai2 VARCHAR(240),\
 	pai3 VARCHAR(240),\
 	pai4 VARCHAR(240),\
-	pai5 VARCHAR(240)\
-);
-
-CREATE TABLE tdk_game_room(
-	rid INT PRIMARY KEY AUTO_INCREMENT,\
-	room_num VARCHAR(6),\
-	master INT,\
-	fapai_num INT DEFAULT 3,\
-	quchu_pai INT DEFAULT 0,\
-	first_fapai INT DEFAULT 0,\
-	max_pai VARCHAR(20) DEFAULT '0*0',\
-	pai_round INT DEFAULT 0,\
-	master_name VARCHAR(20),\
-	game_type VARCHAR(10),\
-	winner VARCHAR(10) DEFAULT 'null',\
-	timeout_mark BIGINT,\
-	open_mark INT DEFAULT 0,\
-	player_num INT DEFAULT 0,\
-	current_chip INT DEFAULT 0,\
-	current_player INT DEFAULT 0,\
-	basic_chip INT DEFAULT 100,\
-	all_chip INT DEFAULT 0,\
-	round INT DEFAULT 0,\
-	start_golds VARCHAR(240) DEFAULT 'null',\
-	total_round INT DEFAULT 0,\
-	location1 VARCHAR(20) DEFAULT 'null',\
-	location2 VARCHAR(20) DEFAULT 'null',\
-	location3 VARCHAR(20) DEFAULT 'null',\
-	location4 VARCHAR(20) DEFAULT 'null',\
-	location5 VARCHAR(20) DEFAULT 'null',\
-	is_gaming INT DEFAULT 0,\
-	is_game_1 INT DEFAULT 0,\
-	is_game_2 INT DEFAULT 0,\
-	is_game_3 INT DEFAULT 0,\
-	is_game_4 INT DEFAULT 0,\
-	is_game_5 INT DEFAULT 0,\
-	pai1 VARCHAR(240),\
-	pai2 VARCHAR(240),\
-	pai3 VARCHAR(240),\
-	pai4 VARCHAR(240),\
-	pai5 VARCHAR(240)\
-);
-
-CREATE TABLE zhq_game_room(
-	rid INT PRIMARY KEY AUTO_INCREMENT,\
-	room_num VARCHAR(6),\
-	master INT,\
-	first_fapai INT DEFAULT 0,\
-	first_finish INT DEFAULT 0,\
-	master_name VARCHAR(20),\
-	game_type VARCHAR(10),\
-	timeout_mark BIGINT,\
-	player_num INT DEFAULT 0,\
-	all_player_num INT DEFAULT 4,\
-	mark_flag VARCHAR(120) DEFAULT 'null',\
-	current_chip INT DEFAULT 0,\
-	current_player INT DEFAULT 0,\
-	basic_chip INT DEFAULT 100,\
-	max_chip INT DEFAULT 100,\
-	tian_xuan INT DEFAULT 0,\
-	start_golds VARCHAR(240) DEFAULT 'null',\
-	round INT DEFAULT 0,\
-	total_round INT DEFAULT 0,\
-	hei_a VARCHAR(20) DEFAULT 'null',\
-	location1 VARCHAR(20) DEFAULT 'null',\
-	location2 VARCHAR(20) DEFAULT 'null',\
-	location3 VARCHAR(20) DEFAULT 'null',\
-	location4 VARCHAR(20) DEFAULT 'null',\
-	location5 VARCHAR(20) DEFAULT 'null',\
-	is_gaming INT DEFAULT 0,\
-	is_game_1 INT DEFAULT 0,\
-	is_game_2 INT DEFAULT 0,\
-	is_game_3 INT DEFAULT 0,\
-	is_game_4 INT DEFAULT 0,\
-	is_game_5 INT DEFAULT 0,\
-	throw_num INT DEFAULT 0,\
-	pai1 VARCHAR(240) DEFAULT 'null',\
-	pai2 VARCHAR(240) DEFAULT 'null',\
-	pai3 VARCHAR(240) DEFAULT 'null',\
-	pai4 VARCHAR(240) DEFAULT 'null',\
-	pai5 VARCHAR(240) DEFAULT 'null',\
-	last_location INT DEFAULT 0,\
-	last_pai VARCHAR(240) DEFAULT 'null'\
+	score_1 VARCHAR(20),\
+	score_2 VARCHAR(20),\
+	score_3 VARCHAR(20),\
+	score_4 VARCHAR(20)\
 );
