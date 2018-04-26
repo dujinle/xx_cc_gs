@@ -1,7 +1,7 @@
 /**
  * Created by wuningjian on 2/23/16.
  */
-var ZJHGameDao   = require('../../../dao/ZJHGameDao');
+var gameDao   = require('../../../dao/gameDao');
 var playerDao = require('../../../dao/playerDao');
 var pomelo    = require('pomelo');
 var ZJHLogicRemote = require('./ZJHLogicRemote');
@@ -32,17 +32,17 @@ ZJHGameRemote.prototype.add = function(uid, sid, name, flag, cb) {
 
 	if( !! channel) {
 		channel.add(uid, sid);
-		ZJHGameDao.addPlayer(rid,uid,function(err,location,player_num){
+		gameDao.addPlayer(rid,uid,function(err,location,player_num){
 			playerDao.getPlayerByPlayerId(username,function(err,player){
-				ZJHGameDao.setIsGameNum(rid,location,0,function(err,res){
-					ZJHGameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
-						ZJHGameDao.getOpenMark(rid,location,function(err,mark){
-							ZJHGameDao.getStartGolds(rid,function(err,golds){
+				gameDao.setIsGameNum(rid,location,0,function(err,res){
+					gameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
+						gameDao.getOpenMark(rid,location,function(err,mark){
+							gameDao.getStartGolds(rid,function(err,golds){
 								if(golds == null){
 									golds = new Array();
 								}
 								golds.push([player.playerId,player.gold]);
-								ZJHGameDao.setStartGolds(rid,JSON.stringify(golds),function(err,gold_res){
+								gameDao.setStartGolds(rid,JSON.stringify(golds),function(err,gold_res){
 									var tplayer = {
 										id:username,
 										location:location,
@@ -98,9 +98,9 @@ ZJHGameRemote.prototype.get = function(uid,channel,channelService,cb) {
 		function(callback){
 			if(users[0]!=null){
 				playerDao.getPlayerByPlayerId(users[0],function(err,res){
-					ZJHGameDao.getPlayerLocal(rid,users[0],function(err,location){
-						ZJHGameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
-							ZJHGameDao.getOpenMark(rid,location,function(err,mark){
+					gameDao.getPlayerLocal(rid,users[0],function(err,location){
+						gameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
+							gameDao.getOpenMark(rid,location,function(err,mark){
 								var player1 = {
 									id:users[0],
 									location:location,
@@ -124,9 +124,9 @@ ZJHGameRemote.prototype.get = function(uid,channel,channelService,cb) {
 		function(callback){
 			if(users[1]!=null){
 				playerDao.getPlayerByPlayerId(users[1],function(err,res){
-					ZJHGameDao.getPlayerLocal(rid,users[1],function(err,location){
-						ZJHGameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
-							ZJHGameDao.getOpenMark(rid,location,function(err,mark){
+					gameDao.getPlayerLocal(rid,users[1],function(err,location){
+						gameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
+							gameDao.getOpenMark(rid,location,function(err,mark){
 								var player2 = {
 									id:users[1],
 									location:location,
@@ -150,9 +150,9 @@ ZJHGameRemote.prototype.get = function(uid,channel,channelService,cb) {
 		function(callback){
 			if(users[2]!=null){
 				playerDao.getPlayerByPlayerId(users[2],function(err,res){
-					ZJHGameDao.getPlayerLocal(rid,users[2],function(err,location){
-						ZJHGameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
-							ZJHGameDao.getOpenMark(rid,location,function(err,mark){
+					gameDao.getPlayerLocal(rid,users[2],function(err,location){
+						gameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
+							gameDao.getOpenMark(rid,location,function(err,mark){
 								var player3 = {
 									id:users[2],
 									location:location,
@@ -176,9 +176,9 @@ ZJHGameRemote.prototype.get = function(uid,channel,channelService,cb) {
 		function(callback){
 			if(users[3]!=null){
 				playerDao.getPlayerByPlayerId(users[3],function(err,res){
-					ZJHGameDao.getPlayerLocal(rid,users[3],function(err,location){
-						ZJHGameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
-							ZJHGameDao.getOpenMark(rid,location,function(err,mark){
+					gameDao.getPlayerLocal(rid,users[3],function(err,location){
+						gameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
+							gameDao.getOpenMark(rid,location,function(err,mark){
 								var player4 = {
 									id:users[3],
 									location:location,
@@ -202,9 +202,9 @@ ZJHGameRemote.prototype.get = function(uid,channel,channelService,cb) {
 		function(callback){
 			if(users[4]!=null){
 				playerDao.getPlayerByPlayerId(users[4],function(err,res){
-					ZJHGameDao.getPlayerLocal(rid,users[4],function(err,location){
-						ZJHGameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
-							ZJHGameDao.getOpenMark(rid,location,function(err,mark){
+					gameDao.getPlayerLocal(rid,users[4],function(err,location){
+						gameDao.getPlayerIsGameNum(rid,location,function(err,isGameNum){
+							gameDao.getOpenMark(rid,location,function(err,mark){
 								var player5 = {
 									id:users[4],
 									location:location,
@@ -228,7 +228,7 @@ ZJHGameRemote.prototype.get = function(uid,channel,channelService,cb) {
 	],
 	function(err, results){
 		console.log("async parallel"+JSON.stringify(results));
-		ZJHGameDao.getRoomInfo(rid,function(err,res){
+		gameDao.getRoomInfo(rid,function(err,res){
 			var param = {};
 			param['current_chip'] = res.current_chip;
 			param['all_chip'] = res.all_chip;
@@ -270,17 +270,17 @@ ZJHGameRemote.prototype.kick = function(uid, sid, name, cb) {
 		var users = channel.getMembers();
 		console.log("------------users:"+users);
 	}
-	ZJHGameDao.getPlayerLocal(rid,username,function(err,location){
-		ZJHGameDao.cleanOpenMark(rid,location,function(err){
-			ZJHGameDao.setIsGameNum(rid,location,-1,function(err,result){
-				ZJHGameDao.rmPlayer(rid,uid,function(err){
+	gameDao.getPlayerLocal(rid,username,function(err,location){
+		gameDao.cleanOpenMark(rid,location,function(err){
+			gameDao.setIsGameNum(rid,location,-1,function(err,result){
+				gameDao.rmPlayer(rid,uid,function(err){
 					var param = {
 						route: 'onLeave',
 						user: username
 					};
 					channel.pushMessage(param);
-					ZJHGameDao.getRoomInfo(rid,function(err,res){
-						ZJHGameDao.getIsGameNum(rid,function(err,isGameNumArr){
+					gameDao.getRoomInfo(rid,function(err,res){
+						gameDao.getIsGameNum(rid,function(err,isGameNumArr){
 							var sum = 0;
 							var game_winner;
 							for(var i = 1;i < 6;i++){
@@ -292,15 +292,15 @@ ZJHGameRemote.prototype.kick = function(uid, sid, name, cb) {
 							if(sum ==1){
 								//重新开始
 								console.log('ZJHLogicRemote.restartGame......');
-								ZJHGameDao.setFirstFaPai(rid,0,function(err,firstFapai){
+								gameDao.setFirstFaPai(rid,0,function(err,firstFapai){
 									ZJHLogicRemote.restartGame(self.app,uid,rid,channel,channelService,game_winner);
 								});
 							}else if(sum > 1){
 								console.log("just kick from room:" + uid);
 							}else{
 								if(res.player_num == 0){
-									ZJHGameDao.resetData(rid,function(err,res){
-										console.log("ZJHGameDao.resetData......");
+									gameDao.resetData(rid,function(err,res){
+										console.log("gameDao.resetData......");
 									});
 								}
 							}

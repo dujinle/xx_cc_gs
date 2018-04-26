@@ -334,17 +334,17 @@ playerDao.getFangKa = function(id,cb){
 	});
 };
 
-playerDao.subFangKa = function(id,fangKa,cb){
-    var sql = 'update player set fangka = fangka - ? where id =?';
-    var args =[fangKa,id];
-    pomelo.app.get('dbclient').query(sql,args,function(err,res){
-        if(!!err){
-            console.log(err);
-            utils.invokeCallback(cb,err.message,null);
-        }else{
-            utils.invokeCallback(cb,null,200);
-        }
-    });
+playerDao.sub_fangka = function(id,fangka_num,cb){
+	var sql = 'update player set fangka_num = fangka_num - ? where id =?';
+	var args =[fangka_num,id];
+	pomelo.app.get('dbclient').query(sql,args,function(err,res){
+		if(!!err){
+			console.log(err);
+			utils.invokeCallback(cb,err.message,null);
+		}else{
+			utils.invokeCallback(cb,null,res);
+		}
+	});
 };
 
 playerDao.getGold = function(id,cb){

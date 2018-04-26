@@ -100,7 +100,11 @@ CREATE TABLE game_room(
 	fangzhu_name VARCHAR(64),\
 	first_fapai INT DEFAULT 0,\
 	game_type VARCHAR(10),\
+	max_type  INT,\
+	fangka_num INT,\
+	fangka_type INT,\
 	wait_time BIGINT,\
+	creat_time BIGINT,\
 	timeout_mark BIGINT,\
 	player_num INT DEFAULT 0,\
 	real_num   INT DEFAULT 0,\

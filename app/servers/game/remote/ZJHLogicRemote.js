@@ -2,7 +2,7 @@
  * Created by wuningjian on 3/3/16.
  */
 
-var ZJHGameDao   = require('../../../dao/ZJHGameDao');
+var gameDao   = require('../../../dao/gameDao');
 var playerDao = require('../../../dao/playerDao');
 var delayDao  = require('../../../dao/delayDao');
 var pomelo	= require('pomelo');
@@ -23,9 +23,9 @@ ZJHLogicRemote.fapai = function(rid,channel,channelService){
 		users[i] = users[i].split('*')[0];
 	}
 
-	ZJHGameDao.getRoomInfo(rid,function(err,roomInfo){
+	gameDao.getRoomInfo(rid,function(err,roomInfo){
 		if(roomInfo.round >= roomInfo.total_round){
-			ZJHGameDao.getStartGolds(rid,function(err,golds){
+			gameDao.getStartGolds(rid,function(err,golds){
 				var re_golds = new Array();
 				call_back = function(length,golds){
 					if(golds.length <= length){
@@ -51,15 +51,15 @@ ZJHLogicRemote.fapai = function(rid,channel,channelService){
 				call_back(0,golds);
 			});
 		}else{
-			ZJHGameDao.subRound(rid,1,function(err,round){
+			gameDao.subRound(rid,1,function(err,round){
 				//大于两人才执行发牌
-				ZJHGameDao.getAllChip(rid,function(err,ex_all_chip){
-					ZJHGameDao.getCurrentChip(rid,function(err,cur_chip){
+				gameDao.getAllChip(rid,function(err,ex_all_chip){
+					gameDao.getCurrentChip(rid,function(err,cur_chip){
 						var new_chip = ex_all_chip + cur_chip * users.length;
-						ZJHGameDao.setAllChip(rid,new_chip,function(err,res){
+						gameDao.setAllChip(rid,new_chip,function(err,res){
 							var first_fapai = users[Math.floor(Math.random()*users.length)];
-							ZJHGameDao.getPlayerLocal(rid,first_fapai,function(res,location){
-								ZJHGameDao.getLocalPlayer(rid,roomInfo.first_fapai,function(err,linfo,plocation){
+							gameDao.getPlayerLocal(rid,first_fapai,function(res,location){
+								gameDao.getLocalPlayer(rid,roomInfo.first_fapai,function(err,linfo,plocation){
 									var param = {
 										route:'onFapai',//接受发牌消息
 										msg:"fapaile!",
@@ -71,9 +71,9 @@ ZJHLogicRemote.fapai = function(rid,channel,channelService){
 										param["location"] = roomInfo.first_fapai;
 									}
 									channel.pushMessage(param);
-									ZJHGameDao.setCurPlayer(rid,param["location"],function(err,curPlayer){
+									gameDao.setCurPlayer(rid,param["location"],function(err,curPlayer){
 										console.log("set current player:" + curPlayer);
-										ZJHGameDao.updateRoomStatus(rid,1,function(err){
+										gameDao.updateRoomStatus(rid,1,function(err){
 											console.log("game_status change to 1(gaming)");
 										});
 									});
@@ -91,20 +91,20 @@ ZJHLogicRemote.fapai = function(rid,channel,channelService){
 
 				var paixing = ZJHLogicRemote.getCardArr(rid);
 				for(var i = 0;i < users.length;i++){
-					ZJHGameDao.getLocalPlayer(rid,i + 1,function(err,res,location){
-						ZJHGameDao.getIsGameNum(rid,function(err,isGameNums){
+					gameDao.getLocalPlayer(rid,i + 1,function(err,res,location){
+						gameDao.getIsGameNum(rid,function(err,isGameNums){
 							if(res!='null'){
 								if(isGameNums[location] == 1){
 									var param1 = {
 										paixing:paixing[location-1]
 									};
 									var playerId = parseInt(res.split("*")[0]);
-									ZJHGameDao.updatePai(rid,paixing[location-1],location,function(err){
-										ZJHGameDao.setIsGameNum(rid,location,2,function(err,res){
+									gameDao.updatePai(rid,paixing[location-1],location,function(err){
+										gameDao.setIsGameNum(rid,location,2,function(err,res){
 											console.log("set setIsGameNum 2 location:" + location);
 										});
 									});
-									ZJHGameDao.getCurrentChip(rid,function(err,cur_chip){
+									gameDao.getCurrentChip(rid,function(err,cur_chip){
 										playerDao.subGold(playerId,cur_chip,function(err,res){
 											console.log("subGold:" + cur_chip + " playerId:" + playerId);
 										});
@@ -132,9 +132,9 @@ ZJHLogicRemote.ready = function(rid,location,channel,username,channelService){
 	 * 玩家准备之后开始执行下注动作并相应的减去下注的筹码
 	 */
 	var playerId = parseInt(username);
-	ZJHGameDao.setIsGameNum(rid,location,1,function(err,res){
-		ZJHGameDao.getRoomInfo(rid,function(err,res){
-			ZJHGameDao.getIsGameNum(rid,function(err,isGameNums){
+	gameDao.setIsGameNum(rid,location,1,function(err,res){
+		gameDao.getRoomInfo(rid,function(err,res){
+			gameDao.getIsGameNum(rid,function(err,isGameNums){
 				console.log("set game num 1 location:" + location);
 				var param = {
 					route:'onReady',
@@ -268,9 +268,9 @@ ZJHLogicRemote.getCardArr = function(rid){
 ZJHLogicRemote.bipai = function(uid,rid,location1,location2,channel,playerId,channelService){
 	//比牌逻辑，返回结果
 	var self = this;
-	ZJHGameDao.getCurrentChip(rid,function(err,cur_chip){
-		ZJHGameDao.getOpenMark(rid,location1,function(err,open_mark){
-			ZJHGameDao.getAllChip(rid,function(err,ex_allchip){
+	gameDao.getCurrentChip(rid,function(err,cur_chip){
+		gameDao.getOpenMark(rid,location1,function(err,open_mark){
+			gameDao.getAllChip(rid,function(err,ex_allchip){
 				var cur_allchip = ex_allchip + cur_chip;
 				var playerId_int = parseInt(playerId);
 				if(open_mark == 1){
@@ -283,11 +283,11 @@ ZJHLogicRemote.bipai = function(uid,rid,location1,location2,channel,playerId,cha
 						console.log('-------follow subGold ------' + res);
 					});
 				}
-				ZJHGameDao.setAllChip(rid,cur_allchip,function(err,res){
+				gameDao.setAllChip(rid,cur_allchip,function(err,res){
 					console.log("setAllChip:" + cur_allchip);
 				});
-				ZJHGameDao.getPai(rid,location1,function(err,pai1){
-					ZJHGameDao.getPai(rid,location2,function(err,pai2){
+				gameDao.getPai(rid,location1,function(err,pai1){
+					gameDao.getPai(rid,location2,function(err,pai2){
 						//bipai logic
 						//比较牌1与牌2的大小逻辑
 						var paixing1 = self.sortPai(pai1);
@@ -410,14 +410,14 @@ ZJHLogicRemote.bipai = function(uid,rid,location1,location2,channel,playerId,cha
 							}
 						}
 						if(winner == location1){
-							ZJHGameDao.setIsGameNum(rid,location2,0,function(err){
-								ZJHGameDao.cleanOpenMark(rid,location2,function(err){
+							gameDao.setIsGameNum(rid,location2,0,function(err){
+								gameDao.cleanOpenMark(rid,location2,function(err){
 									console.log("setIsGameNum: 0 location:" + location1);
 								});
 							});
 						}else if(winner == location2){
-							ZJHGameDao.setIsGameNum(rid,location1,0,function(err){
-								ZJHGameDao.cleanOpenMark(rid,location1,function(err){
+							gameDao.setIsGameNum(rid,location1,0,function(err){
+								gameDao.cleanOpenMark(rid,location1,function(err){
 									console.log("setIsGameNum: 0 location:" + location2);
 								});
 							});
@@ -439,7 +439,7 @@ ZJHLogicRemote.bipai = function(uid,rid,location1,location2,channel,playerId,cha
 							channel.pushMessage(param);
 						});
 						setTimeout(function(){
-							ZJHGameDao.getIsGameNum(rid,function(err,isGameNumArr){
+							gameDao.getIsGameNum(rid,function(err,isGameNumArr){
 								var sum = 0;
 								var game_winner;
 								for(var i = 1;i < 6;i++){
@@ -449,14 +449,14 @@ ZJHLogicRemote.bipai = function(uid,rid,location1,location2,channel,playerId,cha
 									}
 								}
 								if(sum <= 1){
-									ZJHGameDao.getNextPlayer(rid,game_winner,function(err,nextPlayer){
-										ZJHGameDao.setFirstFaPai(rid,nextPlayer,function(err,firstFapai){
+									gameDao.getNextPlayer(rid,game_winner,function(err,nextPlayer){
+										gameDao.setFirstFaPai(rid,nextPlayer,function(err,firstFapai){
 											//重新开始
 											ZJHLogicRemote.restartGame(self.app,uid,rid,channel,channelService,game_winner);
 										});
 									});
 								}else{
-									ZJHGameDao.nextCurPlayer(rid,function(err,new_loc){
+									gameDao.nextCurPlayer(rid,function(err,new_loc){
 										//出牌定时，重置定时器
 										console.log("nextCurPlayer success" + new_loc);
 										ZJHLogicRemote.changeCurPlayer(rid,new_loc,channel);
@@ -525,7 +525,7 @@ ZJHLogicRemote.sortPai = function(paixing1){
 ZJHLogicRemote.getPlayerInfo = function(uid,rid,send_from,location,channel){
 	console.log("ZJHLogicRemote.getPlayerInfo......");
 	var playerId = null;
-	ZJHGameDao.getRoomInfo(rid,function(err,roomInfo){
+	gameDao.getRoomInfo(rid,function(err,roomInfo){
 		if(roomInfo.location1 != "null" && location == 1){
 			playerId = parseInt(roomInfo.location1.split('*')[0]);
 		}else if(roomInfo.location2 != "null" && location == 2){
@@ -581,15 +581,15 @@ ZJHLogicRemote.classPai = function(paiArray){
 ZJHLogicRemote.follow = function(rid,location,channel,user_id){
 	console.log("go into follow user_id:" + user_id);
 	//1表示已经看牌，0表示没有看牌
-	ZJHGameDao.getCurrentChip(rid,function(err,cur_chip){
-		ZJHGameDao.getAllChip(rid,function(err,ex_allchip){
-			ZJHGameDao.getOpenMark(rid,location,function(err,mark){
+	gameDao.getCurrentChip(rid,function(err,cur_chip){
+		gameDao.getAllChip(rid,function(err,ex_allchip){
+			gameDao.getOpenMark(rid,location,function(err,mark){
 				var chip = cur_chip;
 				if(mark == 1){
 					chip = chip * 2;
 				}
 				var cur_allchip = ex_allchip + chip;
-				ZJHGameDao.setAllChip(rid,cur_allchip,function(err,all_chip){
+				gameDao.setAllChip(rid,cur_allchip,function(err,all_chip){
 					var player_id = parseInt(user_id);
 					playerDao.subGold(player_id,chip,function(err,res){
 						console.log('-------follow subGold :' + chip + " mygold:" + res);
@@ -607,7 +607,7 @@ ZJHLogicRemote.follow = function(rid,location,channel,user_id){
 			});
 		});
 
-		ZJHGameDao.nextCurPlayer(rid,function(err,new_loc){
+		gameDao.nextCurPlayer(rid,function(err,new_loc){
 			console.log("nextCurPlayer success");
 			ZJHLogicRemote.changeCurPlayer(rid,new_loc,channel);
 			//出牌定时，重置定时器
@@ -626,10 +626,10 @@ ZJHLogicRemote.follow = function(rid,location,channel,user_id){
  * add chip
  * */
 ZJHLogicRemote.add = function(rid,add_chip,location,channel,username){
-	ZJHGameDao.getCurrentChip(rid,function(err,ex_cur_chip){
+	gameDao.getCurrentChip(rid,function(err,ex_cur_chip){
 		//减玩家金币，根据回调，成功以后才能进行下面的
-		ZJHGameDao.setCurrentChip(rid,add_chip,function(err,new_chip){
-			ZJHGameDao.getOpenMark(rid,location,function(err,mark){
+		gameDao.setCurrentChip(rid,add_chip,function(err,new_chip){
+			gameDao.getOpenMark(rid,location,function(err,mark){
 				var chip = add_chip;
 				if(mark==1){
 					chip = chip*2;
@@ -638,9 +638,9 @@ ZJHLogicRemote.add = function(rid,add_chip,location,channel,username){
 				playerDao.subGold(playerId_int,chip,function(err,res){
 					if(res != null){
 						console.log('-------add chip subGold:' + chip + ' my_glod:' + res);
-						ZJHGameDao.getAllChip(rid,function(err,ex_allchip){
+						gameDao.getAllChip(rid,function(err,ex_allchip){
 							var cur_allchip = ex_allchip+chip;
-							ZJHGameDao.setAllChip(rid,cur_allchip,function(err,all_chip){
+							gameDao.setAllChip(rid,cur_allchip,function(err,all_chip){
 								var param = {
 									route:'onAddChip',
 									player_id:playerId_int,
@@ -655,7 +655,7 @@ ZJHLogicRemote.add = function(rid,add_chip,location,channel,username){
 				});
 			});
 		});
-		ZJHGameDao.nextCurPlayer(rid,function(err,new_loc){
+		gameDao.nextCurPlayer(rid,function(err,new_loc){
 			console.log("nextCurPlayer success");
 			ZJHLogicRemote.changeCurPlayer(rid,new_loc,channel);
 			//出牌定时，重置定时器
@@ -673,7 +673,7 @@ ZJHLogicRemote.add = function(rid,add_chip,location,channel,username){
  * open(kan pai)
  * */
 ZJHLogicRemote.open = function(rid,location,channel,username){
-	ZJHGameDao.setOpenMark(rid,location,function(err){
+	gameDao.setOpenMark(rid,location,function(err){
 		var param = {
 			route:'onOpen',
 			user:username
@@ -692,15 +692,15 @@ ZJHLogicRemote.open = function(rid,location,channel,username){
  * param:rid,msg.location,channel,username,channelService
  * */
 ZJHLogicRemote.throw = function(app,uid,rid,location,channel,username,channelService){
-	ZJHGameDao.setIsGameNum(rid,location,0,function(err){
+	gameDao.setIsGameNum(rid,location,0,function(err){
 		var param = {
 			route:'onThrow',
 			user:username
 		};
 		channel.pushMessage(param);
-		ZJHGameDao.cleanOpenMark(rid,location,function(err){
+		gameDao.cleanOpenMark(rid,location,function(err){
 			/*判断是否就剩下一个玩家 决定是否重新开始游戏*/
-			ZJHGameDao.getIsGameNum(rid,function(err,isGameNumArr){
+			gameDao.getIsGameNum(rid,function(err,isGameNumArr){
 				var sum = 0;
 				var game_winner;
 				for(var i=1;i<6;i++){
@@ -711,17 +711,17 @@ ZJHLogicRemote.throw = function(app,uid,rid,location,channel,username,channelSer
 				}
 				if(sum <= 1){
 					//重新开始
-					ZJHGameDao.getNextPlayer(rid,game_winner,function(err,nextPlayer){
-						ZJHGameDao.setFirstFaPai(rid,nextPlayer,function(err,firstFapai){
+					gameDao.getNextPlayer(rid,game_winner,function(err,nextPlayer){
+						gameDao.setFirstFaPai(rid,nextPlayer,function(err,firstFapai){
 							//重新开始
 							ZJHLogicRemote.restartGame(app,uid,rid,channel,channelService,game_winner);
 						});
 					});
 				}else{
-					ZJHGameDao.getCurPlayer(rid,function(err,cur_player){
+					gameDao.getCurPlayer(rid,function(err,cur_player){
 						if(cur_player == location){
 							//更改当前出牌玩家
-							ZJHGameDao.nextCurPlayer(rid,function(err,new_loc){
+							gameDao.nextCurPlayer(rid,function(err,new_loc){
 								console.log("nextCurPlayer success");
 								ZJHLogicRemote.changeCurPlayer(rid,new_loc,channel);
 								//出牌定时，重置定时器
@@ -765,8 +765,8 @@ ZJHLogicRemote.restartGame = function(app,uid,rid,channel,channelService,game_wi
 		cache.del(rid);
 	}
 	//重新开始
-	ZJHGameDao.getAllChip(rid,function(err,all_chip){
-		ZJHGameDao.setWinner(rid,game_winner.toString(),function(err,winners){
+	gameDao.getAllChip(rid,function(err,all_chip){
+		gameDao.setWinner(rid,game_winner.toString(),function(err,winners){
 			var param = {
 				route:'onEnd',
 				all_chip:all_chip,
@@ -778,8 +778,8 @@ ZJHLogicRemote.restartGame = function(app,uid,rid,channel,channelService,game_wi
 				console.log("throw:removeDelay success");
 			});
 			setTimeout(function(){
-				ZJHGameDao.getRoomStatus(rid,function(err,roomStatus){
-					ZJHGameDao.getRoomInfo(rid,function(err,roomInfo){
+				gameDao.getRoomStatus(rid,function(err,roomStatus){
+					gameDao.getRoomInfo(rid,function(err,roomInfo){
 						var playerId;
 						var pai_type;
 						var paixing = [];
@@ -822,9 +822,9 @@ ZJHLogicRemote.restartGame = function(app,uid,rid,channel,channelService,game_wi
 							winner_pai:pai_type
 						};
 						channel.pushMessage(endPai);
-						ZJHGameDao.getAllChip(rid,function(err,all_chip){
+						gameDao.getAllChip(rid,function(err,all_chip){
 							playerDao.setGold(playerId,all_chip,function(err,res){
-								ZJHGameDao.resetData(rid,function(err){
+								gameDao.resetData(rid,function(err){
 									console.log("restart resetData ......");
 								});
 							});

@@ -96,21 +96,33 @@ Handler.prototype.entry = function (msg, session, next) {
 };
 
 handler.create = function(msg, session, next) {
-	playerId = msg.playerId;
-	roomType = msg.roomType;
-    var self = this;
-	playerDao.getPlayerByPlayerId(playerId,function(err,player){
-		console.log(JSON.stringify(msg) + player.fangka);
-		if(player.fangka < msg.fangKa){
-			next(null, {
-				error:"房卡数量不够！"
-			});
-		}else{
-			gameDao.createRoomByPlayerId(playerId,player.nickName,roomType, function(err,res){
-				console.log('create room succ:' + JSON.stringify(res));
+	console.log("handler.create:" + JSON.stringify(msg));
+	var renshu = msg.renshu;
+	var room_type = msg.room_type;
+	var player_id = msg.player_id;
+	var max_type = msg.max_type;
+	var fangka_type = msg.fangka_type;
+	var wait_time = msg.wait_time;
+	var fangka_num = 0;
+	var self = this;
+	if(fangka_type == 1){
+		fangka_num = 1;
+	}else if(fangka_type == 2){
+		fangka_num = renshu;
+	}
 
+	playerDao.get_player_by_id(player_id,function(err,player){
+		if(player.fangka_num < fangka_num){
+			console.log("fangka have no enough" + player.fangka_num + " use:" + fangka_num);
+			next(null, {code:203,msg:"房卡数量不足"});
+			return;
+		}
+		playerDao.sub_fangka(player_id,fangka_num,function(err,res){
+			gameDao.create_room_by_player_id(player_id,player.nick_name,room_type,renshu,max_type,fangka_type,wait_time,fangka_num,function(err,res){
+				console.log('create room succ:' + JSON.stringify(res));
+				/*
 				var rid = res;
-				var uid = playerId + '*' + rid;
+				var uid = player_id + '*' + rid;
 				session.bind(uid);
 				session.set('rid', rid);
 				session.push('rid', function(err) {
@@ -119,25 +131,46 @@ handler.create = function(msg, session, next) {
 					}
 				});
 
-				session.set('readyNum',0);
-				session.push('readyNum',function(err){
+				session.on('closed', onUserLeave.bind(null, self.app));
+				*/
+				gameDao.get_room_by_room_id(res,function(err,res){
 					if(err){
-						console.error('enterHandler:set readyNum for session service failed! error is : %j', err.stack);
+						next(null, {code:500,msg:err.message});
+					}else{
+						next(null, {code:200,msg:res});
 					}
 				});
-
-				session.on('closed', onUserLeave.bind(null, self.app));
-				console.log('leave enter func ......');
-				self.app.rpc.game.gameRemote.add(session, uid, self.app.get('serverId'), rid, true, function(location){
-					playerDao.subFangKa(playerId,msg.fangKa,function(err,code){
-						next(null, {
-							location:location
-						});
-					});
-				});
 			});
-		}
+		});
 	});
+};
+
+handler.get_room = function(msg, session, next) {
+	console.log("handler.create:" + JSON.stringify(msg));
+	var room_num = msg.room_num;
+	var rid = msg.rid;
+	var self = this;
+	if(rid != null){
+		gameDao.get_room_by_room_id(rid,function(err,res){
+			if(err){
+				next(null, {code:500,msg:err.message});
+			}else if(res != null){
+				next(null, {code:200,msg:res});
+			}else{
+				next(null, {code:202,msg:null});
+			}
+		});
+	}else{
+		gameDao.get_room_by_room_num(room_num,function(err,res){
+			if(err){
+				next(null, {code:500,msg:err.message});
+			}else if(res != null){
+				next(null, {code:200,msg:res});
+			}else{
+				next(null, {code:202,msg:null});
+			}
+		});
+	}
 };
 
 handler.enter = function(msg, session, next) {
