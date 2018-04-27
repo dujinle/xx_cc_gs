@@ -157,6 +157,13 @@ handler.enter_wait_room = function(msg, session, next) {
 			if(err){
 				next(null, {code:500,msg:err.message});
 			}else if(res != null){
+				if(res.is_gaming == -1){
+					next(null, {code:202,msg:'房间已经关闭，无法进入房间！'});
+					return;
+				}else if(res.player_num == res.real_num){
+					next(null, {code:202,msg:'房间人员已满，无法进入房间！'});
+					return;
+				}
 				var rid = res.id;
 				var uid = player_id + '*' + rid;
 				session.bind(uid);
@@ -171,7 +178,7 @@ handler.enter_wait_room = function(msg, session, next) {
 				self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true);
 				next(null, {code:200,msg:res});
 			}else{
-				next(null, {code:202,msg:null});
+				next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
 			}
 		});
 	}else{
@@ -179,6 +186,13 @@ handler.enter_wait_room = function(msg, session, next) {
 			if(err){
 				next(null, {code:500,msg:err.message});
 			}else if(res != null){
+				if(res.is_gaming == -1){
+					next(null, {code:202,msg:'房间已经关闭，无法进入房间！'});
+					return;
+				}else if(res.player_num == res.real_num){
+					next(null, {code:202,msg:'房间人员已满，无法进入房间！'});
+					return;
+				}
 				var rid = res.id;
 				var uid = player_id + '*' + rid;
 				session.bind(uid);
@@ -193,7 +207,7 @@ handler.enter_wait_room = function(msg, session, next) {
 				self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true);
 				next(null, {code:200,msg:res});
 			}else{
-				next(null, {code:202,msg:null});
+				next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
 			}
 		});
 	}
