@@ -61,6 +61,65 @@ gameDao.get_room_by_room_num = function(room_num,cb){
 	});
 };
 
+gameDao.add_player = function(rid,uid,location,cb){
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	var new_player_num;
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			console.error("db:add_player step 1 error");
+			utils.invokeCallback(cb,err,null);
+		}else{
+			//更改玩家数量
+			new_player_num = res[0].real_num+1;
+			var sql1 = 'update game_room set real_num = ? where rid = ?';
+			var args1 = [new_player_num,rid];
+			console.log("args1:",args1,location);
+			sqlTemp.update(sql1,args1,function(err,res){
+				if(err!==null){
+					console.error("db:add_player step 2 error");
+					utils.invokeCallback(cb,err,null);
+				}else{
+					console.log("db:add_player step 1 success");
+					//location 添加对应玩家名
+					var sql2 = '';
+					var args2 = [];
+					switch(location){
+						case 1:
+							sql2 = 'update game_room set location1 = ? where rid = ?';
+							args2 = [uid,rid];
+							break;
+						case 2:
+							sql2 = 'update game_room set location2 = ? where rid = ?';
+							args2 = [uid,rid];
+							break;
+						case 3:
+							sql2 = 'update game_room set location3 = ? where rid = ?';
+							args2 = [uid,rid];
+							break;
+						case 4:
+							sql2 = 'update game_room set location4 = ? where rid = ?';
+							args2 = [uid,rid];
+							break;
+						default:
+							console.error("add_player step 3 error");
+					}
+					sqlTemp.update(sql2,args2,function(err,res){
+						if(err!==null){
+							console.error("db:add_player step 3 error");
+							utils.invokeCallback(cb,err,null);
+						}else{
+							console.log("add_player step 3 success");
+							//cb(location,new_player_num);
+							utils.invokeCallback(cb,err,new_player_num);
+						}
+					});
+				}
+			});
+		}
+	});
+
+};
 /**
  * 查询数据库,通过room_num
  * @param basicChip 房间起注

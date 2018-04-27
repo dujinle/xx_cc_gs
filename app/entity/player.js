@@ -14,6 +14,7 @@ var Player = function(opts){
 	this.phone_num = opts.phone_num;
     this.nick_name = opts.nick_name;
 	this.fangka_num = opts.fangka_num;
+	this.head_img_url = opts.head_img_url;
     this.gender = opts.sex;          //性别
     this.createTime = opts.createTime;  //
 	this.round_num = opts.round_num;

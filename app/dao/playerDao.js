@@ -18,11 +18,11 @@ var playerDao = module.exports;
  * @param nickName
  * @param cb
  */
-playerDao.create_player_by_player_id = function (player_id,nick_name,sex_type,cb) {
-    console.log('cd playerDao.createPlayerByid', player_id + ' nickname ' + nick_name);
-    var sql        = 'insert into player(player_id,nick_name,sex,createTime,fangka_num) value(?,?,?,?,?)';
+playerDao.create_player_by_player_id = function (player_id,nick_name,sex_type,head_img_url,cb) {
+    console.log('cd playerDao.createPlayerByid', player_id + ' nickname ' + nick_name + ' head_img_url:' + head_img_url);
+    var sql        = 'insert into player(player_id,nick_name,sex,createTime,fangka_num,head_img_url) value(?,?,?,?,?,?)';
     var createTime = Date.now();
-    var args       = [player_id,nick_name,sex_type,createTime,10];
+    var args       = [player_id,nick_name,sex_type,createTime,10,head_img_url];
     pomelo.app.get('dbclient').query(sql, args, function (err, res) {
         if (err) {
             console.log('createPlayerByid into player table db fail');

@@ -120,7 +120,7 @@ handler.create = function(msg, session, next) {
 		playerDao.sub_fangka(player_id,fangka_num,function(err,res){
 			gameDao.create_room_by_player_id(player_id,player.nick_name,room_type,renshu,max_type,fangka_type,wait_time,fangka_num,function(err,res){
 				console.log('create room succ:' + JSON.stringify(res));
-				/*
+
 				var rid = res;
 				var uid = player_id + '*' + rid;
 				session.bind(uid);
@@ -132,11 +132,12 @@ handler.create = function(msg, session, next) {
 				});
 
 				session.on('closed', onUserLeave.bind(null, self.app));
-				*/
+
 				gameDao.get_room_by_room_id(res,function(err,res){
 					if(err){
 						next(null, {code:500,msg:err.message});
 					}else{
+						self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true);
 						next(null, {code:200,msg:res});
 					}
 				});
@@ -145,16 +146,29 @@ handler.create = function(msg, session, next) {
 	});
 };
 
-handler.get_room = function(msg, session, next) {
+handler.enter_wait_room = function(msg, session, next) {
 	console.log("handler.create:" + JSON.stringify(msg));
 	var room_num = msg.room_num;
 	var rid = msg.rid;
+	var player_id = msg.player_id;
 	var self = this;
 	if(rid != null){
 		gameDao.get_room_by_room_id(rid,function(err,res){
 			if(err){
 				next(null, {code:500,msg:err.message});
 			}else if(res != null){
+				var rid = res.id;
+				var uid = player_id + '*' + rid;
+				session.bind(uid);
+				session.set('rid', rid);
+				session.push('rid', function(err) {
+					if(err) {
+						console.error('set rid for session service failed! error is : %j', err.stack);
+					}
+				});
+
+				session.on('closed', onUserLeave.bind(null, self.app));
+				self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true);
 				next(null, {code:200,msg:res});
 			}else{
 				next(null, {code:202,msg:null});
@@ -165,6 +179,18 @@ handler.get_room = function(msg, session, next) {
 			if(err){
 				next(null, {code:500,msg:err.message});
 			}else if(res != null){
+				var rid = res.id;
+				var uid = player_id + '*' + rid;
+				session.bind(uid);
+				session.set('rid', rid);
+				session.push('rid', function(err) {
+					if(err) {
+						console.error('set rid for session service failed! error is : %j', err.stack);
+					}
+				});
+
+				session.on('closed', onUserLeave.bind(null, self.app));
+				self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true);
 				next(null, {code:200,msg:res});
 			}else{
 				next(null, {code:202,msg:null});
@@ -174,45 +200,23 @@ handler.get_room = function(msg, session, next) {
 };
 
 handler.enter = function(msg, session, next) {
-    var self = this;
-	playerId = msg.playerId;
-	roomType = msg.roomType;
-	roomNum = msg.roomNum;
+	var self = this;
+	var player_id = msg.player_id;
+	var rid = msg.rid;
+	var location = msg.location;
 
-    gameDao.returnRoom(roomNum, function(err,res){
-
-		if(res == null){
-			next(null,{
-				error:'no_room'
-			});
-			return true;
+	gameDao.get_room_by_room_id(rid,function(err,res){
+		if(err){
+			next(null, {code:500,msg:err.message});
+		}else if(res != null){
+			var rid = res.id;
+			var uid = player_id + '*' + rid;
+			self.app.rpc.game.gameRemote.enter_room(session, uid, self.app.get('serverId'), rid, location);
+			next(null, {code:200});
+		}else{
+			next(null, {code:202});
 		}
-        var rid = res.toString();
-
-        var uid = playerId + '*' + rid;
-        session.bind(uid);
-        session.set('rid', rid);
-        session.push('rid', function(err) {
-            if(err) {
-                console.error('set rid for session service failed! error is : %j', err.stack);
-            }
-        });
-
-        session.set('readyNum',0);
-        session.push('readyNum',function(err){
-            if(err){
-                console.error('enterHandler:set readyNum for session service failed! error is : %j', err.stack);
-            }
-        });
-
-        session.on('closed', onUserLeave.bind(null, self.app));
-		console.log('leave enter func ......');
-        self.app.rpc.game.gameRemote.add(session, uid, self.app.get('serverId'), rid, true, function(location){
-            next(null, {
-                location:location
-            });
-        });
-    });
+	});
 };
 
 /**

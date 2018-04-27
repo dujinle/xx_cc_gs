@@ -23,6 +23,7 @@ handler.login = function (msg, session, next) {
 	var player_id = msg.player_id;
 	var nick_name = msg.nick_name;
 	var sex_type = msg.sex;
+	var img_url = msg.head_img;
 	console.log('login player id:' + player_id + " nick_name:" + nick_name + " sex_type:" + sex_type);
 
 	//更新登录次数和时间
@@ -32,7 +33,7 @@ handler.login = function (msg, session, next) {
 			return;
 		}
 		if(player == null){
-			playerDao.create_player_by_player_id(player_id,nick_name,sex_type,function(err,player){
+			playerDao.create_player_by_player_id(player_id,nick_name,sex_type,img_url,function(err,player){
 				if(!!err) {
 					console.log('createPlayer err!',JSON.stringify(err));
 					next(null, {code: 111, msg: 'err'});

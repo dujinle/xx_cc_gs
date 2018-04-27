@@ -17,7 +17,47 @@ var gameRemote = function(app) {
     this.app = app;
     this.channelService = app.get('channelService');
 };
+/*用户进入房间等待页面 则放入channel中等待信息push*/
+/*
+	channel_id 即 前面的rid 房间号id
+	sid 即 server id
+ */
+gameRemote.prototype.enter_wait_room = function(uid, sid, channel_id, flag) {
+	console.log("gameRemote.enter_wait_room......");
+	var channel = this.channelService.getChannel(channel_id, flag);
+	var channelService = this.channelService;
+	//如果name不存在且flag为true，则创建channel
+	var username = uid.split('*')[0];
+	var rid = uid.split('*')[1];
+	var self = this;
 
+	if( !! channel) {
+		//把玩家加入channel
+		channel.add(uid, sid);
+	}
+};
+
+gameRemote.prototype.enter_room = function(uid, sid, channel_id, location) {
+	console.log("gameRemote.enter_room......");
+	var channel = this.channelService.getChannel(channel_id, false);
+	var channelService = this.channelService;
+	var username = uid.split('*')[0];
+	var rid = uid.split('*')[1];
+	var self = this;
+
+	if( !! channel) {
+		playerDao.get_player_by_id(username,function(err,player){
+			gameDao.add_player(rid,uid,location,function(err,res){
+				var param = {
+					route: 'onEnterRoom',
+					player: player,
+					position:location  //同时分配位置
+				};
+				channel.pushMessage(param);
+			});
+		});
+	}
+};
 /**
  * 房间新增用户
  */

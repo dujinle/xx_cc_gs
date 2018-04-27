@@ -16,6 +16,25 @@ var Handler = function (app) {
 
 var handler = Handler.prototype;
 
+handler.userInfoProcess = function(msg,session,next){
+	var process = msg.process;
+	if(process == "get_player"){
+		var player_id  = msg.player_id;
+		console.log('handler.get_player ', player_id);
+		if (!!player_id) {
+			console.log('start go into playerDao.updatePlayerInfo.......');
+			playerDao.get_player_by_id(player_id, function (err, res) {
+				if (err) {
+					console.log(err.message + '===========err============');
+					console.log(err);
+					next(null, {code: 500,msg: 'find error'});
+				}else{
+					next(null, {code: 200,msg: res});
+				}
+			});
+		}
+	}
+}
 /**
  * 更新用户信息 签名 性别 昵称
  * @param msg

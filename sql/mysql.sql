@@ -10,6 +10,7 @@ CREATE TABLE player(
 	player_id VARCHAR(32),\
 	phone_num VARCHAR(20),\
 	nick_name VARCHAR(64),\
+	head_img_url VARCHAR(256),\
 	sex        INT DEFAULT 0,\
 	fangka_num INT DEFAULT 0,\
 	round_num INT DEFAULT 0,\
