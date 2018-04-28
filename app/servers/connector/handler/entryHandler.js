@@ -137,8 +137,9 @@ handler.create = function(msg, session, next) {
 					if(err){
 						next(null, {code:500,msg:err.message});
 					}else{
-						self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true);
-						next(null, {code:200,msg:res});
+						self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true,function(){
+							next(null, {code:200,msg:res});
+						});
 					}
 				});
 			});
@@ -164,7 +165,7 @@ handler.enter_wait_room = function(msg, session, next) {
 					next(null, {code:202,msg:'房间人员已满，无法进入房间！'});
 					return;
 				}
-				var rid = res.id;
+				var rid = res.rid;
 				var uid = player_id + '*' + rid;
 				session.bind(uid);
 				session.set('rid', rid);
@@ -175,8 +176,9 @@ handler.enter_wait_room = function(msg, session, next) {
 				});
 
 				session.on('closed', onUserLeave.bind(null, self.app));
-				self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true);
-				next(null, {code:200,msg:res});
+				self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true,function(){
+					next(null, {code:200,msg:res});
+				});
 			}else{
 				next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
 			}
@@ -193,7 +195,7 @@ handler.enter_wait_room = function(msg, session, next) {
 					next(null, {code:202,msg:'房间人员已满，无法进入房间！'});
 					return;
 				}
-				var rid = res.id;
+				var rid = res.rid;
 				var uid = player_id + '*' + rid;
 				session.bind(uid);
 				session.set('rid', rid);
@@ -204,13 +206,27 @@ handler.enter_wait_room = function(msg, session, next) {
 				});
 
 				session.on('closed', onUserLeave.bind(null, self.app));
-				self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true);
+				self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true,function(){
+					next(null, {code:200,msg:res});
+				});
 				next(null, {code:200,msg:res});
 			}else{
 				next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
 			}
 		});
 	}
+};
+
+handler.dissolve_room = function(msg, session, next) {
+	console.log("handler.create:" + JSON.stringify(msg));
+	var rid = msg.rid;
+	var self = this;
+	self.app.rpc.game.gameRemote.dissolve_room(session, uid, self.app.get('serverId'), rid, true,function(players){
+		for(var i = 0; i < players.length;i++){
+			session.unbind(players[i]);
+		}
+		next(null, {code:200,msg:"解散房间成功"});
+	});
 };
 
 handler.enter = function(msg, session, next) {
@@ -223,16 +239,36 @@ handler.enter = function(msg, session, next) {
 		if(err){
 			next(null, {code:500,msg:err.message});
 		}else if(res != null){
-			var rid = res.id;
+			var rid = res.rid;
 			var uid = player_id + '*' + rid;
-			self.app.rpc.game.gameRemote.enter_room(session, uid, self.app.get('serverId'), rid, location);
-			next(null, {code:200});
+			self.app.rpc.game.gameRemote.enter_room(session, uid, self.app.get('serverId'), rid, location,function(){
+				next(null, {code:200});
+			});
 		}else{
 			next(null, {code:202});
 		}
 	});
 };
 
+handler.delay_wait_time = function(msg, session, next) {
+	var self = this;
+	var player_id = msg.player_id;
+	var rid = msg.rid;
+
+	gameDao.get_room_by_room_id(rid,function(err,res){
+		if(err){
+			next(null, {code:500,msg:err.message});
+		}else if(res != null){
+			var rid = res.rid;
+			var uid = player_id + '*' + rid;
+			self.app.rpc.game.gameRemote.delay_wait_time(session, uid, self.app.get('serverId'), rid,false,function(){
+				next(null, {code:200});
+			});
+		}else{
+			next(null, {code:202});
+		}
+	});
+};
 /**
  * User log out handler
  *

@@ -104,7 +104,7 @@ CREATE TABLE game_room(
 	max_type  INT,\
 	fangka_num INT,\
 	fangka_type INT,\
-	wait_time BIGINT,\
+	wait_time INT,\
 	creat_time BIGINT,\
 	timeout_mark BIGINT,\
 	player_num INT DEFAULT 0,\

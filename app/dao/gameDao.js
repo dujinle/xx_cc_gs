@@ -11,8 +11,9 @@ var sqlTemp = pomelo.app.get('dbclient');
 gameDao.create_room_by_player_id = function(player_id,nick_name,room_type,renshu,max_type,fangka_type,wait_time,fangka_num,cb){
 	var room_num = utils.random6num();
 
-	var sql = 'insert into game_room (room_num,fangzhu_id,fangzhu_name,game_type,wait_time,player_num,max_type,fangka_num,fangka_type) values(?,?,?,?,?,?,?,?,?)';
-	var args = [room_num,player_id,nick_name,room_type,wait_time,renshu,max_type,fangka_num,fangka_type];
+	var now = Date.now();
+	var sql = 'insert into game_room (room_num,fangzhu_id,fangzhu_name,game_type,wait_time,player_num,max_type,fangka_num,fangka_type,creat_time) values(?,?,?,?,?,?,?,?,?,?)';
+	var args = [room_num,player_id,nick_name,room_type,parseInt(wait_time),renshu,max_type,fangka_num,fangka_type,now];
 	sqlTemp.insert(sql,args,function(err,res){
 		if(err!==null){
 			console.error("db:createRoom error");
@@ -119,6 +120,46 @@ gameDao.add_player = function(rid,uid,location,cb){
 		}
 	});
 
+};
+
+gameDao.add_wait_time = function(rid,cb){
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			console.error("db:add_wait_time step 1 error");
+			utils.invokeCallback(cb,err,null);
+		}else{
+			var wait_time = res[0].wait_time + 2;
+			var sql1 = 'update game_room set wait_time = ? where rid = ?';
+			var args1 = [wait_time,rid];
+			console.log("args1:",args1);
+			sqlTemp.update(sql1,args1,function(err,res){
+				if(err!==null){
+					console.error("db:add_wait_time step 2 error");
+					utils.invokeCallback(cb,err,null);
+				}else{
+					console.log("db:add_wait_time step 1 success");
+					utils.invokeCallback(cb,err,wait_time);
+				}
+			});
+		}
+	});
+};
+
+gameDao.dissolve_room = function(rid,cb){
+	var sql = 'update game_room set is_gaming = ? where rid = ?';
+	var args = [-1,rid];
+	console.log("args:",args);
+	sqlTemp.update(sql1,args1,function(err,res){
+		if(err!==null){
+			console.error("db:add_wait_time step 2 error");
+			utils.invokeCallback(cb,err,null);
+		}else{
+			console.log("db:add_wait_time step 1 success");
+			utils.invokeCallback(cb,err,rid);
+		}
+	});
 };
 /**
  * 查询数据库,通过room_num
