@@ -221,6 +221,7 @@ handler.dissolve_room = function(msg, session, next) {
 	console.log("handler.create:" + JSON.stringify(msg));
 	var rid = msg.rid;
 	var self = this;
+	var uid = msg.player_id + '*' + rid;
 	self.app.rpc.game.gameRemote.dissolve_room(session, uid, self.app.get('serverId'), rid, true,function(players){
 		for(var i = 0; i < players.length;i++){
 			session.unbind(players[i]);
