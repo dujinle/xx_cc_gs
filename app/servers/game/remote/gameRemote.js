@@ -52,7 +52,7 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 				var param = {
 					route: 'onEnterRoom',
 					player: player,
-					position:location  //同时分配位置
+					location:location  //同时分配位置
 				};
 				channel.pushMessage(param);
 			});
@@ -82,7 +82,7 @@ gameRemote.prototype.delay_wait_time = function(uid, sid, channel_id,flag,cb) {
 };
 
 gameRemote.prototype.dissolve_room = function(uid, sid, channel_id,flag,cb) {
-	console.log("gameRemote.delay_wait_time......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
+	console.log("gameRemote.dissolve_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
 	var channel = this.channelService.getChannel(channel_id, flag);
 	var channelService = this.channelService;
 	var username = uid.split('*')[0];
@@ -100,7 +100,7 @@ gameRemote.prototype.dissolve_room = function(uid, sid, channel_id,flag,cb) {
 			for(var i = 0; i < users_ext.length;i++){
 				var abc = channel.leave(users_ext[i], sid);
 				players.push(users_ext[i]);
-				cc.log("remove from channel uid:" + uid + " abc:" + abc);
+				console.log("remove from channel uid:" + uid + " abc:" + abc);
 			}
 			channel.destroy();
 		});

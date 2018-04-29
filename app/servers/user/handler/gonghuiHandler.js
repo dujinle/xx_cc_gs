@@ -61,7 +61,7 @@ handler.gonghuiProcess = function (msg, session, next) {
 		var gonghui_id = msg.data.gonghui_id;
 		var player_id = msg.data.player_name;
 		var player_name = msg.data.player_name;
-		var phone_num = msg.data.telphone;
+		var phone_num = msg.data.data.telphone;
 		gonghuiDao.xuka(gonghui_id,player_id,player_name,phone_num, function (err, res) {
 			if (err) {
 				console.log(err.message + '===========err============');

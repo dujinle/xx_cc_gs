@@ -151,12 +151,12 @@ gameDao.dissolve_room = function(rid,cb){
 	var sql = 'update game_room set is_gaming = ? where rid = ?';
 	var args = [-1,rid];
 	console.log("args:",args);
-	sqlTemp.update(sql1,args1,function(err,res){
+	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:add_wait_time step 2 error");
+			console.error("db:dissolve_room error");
 			utils.invokeCallback(cb,err,null);
 		}else{
-			console.log("db:add_wait_time step 1 success");
+			console.log("db:dissolve_room success");
 			utils.invokeCallback(cb,err,rid);
 		}
 	});
