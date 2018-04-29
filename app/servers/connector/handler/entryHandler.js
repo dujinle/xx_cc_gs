@@ -29,6 +29,7 @@ var handler = Handler.prototype;
  * @return {Void}
  */
 Handler.prototype.entry = function (msg, session, next) {
+/*{{{*/
     var token = msg.token, self = this;
     console.log(__filename,'entry ok ====token: ',token);
     if (!token) {
@@ -92,10 +93,11 @@ Handler.prototype.entry = function (msg, session, next) {
         }
         console.log('get all data player user task');
     });
-
+/*}}}*/
 };
 
 handler.create = function(msg, session, next) {
+/*{{{*/
 	console.log("handler.create:" + JSON.stringify(msg));
 	var renshu = msg.renshu;
 	var room_type = msg.room_type;
@@ -145,9 +147,11 @@ handler.create = function(msg, session, next) {
 			});
 		});
 	});
+/*}}}*/
 };
 
 handler.enter_wait_room = function(msg, session, next) {
+/*{{{*/
 	console.log("handler.create:" + JSON.stringify(msg));
 	var room_num = msg.room_num;
 	var rid = msg.rid;
@@ -215,9 +219,11 @@ handler.enter_wait_room = function(msg, session, next) {
 			}
 		});
 	}
+/*}}}*/
 };
 
 handler.dissolve_room = function(msg, session, next) {
+/*{{{*/
 	console.log("handler.dissolve_room:" + JSON.stringify(msg));
 	var rid = msg.rid;
 	var player_id = msg.player_id;
@@ -229,9 +235,11 @@ handler.dissolve_room = function(msg, session, next) {
 		}
 		next(null, {code:200,msg:"解散房间成功"});
 	});
+/*}}}*/
 };
 
 handler.enter = function(msg, session, next) {
+/*{{{*/
 	var self = this;
 	var player_id = msg.player_id;
 	var rid = msg.rid;
@@ -250,9 +258,11 @@ handler.enter = function(msg, session, next) {
 			next(null, {code:202});
 		}
 	});
+/*}}}*/
 };
 
 handler.delay_wait_time = function(msg, session, next) {
+/*{{{*/
 	var self = this;
 	var player_id = msg.player_id;
 	var rid = msg.rid;
@@ -270,6 +280,20 @@ handler.delay_wait_time = function(msg, session, next) {
 			next(null, {code:202});
 		}
 	});
+/*}}}*/
+};
+
+handler.start_game = function(msg, session, next) {
+/*{{{*/
+	var self = this;
+	var player_id = msg.player_id;
+	var rid = msg.rid;
+
+	var uid = player_id + '*' + rid;
+	self.app.rpc.game.gameRemote.start_game(session, uid, self.app.get('serverId'), rid,function(){
+		next(null, {code:200});
+	});
+/*}}}*/
 };
 /**
  * User log out handler

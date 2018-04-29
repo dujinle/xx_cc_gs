@@ -9,6 +9,7 @@ var sqlTemp = pomelo.app.get('dbclient');
 //该js文件都是对数据表game_room进行操作
 
 gameDao.create_room_by_player_id = function(player_id,nick_name,room_type,renshu,max_type,fangka_type,wait_time,fangka_num,cb){
+/*{{{*/
 	var room_num = utils.random6num();
 
 	var now = Date.now();
@@ -22,9 +23,11 @@ gameDao.create_room_by_player_id = function(player_id,nick_name,room_type,renshu
 			utils.invokeCallback(cb,null,res.insertId);
 		}
 	});
+/*}}}*/
 };
 
 gameDao.get_room_by_room_id = function(rid,cb){
+/*{{{*/
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
@@ -40,9 +43,11 @@ gameDao.get_room_by_room_id = function(rid,cb){
 			}
 		}
 	});
+/*}}}*/
 };
 
 gameDao.get_room_by_room_num = function(room_num,cb){
+/*{{{*/
 	var sql = 'select * from game_room where room_num = ?';
 	var args = [room_num];
 	console.log('start select game_room by room_num:',room_num);
@@ -60,9 +65,11 @@ gameDao.get_room_by_room_num = function(room_num,cb){
 			}
 		}
 	});
+/*}}}*/
 };
 
 gameDao.add_player = function(rid,uid,location,cb){
+/*{{{*/
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	var new_player_num;
@@ -119,10 +126,12 @@ gameDao.add_player = function(rid,uid,location,cb){
 			});
 		}
 	});
+/*}}}*/
 
 };
 
 gameDao.add_wait_time = function(rid,cb){
+/*{{{*/
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
@@ -145,9 +154,11 @@ gameDao.add_wait_time = function(rid,cb){
 			});
 		}
 	});
+/*}}}*/
 };
 
 gameDao.dissolve_room = function(rid,cb){
+/*{{{*/
 	var sql = 'update game_room set is_gaming = ? where rid = ?';
 	var args = [-1,rid];
 	console.log("args:",args);
@@ -160,6 +171,24 @@ gameDao.dissolve_room = function(rid,cb){
 			utils.invokeCallback(cb,err,rid);
 		}
 	});
+/*}}}*/
+};
+
+gameDao.start_game = function(rid,cb){
+/*{{{*/
+	var sql = 'update game_room set is_gaming = ? where rid = ?';
+	var args = [1,rid];
+	console.log("args:",args);
+	sqlTemp.update(sql,args,function(err,res){
+		if(err!==null){
+			console.error("db:start_game error");
+			utils.invokeCallback(cb,err,null);
+		}else{
+			console.log("db:start_game success");
+			utils.invokeCallback(cb,err,1);
+		}
+	});
+/*}}}*/
 };
 /**
  * 查询数据库,通过room_num

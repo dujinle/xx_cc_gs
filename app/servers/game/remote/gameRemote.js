@@ -23,6 +23,7 @@ var gameRemote = function(app) {
 	sid 即 server id
  */
 gameRemote.prototype.enter_wait_room = function(uid, sid, channel_id, flag,cb) {
+/*{{{*/
 	console.log("gameRemote.enter_wait_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id + " flag:" + flag);
 	var channel = this.channelService.getChannel(channel_id, flag);
 	var channelService = this.channelService;
@@ -36,9 +37,11 @@ gameRemote.prototype.enter_wait_room = function(uid, sid, channel_id, flag,cb) {
 		channel.add(uid, sid);
 	}
 	cb();
+/*}}}*/
 };
 
 gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
+/*{{{*/
 	console.log("gameRemote.enter_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id + " location:" + location);
 	var channel = this.channelService.getChannel(channel_id, false);
 	var channelService = this.channelService;
@@ -59,9 +62,11 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 		});
 	}
 	cb();
+/*}}}*/
 };
 
 gameRemote.prototype.delay_wait_time = function(uid, sid, channel_id,flag,cb) {
+/*{{{*/
 	console.log("gameRemote.delay_wait_time......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
 	var channel = this.channelService.getChannel(channel_id, flag);
 	var channelService = this.channelService;
@@ -79,9 +84,11 @@ gameRemote.prototype.delay_wait_time = function(uid, sid, channel_id,flag,cb) {
 		});
 	}
 	cb();
+/*}}}*/
 };
 
 gameRemote.prototype.dissolve_room = function(uid, sid, channel_id,flag,cb) {
+/*{{{*/
 	console.log("gameRemote.dissolve_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
 	var channel = this.channelService.getChannel(channel_id, flag);
 	var channelService = this.channelService;
@@ -106,6 +113,29 @@ gameRemote.prototype.dissolve_room = function(uid, sid, channel_id,flag,cb) {
 		});
 	}
 	cb(players);
+/*}}}*/
+};
+
+gameRemote.prototype.start_game = function(uid, sid, channel_id,cb) {
+/*{{{*/
+	console.log("gameRemote.start_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
+	var channel = this.channelService.getChannel(channel_id, flag);
+	var channelService = this.channelService;
+	var username = uid.split('*')[0];
+	var rid = uid.split('*')[1];
+	var self = this;
+
+	if( !! channel) {
+		gameDao.start_game(rid,function(err,res){
+			var param = {
+				route: 'onStartGame',
+				rid: res
+			};
+			channel.pushMessage(param);
+		});
+	}
+	cb();
+/*}}}*/
 };
 /**
  * 房间新增用户
