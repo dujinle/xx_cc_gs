@@ -116,6 +116,49 @@ gameRemote.prototype.dissolve_room = function(uid, sid, channel_id,flag,cb) {
 /*}}}*/
 };
 
+gameRemote.prototype.leave_room = function(uid, sid, channel_id,flag,location,cb) {
+/*{{{*/
+	console.log("gameRemote.leave_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
+	var channel = this.channelService.getChannel(channel_id, flag);
+	var channelService = this.channelService;
+	var username = uid.split('*')[0];
+	var rid = uid.split('*')[1];
+	var self = this;
+	var players = new Array();
+	if( !! channel) {
+		if(location != null){
+			gameDao.leave_room(rid,location,function(err,res){
+				var param = {
+					route: 'onLeaveRoom',
+					location:location,
+					player_id:username,
+					data:res
+				};
+				channel.pushMessage(param);
+			});
+		}else{
+			var param = {
+				route: 'onLeaveRoom',
+				location:null,
+				player_id:username,
+				data:null
+			};
+			channel.pushMessage(param);
+		}
+		var users_ext = channel.getMembers();
+		for(var i = 0; i < users_ext.length;i++){
+			if(users_ext[i] == uid){
+				var abc = channel.leave(users_ext[i], sid);
+				players.push(users_ext[i]);
+				console.log("remove from channel uid:" + uid + " abc:" + abc);
+				break;
+			}
+		}
+	}
+	cb(players);
+/*}}}*/
+};
+
 gameRemote.prototype.start_game = function(uid, sid, channel_id,cb) {
 /*{{{*/
 	console.log("gameRemote.start_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);

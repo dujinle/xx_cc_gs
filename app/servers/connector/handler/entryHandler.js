@@ -238,6 +238,23 @@ handler.dissolve_room = function(msg, session, next) {
 /*}}}*/
 };
 
+handler.leave_room = function(msg, session, next) {
+/*{{{*/
+	console.log("handler.leave_room:" + JSON.stringify(msg));
+	var rid = msg.rid;
+	var player_id = msg.player_id;
+	var location = msg.location;
+	var self = this;
+	var uid = player_id + '*' + rid;
+	self.app.rpc.game.gameRemote.leave_room(session, uid, self.app.get('serverId'), rid, true,location,function(players){
+		for(var i = 0; i < players.length;i++){
+			session.unbind(players[i]);
+		}
+		next(null, {code:200,msg:"离开房间成功"});
+	});
+/*}}}*/
+};
+
 handler.enter = function(msg, session, next) {
 /*{{{*/
 	var self = this;

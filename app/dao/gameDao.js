@@ -174,6 +174,65 @@ gameDao.dissolve_room = function(rid,cb){
 /*}}}*/
 };
 
+gameDao.leave_room = function(rid,location,cb){
+/*{{{*/
+	console.log("db:leave_room step 1 success");
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			console.error("db:leave_room step 1 error");
+			utils.invokeCallback(cb,err,null);
+		}else{
+			var room_info = res[0];
+			//location 添加对应玩家名
+			var sql = '';
+			var args = [];
+			switch(location){
+				case 1:
+					sql = 'update game_room set location1 = ? where rid = ?';
+					args = ["null",rid];
+					break;
+				case 2:
+					sql = 'update game_room set location2 = ? where rid = ?';
+					args = ["null",rid];
+					break;
+				case 3:
+					sql = 'update game_room set location3 = ? where rid = ?';
+					args = ["null",rid];
+					break;
+				case 4:
+					sql = 'update game_room set location4 = ? where rid = ?';
+					args = ["null",rid];
+					break;
+				default:
+					console.error("leave_room step 2 error");
+			}
+			sqlTemp.update(sql,args,function(err,res){
+				if(err!==null){
+					console.error("db:leave_room step 2 error");
+					utils.invokeCallback(cb,err,null);
+				}else{
+					console.log("leave_room step 2 success");
+					//cb(location,new_player_num);
+					sql = 'update game_room set real_num = read_num - 1 where rid = ?';
+					args = [rid];
+					sqlTemp.update(sql,args,function(err,res){
+						if(err!==null){
+							console.error("db:leave_room step 3 error");
+							utils.invokeCallback(cb,err,null);
+						}else{
+							console.log("leave_room step 3 success");
+							utils.invokeCallback(cb,err,res[0]);
+						}
+					});
+				}
+			});
+		}
+	});
+/*}}}*/
+};
+
 gameDao.start_game = function(rid,cb){
 /*{{{*/
 	var sql = 'update game_room set is_gaming = ? where rid = ?';
