@@ -89,6 +89,20 @@ utils.random6num = function(){
 	return Num;
 };
 
+utils.get_random_num = function(minNum,maxNum){
+	switch(arguments.length){
+		case 1:
+			return parseInt(Math.random()*minNum+1,10);
+			break;
+		case 2:
+			return parseInt(Math.random()*(maxNum-minNum+1)+minNum,10);
+			break;
+		default:
+			return 0;
+			break;
+	}
+};
+
 utils.get_uuid = function(){
 	var uuid = Date.now() + "" + Math.round(Math.random() * 10000);
 	return uuid.substring(0,16);

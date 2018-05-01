@@ -112,6 +112,7 @@ CREATE TABLE game_room(
 	zhuang_location INT,\
 	zhuang_score    INT,\
 	round INT DEFAULT 0,\
+	qiang_flag VARCHAR(120) DEFAULT '[]',\
 	location1 VARCHAR(20) DEFAULT 'null',\
 	location2 VARCHAR(20) DEFAULT 'null',\
 	location3 VARCHAR(20) DEFAULT 'null',\
