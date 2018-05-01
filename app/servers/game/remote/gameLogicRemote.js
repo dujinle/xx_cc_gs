@@ -11,131 +11,10 @@ var cache	 = require('memory-cache');
 
 var gameLogicRemote = module.exports;
 
-gameLogicRemote.detect_gold = function(app,uid,channel,playerId,rid,cb){
-	playerDao.getPlayerByPlayerId(playerId,function(err,playerInfo){
-		if(err!==null){
-			console.error("gameLogicRemote detect_gold error");
-			cb();
-		}else{
-			gameDao.getRoomInfo(rid,function(err,roomInfo){
-				if(err!==null){
-					console.error("gameLogicRemote detect_gold 1 error");
-					cb();
-				}else{
-					var basicChip = roomInfo.basic_chip;
-					switch (basicChip){
-						case 100:
-							if(playerInfo.gold>=3000){
-								cb("permit");
-							}else{
-								//this.app.rpc.game.gameRemote.kick(session,session.uid,"connector-server-1",session.get('rid'),function(){
-								//	next(null,'kick successful');
-								//});
-								//if( !! channel) {
-								//	var users_ext = channel.getMembers();
-								//	console.log("------------users_ext:"+users_ext);
-								//	var abc = channel.leave(uid, sid);
-								//	console.log("------------leave status:"+abc);
-								//	var users = channel.getMembers();
-								//	console.log("------------users:"+users);
-								//}
-								if(!!channel){
-									var abc = channel.leave(uid,"connector-server-1");
-									if(abc==true){
-										gameDao.rmPlayer(rid,uid,function(){
-											var param = {
-												route: 'onLeave',
-												user: uid.split('*')[0]
-											};
-											channel.pushMessage(param);
-											console.log("detect_gold rmPlayer succseefully");
-											cb("refuse");
-										});
-									}
-								}
-
-
-							}
-							break;
-						case 500:
-							if(playerInfo.gold>=50000){
-								cb("permit");
-							}else{
-								if(!!channel){
-									var abc = channel.leave(uid,"connector-server-1");
-									if(abc==true){
-										gameDao.rmPlayer(rid,uid,function(){
-											var param = {
-												route: 'onLeave',
-												user: uid.split('*')[0]
-											};
-											channel.pushMessage(param);
-											console.log("detect_gold rmPlayer succseefully");
-											cb("refuse");
-										});
-									}
-								}
-
-							}
-							break;
-						case 1000:
-							if(playerInfo.gold>=100000){
-								cb("permit");
-							}else{
-								if(!!channel){
-									var abc = channel.leave(uid,"connector-server-1");
-									if(abc==true){
-										gameDao.rmPlayer(rid,uid,function(){
-											var param = {
-												route: 'onLeave',
-												user: uid.split('*')[0]
-											};
-											channel.pushMessage(param);
-											console.log("detect_gold rmPlayer succseefully");
-											cb("refuse");
-										});
-									}
-								}
-
-							}
-							break;
-						case 10000:
-							if(playerInfo.gold>=1000000){
-								cb("permit");
-							}else{
-								if(!!channel){
-									var abc = channel.leave(uid,"connector-server-1");
-									if(abc==true){
-										gameDao.rmPlayer(rid,uid,function(){
-											var param = {
-												route: 'onLeave',
-												user: uid.split('*')[0]
-											};
-											channel.pushMessage(param);
-											console.log("detect_gold rmPlayer succseefully");
-											cb("refuse");
-										});
-									}
-								}
-							}
-							break;
-						default:
-							cb("refuse");
-							break;
-					}
-				}
-
-			});
-		}
-
-
-	});
-};
-
 /**
  * fa pai
  * */
-gameLogicRemote.fapai = function(app,uid,rid,channel,channelService,playerId,cb){
+gameLogicRemote.fapai = function(rid,channel,channelService){
 	////如果name不存在且flag为true，则创建channel
 	var users = channel.getMembers();
 	console.log("--------users in fapai:"+users);
@@ -143,78 +22,50 @@ gameLogicRemote.fapai = function(app,uid,rid,channel,channelService,playerId,cb)
 		users[i] = users[i].split('*')[0];
 	}
 
-	gameDao.getRoomInfo(rid,function(err,roomInfo){
-		if(roomInfo.player_num>=2){
-			//大于两人才执行发牌
-			var j = Math.floor(Math.random()*users.length);
-			gameDao.getPlayerLocal(rid,users[j],function(err,location){
-				gameDao.setCurPlayer(rid,location,function(err,cur_player){
-					var param = {
-						route:'onFapai',//接受发牌消息
-						msg:"fapaile!",
-						first:users[j],  //返回第一个出牌的人
-						location:location
+	gameDao.get_room_by_room_id(rid,function(err,roomInfo){
+		var param = {
+			route:'onFapai',//接受发牌消息
+			msg:"fapaile!",
+			first:first_fapai  //返回第一个出牌的人
+		};
+		channel.pushMessage(param);
+	});
+
+	//3000ms为发牌动作执行时间间隔
+	setTimeout(function(){
+		//P:牌数字2-14
+		//S:花色 1方块 2梅花 3红桃 4黑桃
+		//这里需要完成发牌逻辑
+		var paixing = gameLogicRemote.getCardArr(rid);
+
+		var tempUser = channel.getMembers();
+
+		for(var i = 1;i < 5;i++){
+			gameDao.getLocalPlayer(rid,i,function(err,res,location){
+				if(res!='null'){
+					var param1 = {
+						paixing:paixing[location-1]
 					};
-					channel.pushMessage(param);
-				});
+					gameDao.updatePai(rid,paixing[location-1],location,function(err){
 
-				for(var i = 0; i<users.length; i++){
-					var playerId_int = parseInt(users[i]);
-					playerDao.subGold(playerId_int,100,function(err,res){
-						console.log('-------fapai subGold------');
 					});
-				}
+					gameDao.setIsGameNum(rid,location,1,function(err){
+						console.log("paixing:"+JSON.stringify(param1));
+						console.log("heheheheheheh"+JSON.stringify(res));
+						var tsid = channel.getMember(res)['sid'];
+						channelService.pushMessageByUids('onShoupai', param1, [{
+							uid: res,
+							//sid: channel.getMember(res)['sid']
+							sid: tsid
+						}]);
+						gameDao.updateRoomStatus(rid,1,function(err){
+							console.log("game_status change to 1(gaming)");
+						});
 
-				//3000ms为发牌动作执行时间间隔
-				setTimeout(function(){
-					gameLogicRemote.changeCurPlayer(rid,location,channel);
-				},600*users.length);
-			});
-
-			//P:牌数字2-14
-			//S:花色 1方块 2梅花 3红桃 4黑桃
-			//这里需要完成发牌逻辑
-
-			var paixing = gameLogicRemote.getCardArr(rid);
-
-			var tempUser = channel.getMembers();
-			gameDao.getAllChip(rid,function(err,ex_all_chip){
-				gameDao.getCurrentChip(rid,function(err,cur_chip){
-					var new_chip = ex_all_chip+cur_chip*(tempUser.length);
-					gameDao.setAllChip(rid,new_chip,function(err){
-						console.log("fapai:new_chip:"+new_chip);
-						console.log("fapai:setAllChip success");
+						delayDao.addDelay(rid,13,function(){
+							console.log("fapai:addDelay success");
+						});
 					});
-				});
-			});
-
-
-			for(var i=1;i<6;i++){
-				gameDao.getLocalPlayer(rid,i,function(err,res,location){
-					if(res!='null'){
-						var param1 = {
-							paixing:paixing[location-1]
-						};
-						gameDao.updatePai(rid,paixing[location-1],location,function(err){
-
-						});
-						gameDao.setIsGameNum(rid,location,1,function(err){
-							console.log("paixing:"+JSON.stringify(param1));
-							console.log("heheheheheheh"+JSON.stringify(res));
-							var tsid = channel.getMember(res)['sid'];
-							channelService.pushMessageByUids('onShoupai', param1, [{
-								uid: res,
-								//sid: channel.getMember(res)['sid']
-								sid: tsid
-							}]);
-							gameDao.updateRoomStatus(rid,1,function(err){
-								console.log("game_status change to 1(gaming)");
-							});
-
-							delayDao.addDelay(rid,13,function(){
-								console.log("fapai:addDelay success");
-							});
-						});
 					}
 				});
 			}
@@ -223,14 +74,12 @@ gameLogicRemote.fapai = function(app,uid,rid,channel,channelService,playerId,cb)
 
 		}
 	});
-
-	cb();
 };
 
 /**
  * 分牌逻辑，调用后返回牌型数组
  * */
-gameLogicRemote.getCardArr = function(rid){
+gameLogicRemote.getCardArr = function(rid,user_length){
 	var arr = [];
 	var paiArr = [];//牌型数组
 	var restPaiArr = [];//剩余的牌数组
@@ -286,7 +135,7 @@ gameLogicRemote.getCardArr = function(rid){
 		return param;
 	}
 
-	for(var i=0;i<52;i++){
+	for(var i = 0;i < 32;i++){
 		arr[i]=0;
 	}
 	var j = 0;
@@ -331,209 +180,6 @@ gameLogicRemote.getCardArr = function(rid){
 	//cache.put('test',tempTest);
 
 	return paixing;
-};
-
-/**
- * 处理换牌卡的逻辑
- * 若仍有换牌次数与换牌卡，则返回新的一张牌
- * 若没有换牌次数，则返回换牌次数不足
- * 若没有换牌卡，则返回换牌卡不足
- * @param rid
- * @param location
- * @param paiToChange eg.{p1:1,s1:1}
- * @param cb callback(err, newPai)
- */
-gameLogicRemote.huanPai = function(rid,location,paiToChange,cb){
-	//判断换牌卡数量剩余
-	gameDao.getRoomInfo(rid,function(err,roomInfo){
-		if(err!==null){
-			cb('huanPai failed',null);
-		}else{
-			var playerId = null;
-			switch (location){
-				case 1:
-					playerId = roomInfo.location1.split('*')[0];
-					break;
-				case 2:
-					playerId = roomInfo.location2.split('*')[0];
-					break;
-				case 3:
-					playerId = roomInfo.location3.split('*')[0];
-					break;
-				case 4:
-					playerId = roomInfo.location4.split('*')[0];
-					break;
-				case 5:
-					playerId = roomInfo.location5.split('*')[0];
-					break;
-				default:
-					//cb('huanPai failed',null);
-			}
-			playerDao.getPlayerByPlayerId(playerId,function(err,playerInfo){
-				//获取换牌卡数量
-				if(err!==null){
-					cb('huanPai failed',null);
-				}else if(playerInfo.huanPaiKa<=0){
-					cb('换牌卡不足',null);
-				}else{
-					//判断换牌次数
-					console.log('-----------enter gamelogicremote huanpai--------');
-					var restPaiArr = cache.get(rid);//剩余牌的数组
-					var index = Math.floor(Math.random()*restPaiArr.length);
-					var new_p1 = parseInt(restPaiArr[index]%13+2);
-					var new_s1 = parseInt(restPaiArr[index]/13+1);
-
-					//删除抽取的牌
-					restPaiArr[index]=restPaiArr[restPaiArr.length-1];
-					restPaiArr.pop();
-					cache.del(rid);
-					cache.put(rid,restPaiArr);
-
-					var newPai1 = {
-						p1:new_p1,
-						s1:new_s1
-					};
-					gameDao.getPai(rid,location,function(err,paixing){
-						console.log('-----------enter gamelogicremote huanpai getpai cb--------');
-						if(err!==null){
-							cb(err,null);
-						}else{
-							if(paiToChange.s1==paixing.s1&&paiToChange.p1==paixing.p1){
-								var newPai = {
-									p1:new_p1.toString(),
-									s1:new_s1.toString(),
-									p2:paixing.p2,
-									s2:paixing.s2,
-									p3:paixing.p3,
-									s3:paixing.s3
-								};
-								gameDao.updatePai(rid,newPai,location,function(err,res){
-									if(err!==null){
-										cb(err,null);
-									}else{
-										cb(null,newPai1);
-									}
-								});
-
-							}else if(paiToChange.s1==paixing.s2&&paiToChange.p1==paixing.p2){
-								var newPai = {
-									p1:paixing.p1,
-									s1:paixing.s1,
-									p2:new_p1.toString(),
-									s2:new_s1.toString(),
-									p3:paixing.p3,
-									s3:paixing.s3
-								};
-								gameDao.updatePai(rid,newPai,location,function(err,res){
-									if(err!==null){
-										cb(err,null);
-									}else{
-										cb(null,newPai1);
-									}
-								});
-							}else if(paiToChange.s1==paixing.s3&&paiToChange.p1==paixing.p3){
-								var newPai = {
-									p1:paixing.p1,
-									s1:paixing.s1,
-									p2:paixing.p2,
-									s2:paixing.s2,
-									p3:new_p1.toString(),
-									s3:new_s1.toString()
-								};
-								gameDao.updatePai(rid,newPai,location,function(err,res){
-									if(err!==null){
-										cb(err,null);
-									}else{
-										cb(null,newPai1);
-									}
-								});
-							}else{
-								cb('huanPai failed',null);
-							}
-						}
-					});
-				}
-			});
-		}
-	});
-
-	//判断换牌次数
-	//console.log('-----------enter gamelogicremote huanpai--------');
-	//var restPaiArr = cache.get(rid);//剩余牌的数组
-	//var index = Math.floor(Math.random()*restPaiArr.length);
-	//var new_p1 = parseInt(restPaiArr[index]%13+2);
-	//var new_s1 = parseInt(restPaiArr[index]/13+1);
-	//
-	////删除抽取的牌
-	//restPaiArr[index]=restPaiArr[restPaiArr.length-1];
-	//restPaiArr.pop();
-	//cache.del(rid);
-	//cache.put(rid,restPaiArr);
-	//
-	//var newPai1 = {
-	//	p1:new_p1,
-	//	s1:new_s1
-	//};
-	//gameDao.getPai(rid,location,function(err,paixing){
-	//	console.log('-----------enter gamelogicremote huanpai getpai cb--------');
-	//	if(err!==null){
-	//		cb(err,null);
-	//	}else{
-	//		if(paiToChange.s1==paixing.s1&&paiToChange.p1==paixing.p1){
-	//			var newPai = {
-	//				p1:new_p1.toString(),
-	//				s1:new_s1.toString(),
-	//				p2:paixing.p2,
-	//				s2:paixing.s2,
-	//				p3:paixing.p3,
-	//				s3:paixing.s3
-	//			};
-	//			gameDao.updatePai(rid,newPai,location,function(err,res){
-	//				if(err!==null){
-	//					cb(err,null);
-	//				}else{
-	//					cb(null,newPai1);
-	//				}
-	//			});
-	//
-	//		}else if(paiToChange.s1==paixing.s2&&paiToChange.p1==paixing.p2){
-	//			var newPai = {
-	//				p1:paixing.p1,
-	//				s1:paixing.s1,
-	//				p2:new_p1.toString(),
-	//				s2:new_s1.toString(),
-	//				p3:paixing.p3,
-	//				s3:paixing.s3
-	//			};
-	//			gameDao.updatePai(rid,newPai,location,function(err,res){
-	//				if(err!==null){
-	//					cb(err,null);
-	//				}else{
-	//					cb(null,newPai1);
-	//				}
-	//			});
-	//		}else if(paiToChange.s1==paixing.s3&&paiToChange.p1==paixing.p3){
-	//			var newPai = {
-	//				p1:paixing.p1,
-	//				s1:paixing.s1,
-	//				p2:paixing.p2,
-	//				s2:paixing.s2,
-	//				p3:new_p1.toString(),
-	//				s3:new_s1.toString()
-	//			};
-	//			gameDao.updatePai(rid,newPai,location,function(err,res){
-	//				if(err!==null){
-	//					cb(err,null);
-	//				}else{
-	//					cb(null,newPai1);
-	//				}
-	//			});
-	//		}else{
-	//			cb('huanPai failed',null);
-	//		}
-	//	}
-	//});
-
 };
 
 /**
@@ -1599,24 +1245,57 @@ gameLogicRemote.qiang = function(rid,location,flag,channel,username){
 		users[i] = users[i].split('*')[0];
 	}
 	gameDao.set_qiang_zhuang(rid,location,function(err,res){
-		gameDao.get_qiang_zhuang(rid,function(err,qiangzuangs){
-			if(qiangzuangs.length >= users.length){
-				var num1 = utils.get_random_num(1,6);
-				var num2 = utils.get_random_num(1,6);
-				var param = {
-					route:'onQiangFinish',
-					location:location,
-					nums:[num1,num2]
-				};
-				channel.pushMessage(param);
-			}else{
-				var param = {
-					route:'onQiang',
-					location:location
-				};
-				channel.pushMessage(param);
-			}
-		});
+		var param = {
+			route:'onQiang',
+			location:location
+		};
+		channel.pushMessage(param);
+		setTimeout(function(){
+			gameDao.get_qiang_zhuang(rid,function(err,qiangzuangs){
+				if(qiangzuangs.length >= users.length){
+					var num1 = utils.get_random_num(1,6);
+					var num2 = utils.get_random_num(1,6);
+					var local = (num1 + num2) % qiangzuangs.length;
+					var zhuang_id = qiangzuangs[local];
+					gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
+						var param = {
+							route:'onGetZhuang',
+							nums:[num1,num2],
+							zhuang_local:zhuang_id
+						};
+						channel.pushMessage(param);
+					});
+				}
+			});
+		},2000);
+	});
+};
+
+gameLogicRemote.xiazhu = function(rid,location,chips,channel,channelService){
+	var users = channel.getMembers();
+	console.log("--------users in fapai:"+users);
+	gameDao.set_xiazhu(rid,location,chips,function(err,res){
+		var param = {
+			route:'onXiazhu',
+			location:location,
+			chips:chips
+		};
+		channel.pushMessage(param);
+		setTimeout(function(){
+			gameDao.get_every_score(rid,function(err,scores){
+				if(scores.length >= users.length){
+					var num1 = utils.get_random_num(1,6);
+					var num2 = utils.get_random_num(1,6);
+					var local = (num1 + num2) % users.length;
+					if(local == 0){
+						local = users.length;
+					}
+					gameDao.set_first_location(rid,local,function(err,res){
+						gameLogicRemote.fapai(rid,channel,channelService);
+					});
+				}
+			});
+		},2000);
 	});
 };
 

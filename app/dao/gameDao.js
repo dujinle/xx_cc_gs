@@ -73,7 +73,64 @@ gameDao.set_qiang_zhuang = function(rid,location,cb){
 			}
 		}
 	});
-}
+/*}}}*/
+};
+
+gameDao.set_zhuang_location = function(rid,location,cb){
+/*{{{*/
+	console.log("set_zhuang_location:"+location);
+	sql = 'update game_room set zhuang_location = ? where rid = ?';
+	args = [location,rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb,err,null);
+		}else{
+			utils.invokeCallback(cb,null,location);
+		}
+	});
+/*}}}*/
+};
+
+gameDao.set_first_location = function(rid,location,length,cb){
+/*{{{*/
+	console.log("set_first_location:"+location);
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb,err,null);
+		}else{
+			if(!!res && res.length > 0){
+				console.log("getRoom:"+JSON.stringify(res));
+				var local = res[0].zhuang_location;
+				while(true){
+					var local = local % length;
+					if(local == 0){
+						local = length;
+					}
+					if(res[0]['location' + local] != 'null'){
+						location = location - 1;
+						if(location == 0){
+							break;
+						}
+						local = local + 1;
+					}
+				}
+				sql = 'update game_room set first_fapai = ? where rid = ?';
+				args = [local,rid];
+				sqlTemp.query(sql,args,function(err,res){
+					if(err!==null){
+						utils.invokeCallback(cb,err,null);
+					}else{
+						utils.invokeCallback(cb,null,local);
+					}
+				});
+			}else{
+				console.log("getRoom: no found room......");
+				utils.invokeCallback(cb,null,null);
+			}
+		}
+	});
 /*}}}*/
 };
 

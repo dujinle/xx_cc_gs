@@ -40,6 +40,10 @@ handler.game_process = function(msg,session,next){
 		console.log('player qiang zhuang');
 		gameLogicRemote.qiang(rid,msg.location,msg.flag,channel,username);
 		next(null,{msg:"receive process successfully"});
+	}else if(process == 'xiazhu'){
+		console.log('player xiazhu');
+		gameLogicRemote.xiazhu(rid,msg.location,msg.chips,channel,channelService);
+		next(null,{msg:"receive process successfully"});
 	}else if(process == 'follow'){
 		console.log('player follow');
 
