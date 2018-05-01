@@ -342,6 +342,7 @@ playerDao.sub_fangka = function(id,fangka_num,cb){
 			console.log(err);
 			utils.invokeCallback(cb,err.message,null);
 		}else{
+			console.log("sub_fangka :" + JSON.stringify(res));
 			utils.invokeCallback(cb,null,res);
 		}
 	});

@@ -243,8 +243,8 @@ gameDao.start_game = function(rid,cb){
 			console.error("db:start_game error");
 			utils.invokeCallback(cb,err,null);
 		}else{
-			console.log("db:start_game success");
-			utils.invokeCallback(cb,err,1);
+			console.log("db:start_game success" + JSON.stringify(res));
+			utils.invokeCallback(cb,err,rid);
 		}
 	});
 /*}}}*/
@@ -398,26 +398,24 @@ gameDao.getLocalPlayer = function(rid,location,cb){
 /**
  * 返回玩家的房间对应位置
  * */
-gameDao.getPlayerLocal = function(rid,player,cb){
+gameDao.get_player_local = function(rid,player_id,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	var location;
-	console.log("--------------player input getplayerlocal"+player);
+	console.log("--------------player input getplayerlocal"+player_id);
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
 			console.error("db:getPlayerLocal error");
 			utils.invokeCallback(cb, err, null);
 		}else{
-			if(player == res[0].location1.split('*')[0]){
+			if(player_id == res[0].location1.split('*')[0]){
 				location = 1;
-			}else if(player == res[0].location2.split('*')[0]){
+			}else if(player_id == res[0].location2.split('*')[0]){
 				location = 2;
-			}else if(player == res[0].location3.split('*')[0]){
+			}else if(player_id == res[0].location3.split('*')[0]){
 				location = 3;
-			}else if(player == res[0].location4.split('*')[0]){
+			}else if(player_id == res[0].location4.split('*')[0]){
 				location = 4;
-			}else if(player == res[0].location5.split('*')[0]){
-				location = 5;
 			}else {
 				console.error("db:getPlayerLocal2 error");
 				utils.invokeCallback(cb, "db:getPlayerLocal2 error", null);

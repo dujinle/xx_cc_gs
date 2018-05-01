@@ -50,18 +50,54 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 	var self = this;
 
 	if( !! channel) {
-		playerDao.get_player_by_id(username,function(err,player){
-			gameDao.add_player(rid,uid,location,function(err,res){
-				var param = {
-					route: 'onEnterRoom',
-					player: player,
-					location:location  //同时分配位置
-				};
-				channel.pushMessage(param);
+		gameDao.get_room_by_room_id(rid,function(err,res){
+			playerDao.get_player_by_id(username,function(err,player){
+				//如果是房主进入房间则直接进入不用消费房卡，因为建房时已经消费
+				if(res.fangzhu_id == player.id){
+					gameDao.add_player(rid,uid,location,function(err,res){
+						var param = {
+							route: 'onEnterRoom',
+							player: player,
+							location:location  //同时分配位置
+						};
+						channel.pushMessage(param);
+					});
+					cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num});
+				}else{
+					//玩家进入房间确定房间模式是否需要消费房卡
+					if(res.fangka_type == 1){
+						if(player.fangka_num - 1 >= 0){
+							playerDao.sub_fangka(player.id,1,function(err,res){
+								gameDao.add_player(rid,uid,location,function(err,res){
+									var param = {
+										route: 'onEnterRoom',
+										player: player,
+										location:location  //同时分配位置
+									};
+									channel.pushMessage(param);
+								});
+							});
+							cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num - 1});
+						}else{
+							cb({'code':202,'msg':'房卡数量不够，无法进入游戏房间！'});
+						}
+					}else{
+						gameDao.add_player(rid,uid,location,function(err,res){
+							var param = {
+								route: 'onEnterRoom',
+								player: player,
+								location:location  //同时分配位置
+							};
+							channel.pushMessage(param);
+						});
+						cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num});
+					}
+				}
 			});
 		});
+	}else{
+		cb({'code':202,'msg':'没有找到房间信道！'});
 	}
-	cb();
 /*}}}*/
 };
 
@@ -159,7 +195,7 @@ gameRemote.prototype.leave_room = function(uid, sid, channel_id,flag,location,cb
 /*}}}*/
 };
 
-gameRemote.prototype.start_game = function(uid, sid, channel_id,cb) {
+gameRemote.prototype.start_game = function(uid, sid, channel_id,flag,cb) {
 /*{{{*/
 	console.log("gameRemote.start_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
 	var channel = this.channelService.getChannel(channel_id, flag);
@@ -170,53 +206,75 @@ gameRemote.prototype.start_game = function(uid, sid, channel_id,cb) {
 
 	if( !! channel) {
 		gameDao.start_game(rid,function(err,res){
-			var param = {
-				route: 'onStartGame',
-				rid: res
-			};
-			channel.pushMessage(param);
+			var users = channel.getMembers();
+			for(var i = 0; i < users.length; i++) {
+				users[i] = users[i].split('*')[0];
+			}
+			async.parallel([
+				function(callback){
+					if(users[0]!=null){
+						playerDao.get_player_by_id(users[0],function(err,res){
+							gameDao.get_player_local(rid,users[0],function(err,location){
+								res['location'] = location;
+								callback(null, res);
+							});
+						});
+					}else{
+						callback(null,'null');
+					}
+				},
+				function(callback){
+					if(users[1]!=null){
+						playerDao.get_player_by_id(users[1],function(err,res){
+							gameDao.get_player_local(rid,users[1],function(err,location){
+								res['location'] = location;
+								callback(null, res);
+							});
+						});
+					}else{
+						callback(null,'null');
+					}
+				},
+				function(callback){
+					if(users[2]!=null){
+						playerDao.get_player_by_id(users[2],function(err,res){
+							gameDao.get_player_local(rid,users[2],function(err,location){
+								res['location'] = location;
+								callback(null, res);
+							});
+						});
+					}else{
+						callback(null,'null');
+					}
+				},
+				function(callback){
+					if(users[3]!=null){
+						playerDao.get_player_by_id(users[3],function(err,res){
+							gameDao.get_player_local(rid,users[3],function(err,location){
+								res['location'] = location;
+								callback(null, res);
+							});
+						});
+					}else{
+						callback(null,'null');
+					}
+				}
+			],
+			function(err, results){
+				//console.log("async parallel"+JSON.stringify(results[0]));
+				//console.log("async parallel"+results);
+				//channelService.pushMessageByUids('onInit',results,[{uid:uid,sid:sid}]);
+				//return results;
+				var param = {
+					route: 'onStartGame',
+					players: results
+				};
+				channel.pushMessage(param);
+			});
 		});
 	}
 	cb();
 /*}}}*/
-};
-/**
- * 房间新增用户
- */
-gameRemote.prototype.add = function(uid, sid, name, flag, cb) {
-	console.log("gameRemote.add......");
-    var channel = this.channelService.getChannel(name, flag);
-    var channelService = this.channelService;
-    //如果name不存在且flag为true，则创建channel
-    var username = uid.split('*')[0];
-    var rid = uid.split('*')[1];
-    var self = this;
-
-    if( !! channel) {
-        channel.add(uid, sid);
-        gameDao.addPlayer(rid,uid,function(err,location,player_num){
-            var param = {
-                route: 'onAdd',
-                user: username,
-                position:location  //同时分配位置
-            };
-            channel.pushMessage(param);
-            gameDao.getRoomStatus(rid,function(err,game_status){
-                if(player_num>=2&&game_status==0){
-                    setTimeout(function(){
-                        gameDao.getRoomInfo(rid,function(err,roomInfo){
-                            if(roomInfo.player_num>=2&&roomInfo.is_gaming==0){
-                                gameLogicRemote.fapai(self.app,uid,rid,channel,channelService,username,function(){
-                                    console.log("gameLogicRemote.fapai callback......");
-                                });
-                            }
-                        });
-                    },10000);
-                }
-            });
-            cb(location);
-        });
-    }
 };
 
 /**

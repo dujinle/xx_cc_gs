@@ -3,19 +3,19 @@
  * Function :
  */
 
-var Code      = require('../../../consts/code');
+var Code	  = require('../../../consts/code');
 var playerDao = require('../../../dao/playerDao');
 var gameDao   = require('../../../dao/gameDao');
 
-var async     = require('async');
+var async	 = require('async');
 
 
 module.exports = function (app) {
-    return new Handler(app);
+	return new Handler(app);
 };
 
 var Handler = function (app) {
-    this.app = app;
+	this.app = app;
 };
 
 
@@ -23,76 +23,76 @@ var handler = Handler.prototype;
 /**
  * New client entry.
  * 管理用户连接session
- * @param  {Object}   msg  msg.token    request message
+ * @param  {Object}   msg  msg.token	request message
  * @param  {Object}   session current session object
- * @param  {Function} next    next step callback
+ * @param  {Function} next	next step callback
  * @return {Void}
  */
 Handler.prototype.entry = function (msg, session, next) {
 /*{{{*/
-    var token = msg.token, self = this;
-    console.log(__filename,'entry ok ====token: ',token);
-    if (!token) {
-        next(new Error('invalid entry request: empty token'), {code: 500,msg:"token empty"});
-        return;
-    }
+	var token = msg.token, self = this;
+	console.log(__filename,'entry ok ====token: ',token);
+	if (!token) {
+		next(new Error('invalid entry request: empty token'), {code: 500,msg:"token empty"});
+		return;
+	}
 
-    var userId, player;
-    async.waterfall([
-        function (cb) {
-            console.log("cd waterfall  ***************************");
-            console.log('token ',token);
-            //auth token
-            //token 为登录验证之后
-            //取出userId
-            self.app.rpc.auth.authRemote.auth(session, token, cb);
-        }, function (code, user, cb) {
+	var userId, player;
+	async.waterfall([
+		function (cb) {
+			console.log("cd waterfall  ***************************");
+			console.log('token ',token);
+					//auth token
+			//token 为登录验证之后
+			//取出userId
+			self.app.rpc.auth.authRemote.auth(session, token, cb);
+		}, function (code, user, cb) {
 
-            console.log('after auth');
-            //query player info by user id
-            //user = user/null
-            if (code !== Code.OK) {
-                console.log('验证不成功');
-                next(null, {code: code,msg:'code ! = 200'});
-                return;
-            }
+			console.log('after auth');
+			//query player info by user id
+			//user = user/null
+			if (code !== Code.OK) {
+				console.log('验证不成功');
+				next(null, {code: code,msg:'code ! = 200'});
+				return;
+			}
 
-            if (!user) {
-                console.log('用户不存在');
-                next(null, {code: Code.ENTRY.FA_USER_NOT_EXIST,msg:'user not exist'});
-                return;
-            }
+			if (!user) {
+				console.log('用户不存在');
+				next(null, {code: Code.ENTRY.FA_USER_NOT_EXIST,msg:'user not exist'});
+				return;
+			}
 
-            userId = user.id;
-            playerDao.get_player_by_id(user.id, cb);
-        }, function (res, cb) {
-            console.log('after getplayer--- ');
-            // generate session and register chat status
-            player = res;
-            self.app.get('sessionService').kick(userId, cb);
-        }, function (cb) {
-            //session.bind(userId, cb);
-            cb();
-        }, function (cb) {
-            if (!player) {
-                next(null, {code: Code.OK});
-                return;
-            }
-            session.set('playerId', player.id);
-            session.push('playerId', function(err) {
-                if(err) {
-                    console.error('set rid for session service failed! error is : %j', err.stack);
-                }
-            });
-            next(null,{code:Code.OK,msg:'get user player task ok',player:player});
-        }
-    ], function (err) {
-        if (err) {
-            next(err, {code: Code.FAIL,msg:'waterfall err'});
-            return;
-        }
-        console.log('get all data player user task');
-    });
+			userId = user.id;
+			playerDao.get_player_by_id(user.id, cb);
+		}, function (res, cb) {
+			console.log('after getplayer--- ');
+			// generate session and register chat status
+			player = res;
+			self.app.get('sessionService').kick(userId, cb);
+		}, function (cb) {
+			//session.bind(userId, cb);
+			cb();
+		}, function (cb) {
+			if (!player) {
+				next(null, {code: Code.OK});
+				return;
+			}
+			session.set('playerId', player.id);
+			session.push('playerId', function(err) {
+				if(err) {
+					console.error('set rid for session service failed! error is : %j', err.stack);
+				}
+			});
+			next(null,{code:Code.OK,msg:'get user player task ok',player:player});
+		}
+	], function (err) {
+		if (err) {
+			next(err, {code: Code.FAIL,msg:'waterfall err'});
+			return;
+		}
+		console.log('get all data player user task');
+	});
 /*}}}*/
 };
 
@@ -222,6 +222,22 @@ handler.enter_wait_room = function(msg, session, next) {
 /*}}}*/
 };
 
+handler.get_room_info = function(msg, session, next) {
+/*{{{*/
+	console.log("handler.get room info:" + JSON.stringify(msg));
+	var rid = msg.rid;
+	gameDao.get_room_by_room_id(rid,function(err,res){
+		if(err){
+			next(null, {code:500,msg:err.message});
+		}else if(res != null){
+			next(null, {code:200,msg:res});
+		}else{
+			next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
+		}
+	});
+/*}}}*/
+};
+
 handler.dissolve_room = function(msg, session, next) {
 /*{{{*/
 	console.log("handler.dissolve_room:" + JSON.stringify(msg));
@@ -268,11 +284,11 @@ handler.enter = function(msg, session, next) {
 		}else if(res != null){
 			var rid = res.rid;
 			var uid = player_id + '*' + rid;
-			self.app.rpc.game.gameRemote.enter_room(session, uid, self.app.get('serverId'), rid, location,function(){
-				next(null, {code:200});
+			self.app.rpc.game.gameRemote.enter_room(session, uid, self.app.get('serverId'), rid, location,function(data){
+				next(null, data);
 			});
 		}else{
-			next(null, {code:202});
+			next(null, {'code':202,'msg':'房间已经关闭！'});
 		}
 	});
 /*}}}*/
@@ -307,7 +323,7 @@ handler.start_game = function(msg, session, next) {
 	var rid = msg.rid;
 
 	var uid = player_id + '*' + rid;
-	self.app.rpc.game.gameRemote.start_game(session, uid, self.app.get('serverId'), rid,function(){
+	self.app.rpc.game.gameRemote.start_game(session, uid, self.app.get('serverId'), rid,false,function(){
 		next(null, {code:200});
 	});
 /*}}}*/
@@ -320,11 +336,11 @@ handler.start_game = function(msg, session, next) {
  *
  */
 var onUserLeave = function(app, session) {
-    if(!session || !session.uid) {
-        return;
-    }
-    //app.rpc.chat.chatRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
-    //app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
+	if(!session || !session.uid) {
+		return;
+	}
+	//app.rpc.chat.chatRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
+	//app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
 	console.log('loginout .......' + session.uid);
 };
 
