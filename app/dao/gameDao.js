@@ -47,7 +47,27 @@ gameDao.get_qiang_zhuang = function(rid,cb){
 /*}}}*/
 };
 
-gameDao.set_qiang_zhuang = function(rid,location,cb){
+gameDao.get_qiang_num = function(rid,cb){
+/*{{{*/
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb,err,null);
+		}else{
+			if(!!res && res.length > 0){
+				console.log("get_qiang_num:"+JSON.stringify(res));
+				utils.invokeCallback(cb,null,res[0].qiang_num);
+			}else{
+				console.log("get_qiang_num: no found room......");
+				utils.invokeCallback(cb,null,null);
+			}
+		}
+	});
+/*}}}*/
+};
+
+gameDao.set_qiang_zhuang = function(rid,location,flag,cb){
 /*{{{*/
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
@@ -58,17 +78,76 @@ gameDao.set_qiang_zhuang = function(rid,location,cb){
 			if(!!res && res.length > 0){
 				console.log("set_qiang_zhuang:"+JSON.stringify(res));
 				var qiang_zhuang = JSON.parse(res[0].qiang_flag);
-				qiang_zhuang.push(location);
-				sql = 'update game_room set qiang_flag = ? where rid = ?';
+				if(flag == true){
+					qiang_zhuang.push(location);
+				}
+				sql = 'update game_room set qiang_flag = ?,qiang_num = qiang_num + 1 where rid = ?';
 				args = [JSON.stringify(qiang_zhuang),rid];
 				sqlTemp.query(sql,args,function(err,res){
 					if(err!==null){
+						console.log("update game_room set qiang_flag" + err.message);
 						utils.invokeCallback(cb,err,null);
 					}else{
 						utils.invokeCallback(cb,null,qiang_zhuang);
 					}
 				});
 			}else{
+				utils.invokeCallback(cb,null,null);
+			}
+		}
+	});
+/*}}}*/
+};
+
+
+gameDao.set_xiazhu = function(rid,location,chips,cb){
+/*{{{*/
+	console.log("set_xiazhu chips:" + JSON.stringify(chips));
+	var sql = null;
+	if(location == 1){
+		sql = 'update game_room set score_1 = ? where rid = ?';
+	}else if(location == 2){
+		sql = 'update game_room set score_2 = ? where rid = ?';
+	}else if(location == 3){
+		sql = 'update game_room set score_3 = ? where rid = ?';
+	}else if(location == 4){
+		sql = 'update game_room set score_4 = ? where rid = ?';
+	}
+	args = [JSON.stringify(chips),rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb,err,null);
+		}else{
+			utils.invokeCallback(cb,null,chips);
+		}
+	});
+/*}}}*/
+};
+
+gameDao.get_every_score = function(rid,cb){
+/*{{{*/
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb,err,null);
+		}else{
+			if(!!res && res.length > 0){
+				console.log("getRoom:"+JSON.stringify(res));
+				var room_info = res[0];
+				var scores = new Array();
+				if(room_info['score_1'] != null){
+					scores.push(JSON.parse(room_info['score_1']));
+				}else if(room_info['score_2'] != null){
+					scores.push(JSON.parse(room_info['score_2']));
+				}else if(room_info['score_3'] != null){
+					scores.push(JSON.parse(room_info['score_3']));
+				}else if(room_info['score_4'] != null){
+					scores.push(JSON.parse(room_info['score_4']));
+				}
+				utils.invokeCallback(cb,null,scores);
+			}else{
+				console.log("getRoom: no found room......");
 				utils.invokeCallback(cb,null,null);
 			}
 		}
@@ -103,18 +182,9 @@ gameDao.set_first_location = function(rid,location,length,cb){
 			if(!!res && res.length > 0){
 				console.log("getRoom:"+JSON.stringify(res));
 				var local = res[0].zhuang_location;
-				while(true){
-					var local = local % length;
-					if(local == 0){
-						local = length;
-					}
-					if(res[0]['location' + local] != 'null'){
-						location = location - 1;
-						if(location == 0){
-							break;
-						}
-						local = local + 1;
-					}
+				var local = (local + location - 1) % 4;
+				if(local == 0){
+					local = 4;
 				}
 				sql = 'update game_room set first_fapai = ? where rid = ?';
 				args = [local,rid];
@@ -381,129 +451,6 @@ gameDao.returnRoom = function(room_num, cb){
 };
 
 /**
- * 房间新增用户，rid房间名，cb回调用户牌局位置1～5
- * */
-gameDao.addPlayer = function(rid,uid,cb){
-	var sql = 'select * from game_room where rid = ?';
-	var args = [rid];
-	var new_player_num;
-	sqlTemp.query(sql,args,function(err,res){
-		if(err!==null){
-			console.error("db:addPlayer1 error");
-			utils.invokeCallback(cb,err,null);
-		}else{
-			//更改玩家数量
-			new_player_num = res[0].player_num+1;
-			var location;
-			if(res[0].location1=='null'){
-				location = 1;
-			}else if(res[0].location2=='null'){
-				location = 2;
-			}else if(res[0].location3=='null'){
-				location = 3;
-			}else if(res[0].location4=='null'){
-				location = 4;
-			}else if(res[0].location5=='null'){
-				location = 5;
-			}else{
-				console.error("db:give location error");
-				utils.invokeCallback(cb,"db:give location error",null);
-			}
-			//var location = new_player_num;
-			var sql1 = 'update game_room set player_num = ? where rid = ?';
-			var args1 = [new_player_num,rid];
-			console.log("args1:",args1,location);
-			sqlTemp.update(sql1,args1,function(err,res){
-				if(err!==null){
-					console.error("db:addPlayer2 error");
-					utils.invokeCallback(cb,err,null);
-				}else{
-					console.log("db:addPlayer2 success");
-					//location 添加对应玩家名
-					var sql2 = '';
-					var args2 = [];
-					switch(location){
-						case 1:
-							sql2 = 'update game_room set location1 = ? where rid = ?';
-							args2 = [uid,rid];
-							break;
-						case 2:
-							sql2 = 'update game_room set location2 = ? where rid = ?';
-							args2 = [uid,rid];
-							break;
-						case 3:
-							sql2 = 'update game_room set location3 = ? where rid = ?';
-							args2 = [uid,rid];
-							break;
-						case 4:
-							sql2 = 'update game_room set location4 = ? where rid = ?';
-							args2 = [uid,rid];
-							break;
-						case 5:
-							sql2 = 'update game_room set location5 = ? where rid = ?';
-							args2 = [uid,rid];
-							break;
-						default:
-							console.error("addPlayer3 error");
-					}
-					sqlTemp.update(sql2,args2,function(err,res){
-						if(err!==null){
-							console.error("db:addPlayer3 error");
-							utils.invokeCallback(cb,err,null);
-						}else{
-							console.log("db:addPlayer3 success");
-							//cb(location,new_player_num);
-							utils.invokeCallback(cb,err,location,new_player_num);
-						}
-					});
-				}
-			});
-		}
-	});
-
-};
-
-/**
- * 返回房间对应位置的玩家
- * */
-gameDao.getLocalPlayer = function(rid,location,cb){
-	var sql = 'select * from game_room where rid = ?';
-	var args = [rid];
-	sqlTemp.query(sql,args,function(err,res){
-		if(err!==null){
-			console.error("db:addPlayer3 error");
-			utils.invokeCallback(cb,err,null,null);
-		}else{
-			switch(location){
-				case 1:
-					//cb(res[0].location1,location);
-					utils.invokeCallback(cb,err,res[0].location1,location);
-					break;
-				case 2:
-					//cb(res[0].location2,location);
-					utils.invokeCallback(cb,err,res[0].location2,location);
-					break;
-				case 3:
-					//cb(res[0].location3,location);
-					utils.invokeCallback(cb,err,res[0].location3,location);
-					break;
-				case 4:
-					//cb(res[0].location4,location);
-					utils.invokeCallback(cb,err,res[0].location4,location);
-					break;
-				case 5:
-					//cb(res[0].location5,location);
-					utils.invokeCallback(cb,err,res[0].location5,location);
-					break;
-				default:
-					console.error("db:getLocalPlayer error");
-					utils.invokeCallback(cb,err,null,null);
-			}
-		}
-	});
-};
-
-/**
  * 返回玩家的房间对应位置
  * */
 gameDao.get_player_local = function(rid,player_id,cb){
@@ -534,6 +481,49 @@ gameDao.get_player_local = function(rid,player_id,cb){
 	});
 };
 
+gameDao.get_players_location = function(rid,cb){
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	var location;
+	console.log("--------------player input getplayerlocal"+player_id);
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			console.error("db:getPlayerLocal error");
+			utils.invokeCallback(cb, err, null);
+		}else{
+			var locations = new Array();
+			if(res[0].location1 != null && res[0].location1 != "null"){
+				locations.push(1);
+			}
+			if(res[0].location2 != null && res[0].location2 != "null"){
+				locations.push(2);
+			}
+			if(res[0].location3 != null && res[0].location3 != "null"){
+				locations.push(3);
+			}
+			if(res[0].location4 != null && res[0].location4 != "null"){
+				locations.push(4);
+			}
+			//cb(location);
+			utils.invokeCallback(cb,null ,locations);
+		}
+	});
+};
+
+gameDao.get_peipai_num = function(rid,cb){
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	var location;
+	console.log("get_peipai_num ..............");
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			console.error("db:getPlayerLocal error");
+			utils.invokeCallback(cb, err, null);
+		}else{
+			utils.invokeCallback(cb,null ,res[0].peipai_num);
+		}
+	});
+};
 /**
  * 设置当前牌局的局数
  * */
@@ -755,7 +745,7 @@ gameDao.updateRoomStatus = function(rid,game_status,cb){
 /**
  * 更新牌型，牌型与玩家位置绑定
  * */
-gameDao.updatePai = function(rid,pai,location,cb){
+gameDao.update_pai = function(rid,pai,location,cb){
 	var sql;
 	var args =[JSON.stringify(pai),rid];
 	switch (location){
@@ -770,9 +760,6 @@ gameDao.updatePai = function(rid,pai,location,cb){
 			break;
 		case 4:
 			sql = 'update game_room set pai4 = ? where rid = ?';
-			break;
-		case 5:
-			sql = 'update game_room set pai5 = ? where rid = ?';
 			break;
 		default:
 			console.error("db:gameDao updatePai location error");
@@ -789,10 +776,40 @@ gameDao.updatePai = function(rid,pai,location,cb){
 	});
 };
 
+gameDao.update_peipai = function(rid,pai,location,cb){
+	var sql;
+	var args =[JSON.stringify(pai),rid];
+	switch (location){
+		case 1:
+			sql = 'update game_room set pai1 = ?,peipai_num = peipai_num + 1 where rid = ?';
+			break;
+		case 2:
+			sql = 'update game_room set pai2 = ?,peipai_num = peipai_num + 1 where rid = ?';
+			break;
+		case 3:
+			sql = 'update game_room set pai3 = ?,peipai_num = peipai_num + 1 where rid = ?';
+			break;
+		case 4:
+			sql = 'update game_room set pai4 = ?,peipai_num = peipai_num + 1 where rid = ?';
+			break;
+		default:
+			console.error("db:gameDao updatePai location error");
+	}
+	sqlTemp.update(sql,args,function(err,res){
+		if(err!==null){
+			console.error("db:updatePai error");
+			utils.invokeCallback(cb, err, null);
+		}else{
+			console.log("db:updatePai succeed");
+			//cb();
+			utils.invokeCallback(cb, null, null);
+		}
+	});
+};
 /**
  * 获取对应位置的牌型,牌型存放数据库类型是字符串类型，程序使用时是json格式
  * */
-gameDao.getPai = function(rid,location,cb){
+gameDao.get_pai = function(rid,location,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
@@ -817,18 +834,13 @@ gameDao.getPai = function(rid,location,cb){
 					//cb(JSON.parse(res[0].pai4));
 					utils.invokeCallback(cb, null, JSON.parse(res[0].pai4));
 					break;
-				case 5:
-					//cb(JSON.parse(res[0].pai5));
-					utils.invokeCallback(cb, null, JSON.parse(res[0].pai5));
-					break;
 				default:
 					console.error("db:pushPai1 error");
 					utils.invokeCallback(cb, "db:pushPai1 error", null);
+					break;
 			}
 		}
-
 	});
-
 };
 
 /**

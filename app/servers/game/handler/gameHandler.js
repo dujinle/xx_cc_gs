@@ -44,6 +44,14 @@ handler.game_process = function(msg,session,next){
 		console.log('player xiazhu');
 		gameLogicRemote.xiazhu(rid,msg.location,msg.chips,channel,channelService);
 		next(null,{msg:"receive process successfully"});
+	}else if(process == 'peipai'){
+		console.log('player peipai');
+		gameLogicRemote.peipai(rid,msg.location,msg.peipai,msg.select,channel,channelService);
+		next(null,{msg:"receive process successfully"});
+	}else if(process == 'open'){
+		console.log('player open');
+		gameLogicRemote.open(rid,msg.location,channel,channelService);
+		next(null,{msg:"receive process successfully"});
 	}else if(process == 'follow'){
 		console.log('player follow');
 

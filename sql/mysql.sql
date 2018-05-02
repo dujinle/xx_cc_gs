@@ -5,6 +5,13 @@ CREATE TABLE game_broadcast(_id INT PRIMARY KEY AUTO_INCREMENT, broadcast_type I
 
 INSERT INTO game_broadcast  (broadcast_type,broadcast_content) VALUES (1,'你大爷的坑死老子了');
 
+CREATE TABLE paijiu(
+	id INT PRIMARY KEY AUTO_INCREMENT,\
+	paixing VARCHAR(32),\
+	score INT DEFAULT 0,\
+	name VARCHAR(64)\
+);
+
 CREATE TABLE player(
 	id INT PRIMARY KEY AUTO_INCREMENT,\
 	player_id VARCHAR(32),\
@@ -110,8 +117,9 @@ CREATE TABLE game_room(
 	player_num INT DEFAULT 0,\
 	real_num   INT DEFAULT 0,\
 	zhuang_location INT,\
-	zhuang_score    INT,\
+	zhuang_score    INT DEFAULT 100,\
 	round INT DEFAULT 0,\
+	qiang_num  INT DEFAULT 0,\
 	qiang_flag VARCHAR(120) DEFAULT '[]',\
 	location1 VARCHAR(20) DEFAULT 'null',\
 	location2 VARCHAR(20) DEFAULT 'null',\
@@ -122,6 +130,7 @@ CREATE TABLE game_room(
 	is_game_2 INT DEFAULT -1,\
 	is_game_3 INT DEFAULT -1,\
 	is_game_4 INT DEFAULT -1,\
+	peipai_num INT DEFAULT 0,\
 	pai1 VARCHAR(240),\
 	pai2 VARCHAR(240),\
 	pai3 VARCHAR(240),\
