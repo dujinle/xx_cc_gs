@@ -5,6 +5,7 @@
 var gameDao   = require('../../../dao/gameDao');
 var playerDao = require('../../../dao/playerDao');
 var delayDao  = require('../../../dao/delayDao');
+var paijiuDao  = require('../../../dao/paijiuDao');
 var utils   = require('../../../util/utils');
 var pomelo	= require('pomelo');
 var async	 = require('async');
@@ -106,998 +107,60 @@ gameLogicRemote.getCardArr = function(rid){
 /**
  * 比牌请求处理路由
  * */
-gameLogicRemote.bipai = function(rid,location1,location2,channel,channelService){
+gameLogicRemote.bipai = function(rid,location1,location2,cb){
 	//比牌逻辑，返回结果
 	var self = this;
-	gameDao.getPai(rid,location1,function(err,pai1){
-		gameDao.getPai(rid,location2,function(err,pai2){
-			//bipai logic
-
-			//比较牌1与牌2的大小逻辑
-			var paixing1 = self.sortPai(pai1);
-			var paixing2 = self.sortPai(pai2);
-
-			console.log("paixing1:"+paixing1);
-			console.log("paixing2:"+paixing2);
-
-								var paiClass1 = self.classPai(paixing1);
-								var paiClass2 = self.classPai(paixing2);
-
-								if(paiClass1>paiClass2){
-									var param={
-										result:location1
-									};
-									gameDao.setIsGameNum(rid,location2,0,function(err){
-										cb(param.result);
-									});
-								}else if(paiClass1<paiClass2){
-									var param={
-										result:location2
-									};
-									gameDao.setIsGameNum(rid,location1,0,function(err){
-										cb(param.result);
-									});
-								}else{
-									//牌型相同情况
-									if(paiClass1==5){
-										//都是豹子
-										if(paixing1[0]>paixing2[0]){
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}else{
-											var param={
-												result:location2
-											};
-											gameDao.setIsGameNum(rid,location1,0,function(err){
-												cb(param.result);
-											});
-										}
-									}else if(paiClass1==4){
-										//都是金花
-										if((paixing1[0]-paixing1[1])==1&&(paixing1[1]-paixing1[2])==1){
-											//金花1是顺子金花
-											if((paixing1[0]-paixing1[1])==1&&(paixing1[1]-paixing1[2])==1){
-												//金花1，2都是顺子金花
-												if(paixing1[0]>paixing2[0]){
-													//顺子金花1点数大于顺子金花2
-													var param={
-														result:location1
-													};
-													gameDao.setIsGameNum(rid,location2,0,function(err){
-														cb(param.result);
-													});
-												}else if(paixing1[0]<paixing2[0]){
-													//顺子金花1点数小于顺子金花2
-													var param={
-														result:location2
-													};
-													gameDao.setIsGameNum(rid,location1,0,function(err){
-														cb(param.result);
-													});
-												}else{
-													//顺子金花1点数等于顺子金花2
-													if(paixing1[3]>paixing2[3]){
-														var param={
-															result:location1
-														};
-														gameDao.setIsGameNum(rid,location2,0,function(err){
-															cb(param.result);
-														});
-													}else{
-														var param={
-															result:location2
-														};
-														gameDao.setIsGameNum(rid,location1,0,function(err){
-															cb(param.result);
-														});
-													}
-												}
-
-											}else{
-												//金花1是顺子金花，金花2不是顺子
-												var param={
-													result:location1
-												};
-												gameDao.setIsGameNum(rid,location2,0,function(err){
-													cb(param.result);
-												});
-											}
-										}else{
-											//金花1不是顺子金花
-											if((paixing1[0]-paixing1[1])==1&&(paixing1[1]-paixing1[2])==1){
-												//金花1不是顺子金花，金花2是顺子金花
-												var param={
-													result:location2
-												};
-												gameDao.setIsGameNum(rid,location2,0,function(err){
-													cb(param.result);
-												});
-											}else{
-												//金花1，2都不是顺子金花
-												if(paixing1[0]>paixing2[0]){
-													//金花1点数大于顺子金花2
-													var param={
-														result:location1
-													};
-													gameDao.setIsGameNum(rid,location2,0,function(err){
-														cb(param.result);
-													});
-												}else if(paixing1[0]<paixing2[0]){
-													//金花1点数小于顺子金花2
-													var param={
-														result:location2
-													};
-													gameDao.setIsGameNum(rid,location1,0,function(err){
-														cb(param.result);
-													});
-												}else{
-													//金花1点数等于顺子金花2
-													if(paixing1[1]>paixing2[1]){
-														var param={
-															result:location1
-														};
-														gameDao.setIsGameNum(rid,location2,0,function(err){
-															cb(param.result);
-														});
-													}else if(paixing1[1]<paixing2[1]){
-														var param={
-															result:location2
-														};
-														gameDao.setIsGameNum(rid,location1,0,function(err){
-															cb(param.result);
-														});
-													}else{
-														if(paixing1[2]>paixing2[2]){
-															var param={
-																result:location1
-															};
-															gameDao.setIsGameNum(rid,location2,0,function(err){
-																cb(param.result);
-															});
-														}else if(paixing1[2]<paixing2[2]){
-															var param={
-																result:location2
-															};
-															gameDao.setIsGameNum(rid,location1,0,function(err){
-																cb(param.result);
-															});
-														}else if(paixing1[3]>paixing2[3]){
-															var param={
-																result:location1
-															};
-															gameDao.setIsGameNum(rid,location2,0,function(err){
-																cb(param.result);
-															});
-														}else{
-															var param={
-																result:location2
-															};
-															gameDao.setIsGameNum(rid,location1,0,function(err){
-																cb(param.result);
-															});
-														}
-													}
-												}
-											}
-
-										}
-
-									}else if(paiClass1==3){
-										//都是顺子
-										if(paixing1[0]>paixing2[0]){
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}else if(paixing1[0]<paixing2[0]){
-											var param={
-												result:location2
-											};
-											gameDao.setIsGameNum(rid,location1,0,function(err){
-												cb(param.result);
-											});
-										}else{
-											//两个顺子点数一样,比花色
-											if(paixing1[3]>paixing2[3]){
-												var param={
-													result:location1
-												};
-												gameDao.setIsGameNum(rid,location2,0,function(err){
-													cb(param.result);
-												});
-											}else{
-												var param={
-													result:location2
-												};
-												gameDao.setIsGameNum(rid,location1,0,function(err){
-													cb(param.result);
-												});
-											}
-										}
-									}else if(paiClass1==2){
-										//都是对子
-										if(paixing1[1]>paixing2[1]){
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}else if(paixing1[1]<paixing2[1]){
-											var param={
-												result:location2
-											};
-											gameDao.setIsGameNum(rid,location1,0,function(err){
-												cb(param.result);
-											});
-										}else{
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}
-									}else {
-										//都是单牌
-										if(paixing1[0]>paixing2[0]){
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}else if(paixing1[0]<paixing2[0]){
-											var param={
-												result:location2
-											};
-											gameDao.setIsGameNum(rid,location1,0,function(err){
-												cb(param.result);
-											});
-										}else {
-											if(paixing1[1]>paixing2[1]){
-												var param={
-													result:location1
-												};
-												gameDao.setIsGameNum(rid,location2,0,function(err){
-													cb(param.result);
-												});
-											}else if(paixing1[1]<paixing2[1]){
-												var param={
-													result:location2
-												};
-												gameDao.setIsGameNum(rid,location1,0,function(err){
-													cb(param.result);
-												});
-											}else{
-												if(paixing1[2]>paixing2[2]){
-													var param={
-														result:location1
-													};
-													gameDao.setIsGameNum(rid,location2,0,function(err){
-														cb(param.result);
-													});
-												}else {
-													var param={
-														result:location2
-													};
-													gameDao.setIsGameNum(rid,location1,0,function(err){
-														cb(param.result);
-													});
-												}
-											}
-										}
-
-									}
-								}
-
-								gameDao.nextCurPlayer(rid,function(err,new_loc){
-									//出牌定时，重置定时器
-									delayDao.removeDelay(rid,function(){
-										console.log("bipai:removeDelay success");
-										setTimeout(function(){
-											gameLogicRemote.changeCurPlayer(rid,new_loc,channel);
-											delayDao.addDelay(rid,10,function(){
-												console.log("bipai:addDelay success");
-											});
-										},4800);
-									});
-									console.log("nextCurPlayer success");
-								});
-							});
-						});
-					});
-				});
-			}else{
-				var playerId_int = parseInt(playerId);
-				playerDao.subGold(playerId_int,cur_chip,function(err,res){
-					console.log('-------bipai subGold------');
-				});
-				gameDao.getAllChip(rid,function(err,ex_all_chip){
-					gameDao.setAllChip(rid,ex_all_chip+cur_chip,function(err,res){
-						gameDao.getPai(rid,location1,function(err,pai1){
-							gameDao.getPai(rid,location2,function(err,pai2){
-								//bipai logic
-
-								//比较牌1与牌2的大小逻辑
-								var paixing1 = self.sortPai(pai1);
-								var paixing2 = self.sortPai(pai2);
-
-								console.log("paixing1:"+paixing1);
-								console.log("paixing2:"+paixing2);
-
-								var paiClass1 = self.classPai(paixing1);
-								var paiClass2 = self.classPai(paixing2);
-
-								if(paiClass1>paiClass2){
-									var param={
-										result:location1
-									};
-									gameDao.setIsGameNum(rid,location2,0,function(err){
-										cb(param.result);
-									});
-								}else if(paiClass1<paiClass2){
-									var param={
-										result:location2
-									};
-									gameDao.setIsGameNum(rid,location1,0,function(err){
-										cb(param.result);
-									});
-								}else{
-									//牌型相同情况
-									if(paiClass1==5){
-										//都是豹子
-										if(paixing1[0]>paixing2[0]){
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}else{
-											var param={
-												result:location2
-											};
-											gameDao.setIsGameNum(rid,location1,0,function(err){
-												cb(param.result);
-											});
-										}
-									}else if(paiClass1==4){
-										//都是金花
-										if((paixing1[0]-paixing1[1])==1&&(paixing1[1]-paixing1[2])==1){
-											//金花1是顺子金花
-											if((paixing1[0]-paixing1[1])==1&&(paixing1[1]-paixing1[2])==1){
-												//金花1，2都是顺子金花
-												if(paixing1[0]>paixing2[0]){
-													//顺子金花1点数大于顺子金花2
-													var param={
-														result:location1
-													};
-													gameDao.setIsGameNum(rid,location2,0,function(err){
-														cb(param.result);
-													});
-												}else if(paixing1[0]<paixing2[0]){
-													//顺子金花1点数小于顺子金花2
-													var param={
-														result:location2
-													};
-													gameDao.setIsGameNum(rid,location1,0,function(err){
-														cb(param.result);
-													});
-												}else{
-													//顺子金花1点数等于顺子金花2
-													if(paixing1[3]>paixing2[3]){
-														var param={
-															result:location1
-														};
-														gameDao.setIsGameNum(rid,location2,0,function(err){
-															cb(param.result);
-														});
-													}else{
-														var param={
-															result:location2
-														};
-														gameDao.setIsGameNum(rid,location1,0,function(err){
-															cb(param.result);
-														});
-													}
-												}
-
-											}else{
-												//金花1是顺子金花，金花2不是顺子
-												var param={
-													result:location1
-												};
-												gameDao.setIsGameNum(rid,location2,0,function(err){
-													cb(param.result);
-												});
-											}
-										}else{
-											//金花1不是顺子金花
-											if((paixing1[0]-paixing1[1])==1&&(paixing1[1]-paixing1[2])==1){
-												//金花1不是顺子金花，金花2是顺子金花
-												var param={
-													result:location2
-												};
-												gameDao.setIsGameNum(rid,location2,0,function(err){
-													cb(param.result);
-												});
-											}else{
-												//金花1，2都不是顺子金花
-												if(paixing1[0]>paixing2[0]){
-													//金花1点数大于顺子金花2
-													var param={
-														result:location1
-													};
-													gameDao.setIsGameNum(rid,location2,0,function(err){
-														cb(param.result);
-													});
-												}else if(paixing1[0]<paixing2[0]){
-													//金花1点数小于顺子金花2
-													var param={
-														result:location2
-													};
-													gameDao.setIsGameNum(rid,location1,0,function(err){
-														cb(param.result);
-													});
-												}else{
-													//金花1点数等于顺子金花2
-													if(paixing1[1]>paixing2[1]){
-														var param={
-															result:location1
-														};
-														gameDao.setIsGameNum(rid,location2,0,function(err){
-															cb(param.result);
-														});
-													}else if(paixing1[1]<paixing2[1]){
-														var param={
-															result:location2
-														};
-														gameDao.setIsGameNum(rid,location1,0,function(err){
-															cb(param.result);
-														});
-													}else{
-														if(paixing1[2]>paixing2[2]){
-															var param={
-																result:location1
-															};
-															gameDao.setIsGameNum(rid,location2,0,function(err){
-																cb(param.result);
-															});
-														}else if(paixing1[2]<paixing2[2]){
-															var param={
-																result:location2
-															};
-															gameDao.setIsGameNum(rid,location1,0,function(err){
-																cb(param.result);
-															});
-														}else if(paixing1[3]>paixing2[3]){
-															var param={
-																result:location1
-															};
-															gameDao.setIsGameNum(rid,location2,0,function(err){
-																cb(param.result);
-															});
-														}else{
-															var param={
-																result:location2
-															};
-															gameDao.setIsGameNum(rid,location1,0,function(err){
-																cb(param.result);
-															});
-														}
-													}
-												}
-											}
-
-										}
-
-									}else if(paiClass1==3){
-										//都是顺子
-										if(paixing1[0]>paixing2[0]){
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}else if(paixing1[0]<paixing2[0]){
-											var param={
-												result:location2
-											};
-											gameDao.setIsGameNum(rid,location1,0,function(err){
-												cb(param.result);
-											});
-										}else{
-											//两个顺子点数一样,比花色
-											if(paixing1[3]>paixing2[3]){
-												var param={
-													result:location1
-												};
-												gameDao.setIsGameNum(rid,location2,0,function(err){
-													cb(param.result);
-												});
-											}else{
-												var param={
-													result:location2
-												};
-												gameDao.setIsGameNum(rid,location1,0,function(err){
-													cb(param.result);
-												});
-											}
-										}
-									}else if(paiClass1==2){
-										//都是对子
-										if(paixing1[1]>paixing2[1]){
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}else if(paixing1[1]<paixing2[1]){
-											var param={
-												result:location2
-											};
-											gameDao.setIsGameNum(rid,location1,0,function(err){
-												cb(param.result);
-											});
-										}else{
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}
-									}else {
-										//都是单牌
-										if(paixing1[0]>paixing2[0]){
-											var param={
-												result:location1
-											};
-											gameDao.setIsGameNum(rid,location2,0,function(err){
-												cb(param.result);
-											});
-										}else if(paixing1[0]<paixing2[0]){
-											var param={
-												result:location2
-											};
-											gameDao.setIsGameNum(rid,location1,0,function(err){
-												cb(param.result);
-											});
-										}else {
-											if(paixing1[1]>paixing2[1]){
-												var param={
-													result:location1
-												};
-												gameDao.setIsGameNum(rid,location2,0,function(err){
-													cb(param.result);
-												});
-											}else if(paixing1[1]<paixing2[1]){
-												var param={
-													result:location2
-												};
-												gameDao.setIsGameNum(rid,location1,0,function(err){
-													cb(param.result);
-												});
-											}else{
-												if(paixing1[2]>paixing2[2]){
-													var param={
-														result:location1
-													};
-													gameDao.setIsGameNum(rid,location2,0,function(err){
-														cb(param.result);
-													});
-												}else {
-													var param={
-														result:location2
-													};
-													gameDao.setIsGameNum(rid,location1,0,function(err){
-														cb(param.result);
-													});
-												}
-											}
-										}
-
-									}
-								}
-
-								gameDao.nextCurPlayer(rid,function(err,new_loc){
-									//出牌定时，重置定时器
-									delayDao.removeDelay(rid,function(){
-										console.log("bipai:removeDelay success");
-										setTimeout(function(){
-											gameLogicRemote.changeCurPlayer(rid,new_loc,channel);
-											delayDao.addDelay(rid,10,function(){
-												console.log("bipai:addDelay success");
-											});
-										},4800);
-									});
-									console.log("nextCurPlayer success");
-								});
-							});
-						});
-					});
-				});
+	gameDao.get_pai(rid,location1,function(err,pai1){
+		gameDao.get_pai(rid,location2,function(err,pai2){
+			console.log("pai1:" + JSON.stringify(pai1));
+			console.log("pai2:" + JSON.stringify(pai2));
+			//开始构造牌型
+			var pai1_1 = pai1[0] + "+" + pai1[1];
+			if(pai1[0] > pai1[1]){
+				pai1_1 = pai1[1] + "+" + pai1[0];
 			}
+			var pai1_2 = pai1[2] + "+" + pai1[3];
+			if(pai1[2] > pai1[3]){
+				pai1_2 = pai1[3] + "+" + pai1[2];
+			}
+			var pai2_1 = pai2[0] + "+" + pai2[1];
+			if(pai2[0] > pai2[1]){
+				pai2_1 = pai2[1] + "+" + pai2[0];
+			}
+			var pai2_2 = pai2[2] + "+" + pai2[3];
+			if(pai2[2] > pai2[3]){
+				pai2_2 = pai2[3] + "+" + pai2[2];
+			}
+			paijiuDao.get_paijiu_by_paixing(pai1_1,function(err,res1_1){
+				paijiuDao.get_paijiu_by_paixing(pai2_1,function(err,res2_1){
+					paijiuDao.get_paijiu_by_paixing(pai1_2,function(err,res1_2){
+						paijiuDao.get_paijiu_by_paixing(pai2_2,function(err,res2_2){
+							console.log(JSON.stringify(res1_1) + JSON.stringify(res1_2) + JSON.stringify(res2_1) + JSON.stringify(res2_2));
+							if(res1_1.score >= res2_1.score  && res1_2.score >= res2_2.score){
+								var head_flag = utils.get_up8_flag(res1_1.score);
+								var tail_flag = utils.get_up8_flag(res1_2.score);
+								if(head_flag == true && tail_flag == true){
+									cb(location1,location2,'win',true);
+								}else{
+									cb(location1,location2,'win',false);
+								}
+							}else if(res1_1.score < res2_1.score  && res1_2.score < res2_2.score){
+								var head_flag = utils.get_up8_flag(res2_1.score);
+								var tail_flag = utils.get_up8_flag(res2_2.score);
+								if(head_flag == true && tail_flag == true){
+									cb(location1,location2,'lose',true);
+								}else{
+									cb(location1,location2,'lose',false);
+								}
+							}else{
+								cb(location1,location2,'equal',false);
+							}
+						});
+					});
+				});
+			});
 		});
-
 	});
-
-	//gameDao.getPai(rid,location1,function(err,pai1){
-	//	gameDao.getPai(rid,location2,function(err,pai2){
-	//		//bipai logic
-	//
-	//		//比较牌1与牌2的大小逻辑
-	//		var paixing1 = self.sortPai(pai1);
-	//		var paixing2 = self.sortPai(pai2);
-	//
-	//		console.log("paixing1:"+paixing1);
-	//		console.log("paixing2:"+paixing2);
-	//
-	//		var paiClass1 = self.classPai(paixing1);
-	//		var paiClass2 = self.classPai(paixing2);
-	//
-	//		if(paiClass1>paiClass2){
-	//			var param={
-	//				result:location1
-	//			};
-	//			gameDao.setIsGameNum(rid,location2,0,function(err){
-	//				cb(param.result);
-	//			});
-	//		}else if(paiClass1<paiClass2){
-	//			var param={
-	//				result:location2
-	//			};
-	//			gameDao.setIsGameNum(rid,location1,0,function(err){
-	//				cb(param.result);
-	//			});
-	//		}else{
-	//			//牌型相同情况
-	//			if(paiClass1==5){
-	//				//都是豹子
-	//				if(paixing1[0]>paixing2[0]){
-	//					var param={
-	//						result:location1
-	//					};
-	//					gameDao.setIsGameNum(rid,location2,0,function(err){
-	//						cb(param.result);
-	//					});
-	//				}else{
-	//					var param={
-	//						result:location2
-	//					};
-	//					gameDao.setIsGameNum(rid,location1,0,function(err){
-	//						cb(param.result);
-	//					});
-	//				}
-	//			}else if(paiClass1==4){
-	//				//都是金花
-	//				if((paixing1[0]-paixing1[1])==1&&(paixing1[1]-paixing1[2])==1){
-	//					//金花1是顺子金花
-	//					if((paixing1[0]-paixing1[1])==1&&(paixing1[1]-paixing1[2])==1){
-	//						//金花1，2都是顺子金花
-	//						if(paixing1[0]>paixing2[0]){
-	//							//顺子金花1点数大于顺子金花2
-	//							var param={
-	//								result:location1
-	//							};
-	//							gameDao.setIsGameNum(rid,location2,0,function(err){
-	//								cb(param.result);
-	//							});
-	//						}else if(paixing1[0]<paixing2[0]){
-	//							//顺子金花1点数小于顺子金花2
-	//							var param={
-	//								result:location2
-	//							};
-	//							gameDao.setIsGameNum(rid,location1,0,function(err){
-	//								cb(param.result);
-	//							});
-	//						}else{
-	//							//顺子金花1点数等于顺子金花2
-	//							if(paixing1[3]>paixing2[3]){
-	//								var param={
-	//									result:location1
-	//								};
-	//								gameDao.setIsGameNum(rid,location2,0,function(err){
-	//									cb(param.result);
-	//								});
-	//							}else{
-	//								var param={
-	//									result:location2
-	//								};
-	//								gameDao.setIsGameNum(rid,location1,0,function(err){
-	//									cb(param.result);
-	//								});
-	//							}
-	//						}
-	//
-	//					}else{
-	//						//金花1是顺子金花，金花2不是顺子
-	//						var param={
-	//							result:location1
-	//						};
-	//						gameDao.setIsGameNum(rid,location2,0,function(err){
-	//							cb(param.result);
-	//						});
-	//					}
-	//				}else{
-	//					//金花1不是顺子金花
-	//					if((paixing1[0]-paixing1[1])==1&&(paixing1[1]-paixing1[2])==1){
-	//						//金花1不是顺子金花，金花2是顺子金花
-	//						var param={
-	//							result:location2
-	//						};
-	//						gameDao.setIsGameNum(rid,location2,0,function(err){
-	//							cb(param.result);
-	//						});
-	//					}else{
-	//						//金花1，2都不是顺子金花
-	//						if(paixing1[0]>paixing2[0]){
-	//							//金花1点数大于顺子金花2
-	//							var param={
-	//								result:location1
-	//							};
-	//							gameDao.setIsGameNum(rid,location2,0,function(err){
-	//								cb(param.result);
-	//							});
-	//						}else if(paixing1[0]<paixing2[0]){
-	//							//金花1点数小于顺子金花2
-	//							var param={
-	//								result:location2
-	//							};
-	//							gameDao.setIsGameNum(rid,location1,0,function(err){
-	//								cb(param.result);
-	//							});
-	//						}else{
-	//							//金花1点数等于顺子金花2
-	//							if(paixing1[1]>paixing2[1]){
-	//								var param={
-	//									result:location1
-	//								};
-	//								gameDao.setIsGameNum(rid,location2,0,function(err){
-	//									cb(param.result);
-	//								});
-	//							}else if(paixing1[1]<paixing2[1]){
-	//								var param={
-	//									result:location2
-	//								};
-	//								gameDao.setIsGameNum(rid,location1,0,function(err){
-	//									cb(param.result);
-	//								});
-	//							}else{
-	//								if(paixing1[2]>paixing2[2]){
-	//									var param={
-	//										result:location1
-	//									};
-	//									gameDao.setIsGameNum(rid,location2,0,function(err){
-	//										cb(param.result);
-	//									});
-	//								}else if(paixing1[2]<paixing2[2]){
-	//									var param={
-	//										result:location2
-	//									};
-	//									gameDao.setIsGameNum(rid,location1,0,function(err){
-	//										cb(param.result);
-	//									});
-	//								}else if(paixing1[3]>paixing2[3]){
-	//									var param={
-	//										result:location1
-	//									};
-	//									gameDao.setIsGameNum(rid,location2,0,function(err){
-	//										cb(param.result);
-	//									});
-	//								}else{
-	//									var param={
-	//										result:location2
-	//									};
-	//									gameDao.setIsGameNum(rid,location1,0,function(err){
-	//										cb(param.result);
-	//									});
-	//								}
-	//							}
-	//						}
-	//					}
-	//
-	//				}
-	//
-	//			}else if(paiClass1==3){
-	//				//都是顺子
-	//				if(paixing1[0]>paixing2[0]){
-	//					var param={
-	//						result:location1
-	//					};
-	//					gameDao.setIsGameNum(rid,location2,0,function(err){
-	//						cb(param.result);
-	//					});
-	//				}else if(paixing1[0]<paixing2[0]){
-	//					var param={
-	//						result:location2
-	//					};
-	//					gameDao.setIsGameNum(rid,location1,0,function(err){
-	//						cb(param.result);
-	//					});
-	//				}else{
-	//					//两个顺子点数一样,比花色
-	//					if(paixing1[3]>paixing2[3]){
-	//						var param={
-	//							result:location1
-	//						};
-	//						gameDao.setIsGameNum(rid,location2,0,function(err){
-	//							cb(param.result);
-	//						});
-	//					}else{
-	//						var param={
-	//							result:location2
-	//						};
-	//						gameDao.setIsGameNum(rid,location1,0,function(err){
-	//							cb(param.result);
-	//						});
-	//					}
-	//				}
-	//			}else if(paiClass1==2){
-	//				//都是对子
-	//				if(paixing1[1]>paixing2[1]){
-	//					var param={
-	//						result:location1
-	//					};
-	//					gameDao.setIsGameNum(rid,location2,0,function(err){
-	//						cb(param.result);
-	//					});
-	//				}else if(paixing1[1]<paixing2[1]){
-	//					var param={
-	//						result:location2
-	//					};
-	//					gameDao.setIsGameNum(rid,location1,0,function(err){
-	//						cb(param.result);
-	//					});
-	//				}else{
-	//					var param={
-	//						result:location1
-	//					};
-	//					gameDao.setIsGameNum(rid,location2,0,function(err){
-	//						cb(param.result);
-	//					});
-	//				}
-	//			}else {
-	//				//都是单牌
-	//				if(paixing1[0]>paixing2[0]){
-	//					var param={
-	//						result:location1
-	//					};
-	//					gameDao.setIsGameNum(rid,location2,0,function(err){
-	//						cb(param.result);
-	//					});
-	//				}else if(paixing1[0]<paixing2[0]){
-	//					var param={
-	//						result:location2
-	//					};
-	//					gameDao.setIsGameNum(rid,location1,0,function(err){
-	//						cb(param.result);
-	//					});
-	//				}else {
-	//					if(paixing1[1]>paixing2[1]){
-	//						var param={
-	//							result:location1
-	//						};
-	//						gameDao.setIsGameNum(rid,location2,0,function(err){
-	//							cb(param.result);
-	//						});
-	//					}else if(paixing1[1]<paixing2[1]){
-	//						var param={
-	//							result:location2
-	//						};
-	//						gameDao.setIsGameNum(rid,location1,0,function(err){
-	//							cb(param.result);
-	//						});
-	//					}else{
-	//						if(paixing1[2]>paixing2[2]){
-	//							var param={
-	//								result:location1
-	//							};
-	//							gameDao.setIsGameNum(rid,location2,0,function(err){
-	//								cb(param.result);
-	//							});
-	//						}else {
-	//							var param={
-	//								result:location2
-	//							};
-	//							gameDao.setIsGameNum(rid,location1,0,function(err){
-	//								cb(param.result);
-	//							});
-	//						}
-	//					}
-	//				}
-	//
-	//			}
-	//		}
-	//
-	//		gameDao.nextCurPlayer(rid,function(err,new_loc){
-	//			//出牌定时，重置定时器
-	//			delayDao.removeDelay(rid,function(){
-	//				console.log("bipai:removeDelay success");
-	//				setTimeout(function(){
-	//					gameLogicRemote.changeCurPlayer(rid,new_loc,channel);
-	//					delayDao.addDelay(rid,10,function(){
-	//						console.log("bipai:addDelay success");
-	//					});
-	//				},4800);
-	//			});
-	//			console.log("nextCurPlayer success");
-	//		});
-	//	});
-	//});
-};
-
-/**
- * 输入牌json进行预处理排序（点数以及花色按从大到小排序）
- * */
-gameLogicRemote.sortPai = function(paixing1){
-	//paixing eg:{p1:"2",p2:"3",p3:"4",s1:"1",s2:"2",s3:"3"}
-	var pai1_num1 = parseInt(paixing1.p1);
-	var pai1_num2 = parseInt(paixing1.p2);
-	var pai1_num3 = parseInt(paixing1.p3);
-	var pai1_num4 = parseInt(paixing1.s1);
-	var pai1_num5 = parseInt(paixing1.s2);
-	var pai1_num6 = parseInt(paixing1.s3);
-
-	console.log("before paixu:" +pai1_num1+" "+pai1_num2+" "+pai1_num3);
-
-	//big -> small
-	var sortABC = function(pai_num1,pai_num2,pai_num3){
-		if(pai_num1<pai_num2){
-			var temp = pai_num1;
-			pai_num1 = pai_num2;
-			pai_num2 = temp;
-		}
-		if(pai_num2<pai_num3){
-			var temp = pai_num2;
-			pai_num2 = pai_num3;
-			pai_num3 = temp;
-		}
-		if(pai_num1<pai_num2){
-			var temp = pai_num1;
-			pai_num1 = pai_num2;
-			pai_num2 = temp;
-		}
-		return [pai_num1,pai_num2,pai_num3];
-	};
-
-	var tempA = sortABC(pai1_num1,pai1_num2,pai1_num3);
-	var tempB = sortABC(pai1_num4,pai1_num5,pai1_num6);
-
-	tempA = tempA.concat(tempB);
-
-	return tempA;
-};
-
-
-/**
- * 判断牌型（5豹子 4金花 3顺子 2对子 1单牌）
- * 输入参数为经过排序函数sortPai处理以后的牌型数组
- * */
-gameLogicRemote.classPai = function(paiArray){
-	var kind = 1;
-	if(paiArray[0]==paiArray[1]&&paiArray[1]==paiArray[2]){
-		kind = 5;
-	}else if(paiArray[3]==paiArray[4]&&paiArray[4]==paiArray[5]){
-		kind = 4;
-	}else if((paiArray[0]-paiArray[1])==1&&(paiArray[1]-paiArray[2])==1){
-		kind = 3;
-	}else if(paiArray[0]==paiArray[1]||paiArray[1]==paiArray[2]){
-		kind = 2;
-	}else {
-		//console.log("hehehehehehehe");
-		kind = 1;
-	}
-	return kind;
 };
 
 gameLogicRemote.peipai = function(rid,location,marks,select,channel,username){
@@ -1236,12 +299,330 @@ gameLogicRemote.open = function(rid,location,channel,channelService){
 		};
 		channel.pushMessage(param);
 		setTimeout(function(){
-			gameLogicRemote.bipai(rid,location,channel,channelService);
+			var locals_score = [0,0,0,0];
+			gameDao.get_room_by_room_id(rid,function(err,room_info){
+				var zhuang_local = room_info.zhuang_location;
+				async.parallel([
+					function(callback){
+						if(room_info.location1 != null && room_info.location1 != 'null'){
+							if(zhuang_local != 1){
+								gameLogicRemote.bipai(rid,zhuang_local,1,function(location1,location2,is_win,flag){
+									if(is_win == 'win'){
+										var score = JSON.parse(room_info.score_1);
+										if(flag == true){
+											locals_score[0] = locals_score[0] - parseInt(score[0]) - parseInt(score[1]);
+											locals_score[zhuang_local - 1] = parseInt(score[0]) + parseInt(score[1]) + locals_score[zhuang_local - 1];
+										}else{
+											locals_score[0] = locals_score[0] - parseInt(score[0]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] + parseInt(score[0]);
+										}
+									}else if(is_win == 'lose'){
+										var score = JSON.parse(room_info.score_1);
+										if(flag == true){
+											locals_score[0] = locals_score[0] + parseInt(score[0]) + parseInt(score[1]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]) - parseInt(score[1]);
+										}else{
+											locals_score[0] = locals_score[0] + parseInt(score[0]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]);
+										}
+									}
+									callback(null);
+								});
+							}else{
+								callback(null);
+							}
+						}else{
+							callback(null);
+						}
+					},
+					function(callback){
+						if(room_info.location2 != null && room_info.location2 != 'null'){
+							if(zhuang_local != 2){
+								gameLogicRemote.bipai(rid,zhuang_local,2,function(location1,location2,is_win,flag){
+									if(is_win == 'win'){
+										var score = JSON.parse(room_info.score_2);
+										if(flag == true){
+											locals_score[1] = locals_score[1] - parseInt(score[0]) - parseInt(score[1]);
+											locals_score[zhuang_local - 1] = parseInt(score[0]) + parseInt(score[1]) + locals_score[zhuang_local - 1];
+										}else{
+											locals_score[1] = locals_score[1] - parseInt(score[0]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] + parseInt(score[0]);
+										}
+									}else if(is_win == 'lose'){
+										var score = JSON.parse(room_info.score_2);
+										if(flag == true){
+											locals_score[1] = locals_score[1] + parseInt(score[0]) + parseInt(score[1]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]) - parseInt(score[1]);
+										}else{
+											locals_score[1] = locals_score[1] + parseInt(score[0]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]);
+										}
+									}
+									callback(null);
+								});
+							}else{
+								callback(null);
+							}
+						}else{
+							callback(null);
+						}
+					},
+					function(callback){
+						if(room_info.location3 != null && room_info.location3 != 'null'){
+							if(zhuang_local != 3){
+								gameLogicRemote.bipai(rid,zhuang_local,3,function(location1,location2,is_win,flag){
+									if(is_win == 'win'){
+										var score = JSON.parse(room_info.score_3);
+										if(flag == true){
+											locals_score[2] = locals_score[2] - parseInt(score[0]) - parseInt(score[1]);
+											locals_score[zhuang_local - 1] = parseInt(score[0]) + parseInt(score[1]) + locals_score[zhuang_local - 1];
+										}else{
+											locals_score[2] = locals_score[2] - parseInt(score[0]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] + parseInt(score[0]);
+										}
+									}else if(is_win == 'lose'){
+										var score = JSON.parse(room_info.score_3);
+										if(flag == true){
+											locals_score[2] = locals_score[2] + parseInt(score[0]) + parseInt(score[1]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]) - parseInt(score[1]);
+										}else{
+											locals_score[2] = locals_score[2] + parseInt(score[0]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]);
+										}
+									}
+									callback(null);
+								});
+							}else{
+								callback(null);
+							}
+						}else{
+							callback(null);
+						}
+					},
+					function(callback){
+						if(room_info.location4 != null && room_info.location4 != 'null'){
+							if(zhuang_local != 4){
+								gameLogicRemote.bipai(rid,zhuang_local,4,function(location1,location2,is_win,flag){
+									if(is_win == 'win'){
+										var score = JSON.parse(room_info.score_4);
+										if(flag == true){
+											locals_score[3] = locals_score[3] - parseInt(score[0]) - parseInt(score[1]);
+											locals_score[zhuang_local - 1] = parseInt(score[0]) + parseInt(score[1]) + locals_score[zhuang_local - 1];
+										}else{
+											locals_score[3] = locals_score[3] - parseInt(score[0]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] + parseInt(score[0]);
+										}
+									}else if(is_win == 'lose'){
+										var score = JSON.parse(room_info.score_4);
+										if(flag == true){
+											locals_score[3] = locals_score[3] + parseInt(score[0]) + parseInt(score[1]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]) - parseInt(score[1]);
+										}else{
+											locals_score[3] = locals_score[3] + parseInt(score[0]);
+											locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]);
+										}
+									}
+									callback(null);
+								});
+							}else{
+								callback(null);
+							}
+						}else{
+							callback(null);
+						}
+					}
+				],
+				function(err){
+					gameLogicRemote.end_game(rid,locals_score,channel,channelService);
+				});
+			});
 		},1000);
 	});
 };
 
+gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
+	var temp_score = [0,0,0,0];
+	gameDao.get_room_by_room_id(rid,function(err,room_info){
+		var zhuang_score = locals_score[room_info.zhuang_location - 1];
+		if(zhuang_score >= 0){
+			//赢得分数比现在多则只能赢相应的分数
+			var start_location = room_info.zhuang_location;
+			if(zhuang_score > room_info.zhuang_score){
+				//循环计算赢得玩家并更新分数
+				var callback_win = function(my_location){
+					my_location = my_location + 1;
+					if(my_location > 4){
+						my_location = 1;
+					}
+					if(my_location == room_info.zhuang_location){
+						return;
+					}
+					if(room_info['location' + my_location] != null && room_info['location' + my_location] != 'null'){
+						if(locals_score[my_location - 1] >= 0){
+							gameDao.sub_local_gold(rid,my_location,locals_score[my_location - 1],function(err,res){
+								temp_score[my_location - 1] = locals_score[my_location - 1];
+								temp_score[room_info.zhuang_location - 1] = locals_score[room_info.zhuang_location - 1] -temp_score[my_location - 1];
+								callback_win(my_location);
+							});
+						}else{
+							callback_win(my_location);
+						}
+					}else{
+						callback_win(my_location);
+					}
+				};
+				callback_win(start_location);
 
+				start_location = room_info.zhuang_location;
+				var callback_lose = function(my_location){
+					my_location = my_location + 1;
+					if(my_location > 4){
+						my_location = 1;
+					}
+					if(my_location == room_info.zhuang_location){
+						return;
+					}
+					if(room_info['location' + my_location] != null && room_info['location' + my_location] != 'null'){
+						if(locals_score[my_location - 1] < 0){
+							//如果加入分数大于庄家目前的分数则只能收取庄家目前的分数
+							var left_score = temp_score[room_info.zhuang_location - 1] - locals_score[my_location - 1];
+							if(left_score >= room_info.zhuang_score){
+								var miss_score = left_score - room_info.zhuang_score;
+								gameDao.sub_local_gold(rid,my_location,locals_score[my_location - 1] + miss_score,function(err,res){
+									temp_score[my_location - 1] = temp_score[my_location - 1] + miss_score;
+									temp_score[room_info.zhuang_location - 1] = temp_score[room_info.zhuang_location - 1] - temp_score[my_location - 1];
+									callback_lose(my_location);
+								});
+							}else{
+								gameDao.sub_local_gold(rid,my_location,locals_score[my_location - 1],function(err,res){
+									temp_score[my_location - 1] = temp_score[my_location - 1];
+									temp_score[room_info.zhuang_location - 1] = temp_score[room_info.zhuang_location - 1] - temp_score[my_location - 1];
+									callback_lose(my_location);
+								});
+							}
+						}else{
+							callback_lose(my_location);
+						}
+					}else{
+						callback_lose(my_location);
+					}
+				};
+				callback_lose(start_location);
+			}else{
+				var callback_win = function(my_location){
+					my_location = my_location + 1;
+					if(my_location > 4){
+						my_location = 1;
+					}
+					if(my_location == room_info.zhuang_location){
+						return;
+					}
+					if(room_info['location' + my_location] != null && room_info['location' + my_location] != 'null'){
+						gameDao.sub_local_gold(rid,my_location,locals_score[my_location - 1],function(err,res){
+							temp_score[my_location - 1] = locals_score[my_location - 1];
+							temp_score[room_info.zhuang_location - 1] = temp_score[room_info.zhuang_location - 1] - temp_score[my_location - 1];
+							callback_win(my_location);
+						});
+					}else{
+						callback_win(my_location);
+					}
+				};
+				callback_win(start_location);
+			}
+		}else{
+			//庄家输分 but 分数不够则计算取舍
+			var start_location = room_info.zhuang_location;
+			if(zhuang_score + room_info.zhuang_score < 0){
+				//输的人正常输分
+				var callback_lose = function(my_location){
+					my_location = my_location + 1;
+					if(my_location > 4){
+						my_location = 1;
+					}
+					if(my_location == room_info.zhuang_location){
+						return;
+					}
+					if(room_info['location' + my_location] != null && room_info['location' + my_location] != 'null'){
+						if(locals_score[my_location - 1] < 0){
+							gameDao.sub_local_gold(rid,my_location,locals_score[my_location - 1],function(err,res){
+								temp_score[room_info.zhuang_location - 1] = temp_score[room_info.zhuang_location - 1] - locals_score[my_location - 1];
+								temp_score[my_location - 1] = locals_score[my_location - 1];
+								callback_lose(my_location);
+							});
+						}else{
+							callback_lose(my_location);
+						}
+					}else{
+						callback_lose(my_location);
+					}
+				};
+				callback_lose(start_location);
+
+				start_location = room_info.zhuang_location;
+				//循环计算赢得玩家并更新分数
+				var callback_win = function(my_location){
+					my_location = my_location + 1;
+					if(my_location > 4){
+						my_location = 1;
+					}
+					if(my_location == room_info.zhuang_location){
+						return;
+					}
+					if(room_info['location' + my_location] != null && room_info['location' + my_location] != 'null'){
+						if(locals_score[my_location - 1] >= 0){
+							var left_score = temp_score[room_info.zhuang_location - 1] + room_info.zhuang_location;
+							//分数不够赔给玩家则只能赔庄分
+							if(left_score - locals_score[my_location - 1] <= 0){
+								var miss_score = locals_score[my_location - 1] - left_score;
+								gameDao.sub_local_gold(rid,my_location,locals_score[my_location - 1] - miss_score,function(err,res){
+									temp_score[my_location - 1] = locals_score[my_location - 1] - miss_score;
+									temp_score[room_info.zhuang_location - 1] = temp_score[room_info.zhuang_location - 1] - temp_score[my_location - 1];
+									callback_win(my_location);
+								});
+							}else{
+								gameDao.sub_local_gold(rid,my_location,locals_score[my_location - 1],function(err,res){
+									temp_score[my_location - 1] = locals_score[my_location - 1];
+									temp_score[room_info.zhuang_location - 1] = temp_score[room_info.zhuang_location - 1] - temp_score[my_location - 1];
+									callback_win(my_location);
+								});
+							}
+						}else{
+							callback_win(my_location);
+						}
+					}else{
+						callback_win(my_location);
+					}
+				};
+				callback_win(start_location);
+			}else{
+				var callback_win = function(my_location){
+					my_location = my_location + 1;
+					if(my_location > 4){
+						my_location = 1;
+					}
+					if(my_location == room_info.zhuang_location){
+						return;
+					}
+					if(room_info['location' + my_location] != null && room_info['location' + my_location] != 'null'){
+						gameDao.sub_local_gold(rid,my_location,locals_score[my_location - 1],function(err,res){
+							temp_score[my_location - 1] = locals_score[my_location - 1];
+							temp_score[room_info.zhuang_location - 1] = temp_score[room_info.zhuang_location - 1] - temp_score[my_location - 1];
+							callback_win(my_location);
+						});
+					}else{
+						callback_win(my_location);
+					}
+				};
+				callback_win(start_location);
+			}
+		}
+		var param = {
+			'route':'onEnd',
+			'scores':temp_score
+		};
+		channel.pushMessage(param);
+	});
+}
 /**
  * 比牌或者最后一位玩家弃牌以后，重新开始牌局游戏
  * @param app

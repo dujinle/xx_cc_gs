@@ -19,6 +19,7 @@ def open_file(file):
 		keystr = key;
 		array = key.split('+');
 		if(int(array[1]) < int(array[0])):
+			#print int(array[1]),int(array[0]);
 			keystr = array[1] + '+' + array[0];
 
 		if dicts[key] == '零':

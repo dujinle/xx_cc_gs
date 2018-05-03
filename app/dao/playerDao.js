@@ -303,17 +303,17 @@ playerDao.feedback = function(id,title,content,cb){
  * @param gold
  * @param cb
  */
-playerDao.setGold = function(id,gold,cb){
-    var sql = 'update player set gold = gold + ? where id =?';
-    var args =[gold,id];
-    pomelo.app.get('dbclient').query(sql,args,function(err,res){
-        if(!!err){
-            console.log(err);
-            utils.invokeCallback(cb,err.message,null);
-        }else{
-            utils.invokeCallback(cb,null,200);
-        }
-    });
+playerDao.sub_gold = function(id,gold,cb){
+	var sql = 'update player set gold = gold + ? where id =?';
+	var args =[gold,id];
+	pomelo.app.get('dbclient').query(sql,args,function(err,res){
+		if(!!err){
+			console.log(err);
+			utils.invokeCallback(cb,err.message,null);
+		}else{
+			utils.invokeCallback(cb,null,200);
+		}
+	});
 };
 
 playerDao.getFangKa = function(id,cb){

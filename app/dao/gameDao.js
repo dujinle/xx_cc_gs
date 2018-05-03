@@ -99,6 +99,30 @@ gameDao.set_qiang_zhuang = function(rid,location,flag,cb){
 /*}}}*/
 };
 
+gameDao.sub_local_gold = function(rid,location,score,cb){
+/*{{{*/
+	var sql = null;
+	var args = null;
+	if(location == 1){
+		sql = 'update game_room set left_score_1 = left_score_1 + ? where rid = ?';
+	}else if(location == 2){
+		sql = 'update game_room set left_score_2 = left_score_2 + ? where rid = ?';
+	}else if(location == 3){
+		sql = 'update game_room set left_score_3 = left_score_3 + ? where rid = ?';
+	}else if(location == 4){
+		sql = 'update game_room set left_score_4 = left_score_4 + ? where rid = ?';
+	}
+	var args = [score,rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			console.log("update game_room set qiang_flag" + err.message);
+			utils.invokeCallback(cb,err,null);
+		}else{
+			utils.invokeCallback(cb,null,200);
+		}
+	});
+/*}}}*/
+};
 
 gameDao.set_xiazhu = function(rid,location,chips,cb){
 /*{{{*/
@@ -481,6 +505,34 @@ gameDao.get_player_local = function(rid,player_id,cb){
 	});
 };
 
+gameDao.get_local_player_id = function(rid,location,cb){
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	var player_id;
+	console.log("--------------player input get_local_player_id" + location);
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			console.error("db:getPlayerLocal error");
+			utils.invokeCallback(cb, err, null);
+		}else{
+			if(location == 1){
+				player_id = res[0].location1.split('*')[0];
+			}else if(location == 2){
+				player_id = res[0].location2.split('*')[0];
+			}else if(location == 3){
+				player_id = res[0].location3.split('*')[0];
+			}else if(location == 4){
+				player_id = res[0].location4.split('*')[0];
+			}else {
+				console.error("db:getPlayerLocal2 error");
+				utils.invokeCallback(cb, "db:getPlayerLocal2 error", null);
+			}
+			//cb(location);
+			utils.invokeCallback(cb,null , player_id);
+		}
+	});
+};
+
 gameDao.get_players_location = function(rid,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
@@ -846,7 +898,7 @@ gameDao.get_pai = function(rid,location,cb){
 /**
  * 获取所有玩家的牌型,牌型存放数据库类型是字符串类型，程序使用时是json格式
  * */
-gameDao.getAllPai = function(rid,cb){
+gameDao.get_all_pai = function(rid,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
@@ -859,7 +911,6 @@ gameDao.getAllPai = function(rid,cb){
 			allPai.push(JSON.parse(res[0].pai2));
 			allPai.push(JSON.parse(res[0].pai3));
 			allPai.push(JSON.parse(res[0].pai4));
-			allPai.push(JSON.parse(res[0].pai5));
 			utils.invokeCallback(cb,null,allPai);
 		}
 	});

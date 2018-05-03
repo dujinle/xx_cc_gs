@@ -135,6 +135,10 @@ CREATE TABLE game_room(
 	pai2 VARCHAR(240),\
 	pai3 VARCHAR(240),\
 	pai4 VARCHAR(240),\
+	left_score_1 INT DEFAULT 0,\
+	left_score_2 INT DEFAULT 0,\
+	left_score_3 INT DEFAULT 0,\
+	left_score_4 INT DEFAULT 0,\
 	score_1 VARCHAR(20),\
 	score_2 VARCHAR(20),\
 	score_3 VARCHAR(20),\

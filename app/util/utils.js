@@ -107,3 +107,25 @@ utils.get_uuid = function(){
 	var uuid = Date.now() + "" + Math.round(Math.random() * 10000);
 	return uuid.substring(0,16);
 };
+
+utils.get_up8_flag = function(score){
+	if(score >= 8 && score <= 10){
+		return true;
+	}
+	if(score >= 18 && score <= 20){
+		return true;
+	}
+	if(score >= 28 && score <= 30){
+		return true;
+	}
+	if(score >= 38 && score <= 40){
+		return true;
+	}
+	if(score >= 48 && score <= 50){
+		return true;
+	}
+	if(score >= 58){
+		return true;
+	}
+	return false;
+};
