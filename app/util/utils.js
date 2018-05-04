@@ -109,22 +109,7 @@ utils.get_uuid = function(){
 };
 
 utils.get_up8_flag = function(score){
-	if(score >= 8 && score <= 10){
-		return true;
-	}
-	if(score >= 18 && score <= 20){
-		return true;
-	}
-	if(score >= 28 && score <= 30){
-		return true;
-	}
-	if(score >= 38 && score <= 40){
-		return true;
-	}
-	if(score >= 48 && score <= 50){
-		return true;
-	}
-	if(score >= 58){
+	if(score >= 43){
 		return true;
 	}
 	return false;

@@ -126,10 +126,6 @@ CREATE TABLE game_room(
 	location3 VARCHAR(20) DEFAULT 'null',\
 	location4 VARCHAR(20) DEFAULT 'null',\
 	is_gaming INT DEFAULT 0,\
-	is_game_1 INT DEFAULT -1,\
-	is_game_2 INT DEFAULT -1,\
-	is_game_3 INT DEFAULT -1,\
-	is_game_4 INT DEFAULT -1,\
 	peipai_num INT DEFAULT 0,\
 	pai1 VARCHAR(240),\
 	pai2 VARCHAR(240),\

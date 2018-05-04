@@ -52,6 +52,10 @@ handler.game_process = function(msg,session,next){
 		console.log('player open');
 		gameLogicRemote.open(rid,msg.location,channel,channelService);
 		next(null,{msg:"receive process successfully"});
+	}else if(process == 'qieguo'){
+		console.log('player qieguo');
+		gameLogicRemote.qieguo(rid,msg.location,msg.flag,channel,channelService);
+		next(null,{msg:"receive process successfully"});
 	}else if(process == 'follow'){
 		console.log('player follow');
 
