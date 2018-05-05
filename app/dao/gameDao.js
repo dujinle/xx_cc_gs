@@ -880,6 +880,7 @@ gameDao.reset_room = function(rid,cb){
 							console.error("db:getAllPai error");
 							utils.invokeCallback(cb, err, null);
 						}else{
+							console.log("reset_room:" + JSON.stringify(res));
 							utils.invokeCallback(cb, null, res[0]);
 						}
 					});
