@@ -145,10 +145,11 @@ gameRemote.prototype.dissolve_room = function(uid, sid, channel_id,flag,cb) {
 				players.push(users_ext[i]);
 				console.log("remove from channel uid:" + uid + " abc:" + abc);
 			}
-			channel.destroy();
+			cb(players);
 		});
+	}else{
+		cb(players);
 	}
-	cb(players);
 /*}}}*/
 };
 
@@ -190,8 +191,10 @@ gameRemote.prototype.leave_room = function(uid, sid, channel_id,flag,location,cb
 				break;
 			}
 		}
+		cb(players);
+	}else{
+		cb(players);
 	}
-	cb(players);
 /*}}}*/
 };
 

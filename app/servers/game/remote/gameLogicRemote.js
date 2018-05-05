@@ -276,12 +276,14 @@ gameLogicRemote.qiang = function(rid,location,flag,channel,username){
 							var zhuang_id = qiangzuangs[local - 1];
 							setTimeout(function(){
 								gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
-									var param = {
-										route:'onGetZhuang',
-										nums:[num1,num2],
-										zhuang_local:zhuang_id
-									};
-									channel.pushMessage(param);
+									gameDao.sub_local_gold(rid,zhuang_id,100,function(err,res){
+										var param = {
+											route:'onGetZhuang',
+											nums:[num1,num2],
+											zhuang_local:zhuang_id
+										};
+										channel.pushMessage(param);
+									});
 								});
 							},1000);
 						});
@@ -293,12 +295,14 @@ gameLogicRemote.qiang = function(rid,location,flag,channel,username){
 						var zhuang_id = qiangzuangs[local - 1];
 						setTimeout(function(){
 							gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
-								var param = {
-									route:'onGetZhuang',
-									nums:[num1,num2],
-									zhuang_local:zhuang_id
-								};
-								channel.pushMessage(param);
+								gameDao.sub_local_gold(rid,zhuang_id,100,function(err,res){
+									var param = {
+										route:'onGetZhuang',
+										nums:[num1,num2],
+										zhuang_local:zhuang_id
+									};
+									channel.pushMessage(param);
+								});
 							});
 						},1000);
 					}
@@ -476,10 +480,10 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 									};
 									if(res.zhuang_score >= 500){
 										param['isqie'] = 2;
-									}else if(res.round >= 3 && cache.get(rid) != null){
-										param['isqie'] = 1;
 									}else if(res.zhuang_score == 0){
 										param['isqie'] = 2;
+									}else if(res.round >= 3 && cache.get(rid) != null){
+										param['isqie'] = 1;
 									}else{
 										param['isqie'] = 0;
 									}
@@ -521,10 +525,10 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 								};
 								if(res.zhuang_score >= 500){
 									param['isqie'] = 2;
-								}else if(res.round >= 3 && cache.get(rid) != null){
-									param['isqie'] = 1;
 								}else if(res.zhuang_score == 0){
 									param['isqie'] = 2;
+								}else if(res.round >= 3 && cache.get(rid) != null){
+									param['isqie'] = 1;
 								}else{
 									param['isqie'] = 0;
 								}
@@ -611,10 +615,10 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 									};
 									if(res.zhuang_score >= 500){
 										param['isqie'] = 2;
-									}else if(res.round >= 3 && cache.get(rid) != null){
-										param['isqie'] = 1;
 									}else if(res.zhuang_score == 0){
 										param['isqie'] = 2;
+									}else if(res.round >= 3 && cache.get(rid) != null){
+										param['isqie'] = 1;
 									}else{
 										param['isqie'] = 0;
 									}
@@ -656,10 +660,10 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 								};
 								if(res.zhuang_score >= 500){
 									param['isqie'] = 2;
-								}else if(res.round >= 3 && cache.get(rid) != null){
-									param['isqie'] = 1;
 								}else if(res.zhuang_score == 0){
 									param['isqie'] = 2;
+								}else if(res.round >= 3 && cache.get(rid) != null){
+									param['isqie'] = 1;
 								}else{
 									param['isqie'] = 0;
 								}

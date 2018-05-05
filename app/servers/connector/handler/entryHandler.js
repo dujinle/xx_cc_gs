@@ -112,7 +112,7 @@ handler.create = function(msg, session, next) {
 	}else if(fangka_type == 2){
 		fangka_num = renshu;
 	}
-
+	console.log("session id:" + session.id + " uid:" + session.uid);
 	playerDao.get_player_by_id(player_id,function(err,player){
 		if(player.fangka_num < fangka_num){
 			console.log("fangka have no enough" + player.fangka_num + " use:" + fangka_num);
@@ -135,6 +135,7 @@ handler.create = function(msg, session, next) {
 
 				session.on('closed', onUserLeave.bind(null, self.app));
 
+				console.log("session id:" + session.id + " uid:" + session.uid);
 				gameDao.get_room_by_room_id(res,function(err,res){
 					if(err){
 						next(null, {code:500,msg:err.message});
@@ -246,6 +247,7 @@ handler.dissolve_room = function(msg, session, next) {
 	var self = this;
 	var uid = player_id + '*' + rid;
 	self.app.rpc.game.gameRemote.dissolve_room(session, uid, self.app.get('serverId'), rid, true,function(players){
+		console.log("dissolve_room:" + JSON.stringify(players));
 		for(var i = 0; i < players.length;i++){
 			session.unbind(players[i]);
 		}
@@ -263,6 +265,7 @@ handler.leave_room = function(msg, session, next) {
 	var self = this;
 	var uid = player_id + '*' + rid;
 	self.app.rpc.game.gameRemote.leave_room(session, uid, self.app.get('serverId'), rid, true,location,function(players){
+		console.log("leave_room:" + JSON.stringify(players));
 		for(var i = 0; i < players.length;i++){
 			session.unbind(players[i]);
 		}
