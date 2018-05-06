@@ -702,3 +702,17 @@ gameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 		});
 	}
 };
+
+gameLogicRemote.get_local_player = function(rid,send_from,location,channel,channelService){
+	gameDao.get_local_player_id(rid,location,function(err,player_id){
+		playerDao.get_player_by_id(player_id,function(err,player){
+			var param = {
+				'route':'onGetUinfo',
+				'player':player,
+				'send_from':send_from,
+				'location':location
+			};
+			channel.pushMessage(param);
+		});
+	});
+};
