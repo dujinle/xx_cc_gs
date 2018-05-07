@@ -47,5 +47,15 @@ handler.gameInfoProcess = function (msg, session, next) {
 				next(null, {code: 200,msg: res});
 			}
 		});
+	}else if(process == "update_game"){
+		var data = msg.data;
+		gameInfoDao.update_game(data,function(err,res){
+			if (err) {
+				console.log(err.message + '===========err============');
+				next(null, {code: 500,msg: 'update error'});
+			}else{
+				next(null, {code: 200,msg: res});
+			}
+		});
 	}
 }

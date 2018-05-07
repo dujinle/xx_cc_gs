@@ -57,8 +57,12 @@ handler.game_process = function(msg,session,next){
 		gameLogicRemote.qieguo(rid,msg.location,msg.flag,channel,channelService);
 		next(null,{msg:"receive process successfully"});
 	}else if(process == 'get_user_info'){
-		console.log('player qieguo');
+		console.log('player get_user_info');
 		gameLogicRemote.get_local_player(rid,msg.send_from,msg.location,channel,channelService);
+		next(null,{msg:"receive process successfully"});
+	}else if(process == 'send_gift'){
+		console.log('player send_gift');
+		gameLogicRemote.send_gift(rid,msg.send_from,msg.send_to,msg.type,channel,channelService);
 		next(null,{msg:"receive process successfully"});
 	}else{
 		console.log("Process invalid!");

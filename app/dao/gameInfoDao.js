@@ -3,6 +3,7 @@
  */
 var utils  = require('../util/utils');
 var pomelo = require('pomelo');
+var playerDao = require('./playerDao');
 var Code = require('../consts/code');
 
 
@@ -40,3 +41,17 @@ gameInfoDao.get_game_history_list = function(player_id,index,length,cb){
 		}
 	});
 };
+
+gameInfoDao.update_game = function(data,cb){
+	var sql = 'insert into game_history (player_id,renshu,status,use_fangka,game_status,creat_time,room_num) values(?,?,?,?,?,?,?)';
+	var args = [data.player_id,data.renshu,data.status,data.use_fangka,data.game_status,data.creat_time,data.room_num];
+	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
+		if (err !== null) {
+			console.log(err.message);//ER_DUP_ENTRY: Duplicate entry '' for key 'INDEX_ACCOUNT_USERNAME'
+			utils.invokeCallback(cb, err.message, null);
+		} else {
+			console.log('gameInfoDao creater by imei ok  user:' + JSON.stringify(res));
+			playerDao.update_game_info(data,cb);
+		}
+	});
+}

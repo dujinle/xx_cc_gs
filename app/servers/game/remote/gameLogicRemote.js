@@ -716,3 +716,13 @@ gameLogicRemote.get_local_player = function(rid,send_from,location,channel,chann
 		});
 	});
 };
+
+gameLogicRemote.send_gift = function(rid,send_from,send_to,type,channel,channelService){
+	var param = {
+		'route':'onSendGift',
+		'send_from':send_from,
+		'send_to':send_to,
+		"type":type
+	};
+	channel.pushMessage(param);
+};

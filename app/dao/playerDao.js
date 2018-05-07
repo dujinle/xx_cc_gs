@@ -297,6 +297,40 @@ playerDao.feedback = function(id,title,content,cb){
     });
 }
 
+playerDao.update_game_info = function(data,cb){
+	var id = data.player_id;
+	console.log(id,' <- id');
+	var sql  = 'select * from player where id =?';
+	var args = [id];
+	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
+		if (err) {
+			utils.invokeCallback(cb, err.message, null);
+		} else {
+			var rs = res[0];
+			var round_num = rs.round_num + 1;
+			var all_score = rs.all_score + data.game_status;
+			var win_num = rs.win_num;
+			var lose_num = rs.lose_num;
+			if(data.game_status > 0){
+				win_num = win_num + 1;
+			}else if(data.game_status < 0){
+				lose_num = lose_num + 1;
+			}
+
+			var sql = 'update player set round_num = ?, all_score = ?,win_num = ?,lose_num = ? where id = ?';
+			var args =[round_num,all_score,win_num,lose_num,id];
+			pomelo.app.get('dbclient').query(sql,args,function(err,res){
+				if(!!err){
+					console.log(err);
+					utils.invokeCallback(cb,err.message,null);
+				}else{
+					console.log("sub_fangka :" + JSON.stringify(res));
+					utils.invokeCallback(cb,null,res);
+				}
+			});
+		}
+	});
+}
 /**
  * 增加金币
  * @param id
