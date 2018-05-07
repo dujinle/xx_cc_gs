@@ -273,7 +273,7 @@ gameLogicRemote.qiang = function(rid,location,flag,channel,username){
 							if(local == 0){
 								local = locations.length;
 							}
-							var zhuang_id = qiangzuangs[local - 1];
+							var zhuang_id = locations[local - 1];
 							setTimeout(function(){
 								gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
 									gameDao.sub_local_gold(rid,zhuang_id,100,function(err,res){
