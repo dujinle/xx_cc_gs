@@ -1,48 +1,48 @@
 {
   "development":{
     "connector":[
-      {"id":"connector-server-1", "host":"192.168.10.203", "port":4050, "clientPort": 3050, "frontend": true}
+      {"id":"connector-server-1", "host":"193.112.243.189", "port":4050, "clientPort": 3050, "frontend": true}
     ],
     "game":[
-      {"id":"game-server-1", "host":"192.168.10.203", "port":7050}
+      {"id":"game-server-1", "host":"193.112.243.189", "port":7050}
     ],
     "gate":[
-      {"id": "gate-server-1", "host": "192.168.10.203", "clientPort": 3014, "frontend": true}
+      {"id": "gate-server-1", "host": "193.112.243.189", "clientPort": 3014, "frontend": true}
     ],
     "login": [
-      {"id": "login-server-1", "host": "192.168.10.203", "clientPort": 8210, "frontend": true}
+      {"id": "login-server-1", "host": "193.112.243.189", "clientPort": 8210, "frontend": true}
     ],
     "auth": [
-      {"id": "auth-server-1", "host": "192.168.10.203", "port": 8350}
+      {"id": "auth-server-1", "host": "193.112.243.189", "port": 8350}
     ],
     "user": [
-      {"id":"user-server-1","host":"192.168.10.203","port":8450}
+      {"id":"user-server-1","host":"193.112.243.189","port":8450}
     ],
     "broadcast": [
-      {"id":"broadcast-server-1","host":"192.168.10.203","port":8550}
+      {"id":"broadcast-server-1","host":"193.112.243.189","port":8550}
     ]
   },
   "production":{
     "connector":[
-      {"id":"connector-server-1", "host":"192.168.10.203", "port":4050, "clientPort": 3050, "frontend": true}
+      {"id":"connector-server-1", "host":"193.112.243.189", "port":4050, "clientPort": 3050, "frontend": true}
     ],
     "game":[
-      {"id":"game-server-1", "host":"192.168.10.203", "port":7050}
+      {"id":"game-server-1", "host":"193.112.243.189", "port":7050}
     ],
     "gate":[
-      {"id": "gate-server-1", "host": "192.168.10.203", "clientPort": 3014, "frontend": true}
+      {"id": "gate-server-1", "host": "193.112.243.189", "clientPort": 3014, "frontend": true}
     ],
     "login": [
-      {"id": "login-server-1", "host": "192.168.10.203", "clientPort": 8210, "frontend": true}
+      {"id": "login-server-1", "host": "193.112.243.189", "clientPort": 8210, "frontend": true}
     ],
     "auth": [
-      {"id": "auth-server-1", "host": "192.168.10.203", "port": 8350}
+      {"id": "auth-server-1", "host": "193.112.243.189", "port": 8350}
     ],
     "user": [
-      {"id":"user-server-1","host":"192.168.10.203","port":8450}
+      {"id":"user-server-1","host":"193.112.243.189","port":8450}
     ],
     "broadcast": [
-      {"id":"broadcast-server-1","host":"192.168.10.203","port":8550}
+      {"id":"broadcast-server-1","host":"193.112.243.189","port":8550}
     ]
   }
 }

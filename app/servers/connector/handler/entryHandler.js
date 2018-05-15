@@ -6,6 +6,7 @@
 var Code	  = require('../../../consts/code');
 var playerDao = require('../../../dao/playerDao');
 var gameDao   = require('../../../dao/gameDao');
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 
 var async	 = require('async');
 
@@ -31,53 +32,27 @@ var handler = Handler.prototype;
 Handler.prototype.entry = function (msg, session, next) {
 /*{{{*/
 	var token = msg.token, self = this;
-	console.log(__filename,'entry ok ====token: ',token);
+	logger.info(__filename,'entry ok ====token: ',token);
 	if (!token) {
 		next(new Error('invalid entry request: empty token'), {code: 500,msg:"token empty"});
 		return;
 	}
 
-	var userId, player;
+	var player;
+	//多个函数依次执行，且前一个的输出为后一个的输入
 	async.waterfall([
 		function (cb) {
-			console.log("cd waterfall  ***************************");
-			console.log('token ',token);
-					//auth token
+			logger.info("cd waterfall  ***************************");
+			logger.info('token ',token);
+			//auth token
 			//token 为登录验证之后
 			//取出userId
 			self.app.rpc.auth.authRemote.auth(session, token, cb);
-		}, function (code, user, cb) {
-
-			console.log('after auth');
-			//query player info by user id
-			//user = user/null
-			if (code !== Code.OK) {
-				console.log('验证不成功');
-				next(null, {code: code,msg:'code ! = 200'});
-				return;
-			}
-
-			if (!user) {
-				console.log('用户不存在');
-				next(null, {code: Code.ENTRY.FA_USER_NOT_EXIST,msg:'user not exist'});
-				return;
-			}
-
-			userId = user.id;
-			playerDao.get_player_by_id(user.id, cb);
-		}, function (res, cb) {
-			console.log('after getplayer--- ');
-			// generate session and register chat status
-			player = res;
-			self.app.get('sessionService').kick(userId, cb);
+		}, function (user, cb) {
+			player = user;
+			logger.info('after auth');
+			self.app.get('sessionService').kick(user.id, cb);
 		}, function (cb) {
-			//session.bind(userId, cb);
-			cb();
-		}, function (cb) {
-			if (!player) {
-				next(null, {code: Code.OK});
-				return;
-			}
 			session.set('playerId', player.id);
 			session.push('playerId', function(err) {
 				if(err) {
@@ -88,17 +63,17 @@ Handler.prototype.entry = function (msg, session, next) {
 		}
 	], function (err) {
 		if (err) {
-			next(err, {code: Code.FAIL,msg:'waterfall err'});
+			next(err, {code: Code.FAIL,msg:err.message});
 			return;
 		}
-		console.log('get all data player user task');
+		logger.info('get all data player user task');
 	});
 /*}}}*/
 };
 
 handler.create = function(msg, session, next) {
 /*{{{*/
-	console.log("handler.create:" + JSON.stringify(msg));
+	logger.info("handler.create:" + JSON.stringify(msg));
 	var renshu = msg.renshu;
 	var room_type = msg.room_type;
 	var player_id = msg.player_id;
@@ -112,16 +87,16 @@ handler.create = function(msg, session, next) {
 	}else if(fangka_type == 2){
 		fangka_num = renshu;
 	}
-	console.log("session id:" + session.id + " uid:" + session.uid);
+	logger.info("session id:" + session.id + " uid:" + session.uid);
 	playerDao.get_player_by_id(player_id,function(err,player){
 		if(player.fangka_num < fangka_num){
-			console.log("fangka have no enough" + player.fangka_num + " use:" + fangka_num);
+			logger.info("fangka have no enough" + player.fangka_num + " use:" + fangka_num);
 			next(null, {code:203,msg:"房卡数量不足"});
 			return;
 		}
 		playerDao.sub_fangka(player_id,fangka_num,function(err,res){
 			gameDao.create_room_by_player_id(player_id,player.nick_name,room_type,renshu,max_type,fangka_type,wait_time,fangka_num,function(err,res){
-				console.log('create room succ:' + JSON.stringify(res));
+				logger.info('create room succ:' + JSON.stringify(res));
 
 				var rid = res;
 				var uid = player_id + '*' + rid;
@@ -135,7 +110,7 @@ handler.create = function(msg, session, next) {
 
 				session.on('closed', onUserLeave.bind(null, self.app));
 
-				console.log("session id:" + session.id + " uid:" + session.uid);
+				logger.info("session id:" + session.id + " uid:" + session.uid);
 				gameDao.get_room_by_room_id(res,function(err,res){
 					if(err){
 						next(null, {code:500,msg:err.message});
@@ -153,7 +128,7 @@ handler.create = function(msg, session, next) {
 
 handler.enter_wait_room = function(msg, session, next) {
 /*{{{*/
-	console.log("handler.create:" + JSON.stringify(msg));
+	logger.info("handler.create:" + JSON.stringify(msg));
 	var room_num = msg.room_num;
 	var rid = msg.rid;
 	var player_id = msg.player_id;
@@ -225,7 +200,7 @@ handler.enter_wait_room = function(msg, session, next) {
 
 handler.get_room_info = function(msg, session, next) {
 /*{{{*/
-	console.log("handler.get room info:" + JSON.stringify(msg));
+	logger.info("handler.get room info:" + JSON.stringify(msg));
 	var rid = msg.rid;
 	gameDao.get_room_by_room_id(rid,function(err,res){
 		if(err){
@@ -241,13 +216,13 @@ handler.get_room_info = function(msg, session, next) {
 
 handler.dissolve_room = function(msg, session, next) {
 /*{{{*/
-	console.log("handler.dissolve_room:" + JSON.stringify(msg));
+	logger.info("handler.dissolve_room:" + JSON.stringify(msg));
 	var rid = msg.rid;
 	var player_id = msg.player_id;
 	var self = this;
 	var uid = player_id + '*' + rid;
 	self.app.rpc.game.gameRemote.dissolve_room(session, uid, self.app.get('serverId'), rid, true,function(players){
-		console.log("dissolve_room:" + JSON.stringify(players));
+		logger.info("dissolve_room:" + JSON.stringify(players));
 		for(var i = 0; i < players.length;i++){
 			session.unbind(players[i]);
 		}
@@ -258,14 +233,14 @@ handler.dissolve_room = function(msg, session, next) {
 
 handler.leave_room = function(msg, session, next) {
 /*{{{*/
-	console.log("handler.leave_room:" + JSON.stringify(msg));
+	logger.info("handler.leave_room:" + JSON.stringify(msg));
 	var rid = msg.rid;
 	var player_id = msg.player_id;
 	var location = msg.location;
 	var self = this;
 	var uid = player_id + '*' + rid;
 	self.app.rpc.game.gameRemote.leave_room(session, uid, self.app.get('serverId'), rid, true,location,function(players){
-		console.log("leave_room:" + JSON.stringify(players));
+		logger.info("leave_room:" + JSON.stringify(players));
 		for(var i = 0; i < players.length;i++){
 			session.unbind(players[i]);
 		}
@@ -344,6 +319,6 @@ var onUserLeave = function(app, session) {
 	}
 	//app.rpc.chat.chatRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
 	//app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
-	console.log('loginout .......' + session.uid);
+	logger.info('loginout .......' + session.uid);
 };
 

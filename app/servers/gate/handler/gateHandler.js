@@ -1,4 +1,6 @@
 var dispatcher = require('../../../util/dispatcher');
+var Code = require('../../../consts/code');
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 
 module.exports = function(app) {
 	return new Handler(app);
@@ -21,18 +23,16 @@ var handler = Handler.prototype;
 handler.queryEntry = function(msg, session, next) {
 	var uid = msg.uid;
 	var connectors = this.app.getServersByType('connector');
-	console.log('go into queryEntry:' + JSON.stringify(connectors));
+	logger.info('go into queryEntry:' + JSON.stringify(connectors));
 	if(!connectors || connectors.length === 0) {
-		next(null, {
-			code: 500
-		});
+		next(null, {code: Code.FAIL});
 		return;
 	}
 	// select connector
 	var res = connectors[0];//dispatcher.dispatch(uid, connectors); // select a connector from all the connectors
 	// do something with res
 	next(null, {
-		code: 200,
+		code: Code.OK,
 		host: res.host,
 		port: res.clientPort
 	});

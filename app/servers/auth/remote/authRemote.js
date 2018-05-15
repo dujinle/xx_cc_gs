@@ -1,9 +1,11 @@
 var tokenService = require('../../../util/token');
 var playerDao      = require('../../../dao/playerDao');
 var Code         = require('../../../consts/code');
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 
 var DEFAULT_SECRET = 'secret';
-var DEFAULT_EXPIRE = 6 * 60 * 60 * 1000;	// default session expire time: 6 hours
+//var DEFAULT_EXPIRE = 6 * 60 * 60 * 1000;	// default session expire time: 6 hours
+var DEFAULT_EXPIRE = 0.5 * 60 * 60 * 1000;	// default session expire time: 6 hours
 
 module.exports = function (app) {
     return new Remote(app);
@@ -28,33 +30,32 @@ var remote = Remote.prototype;
 remote.auth = function (token, cb) {
     //token由uid Date.now() 加密密码  加密而成
     //解析token得出uid 和Date.now()  res包含uid和timestamp {uid: ts[0], timestamp: Number(ts[1])}
-    console.log(this.toString(),'传入token  '+token);
+    logger.info('传入token  '+ token);
     var res = tokenService.parse(token, DEFAULT_SECRET);
     if (!res) {
-        console.log("非法的token");
-        cb(null, Code.ENTRY.FA_TOKEN_ILLEGAL);
+        logger.error("非法的token");
+        cb(new Error('非法的token'));
         return;
     }
 
-    console.log('auth res ==',JSON.stringify(res));
+    logger.info('auth res ==',JSON.stringify(res));
 
     //验证token是否在6小时内生成
+
     if (!checkExpire(res, this.expire)) {
-        console.log("token过期");
-        cb(null, Code.ENTRY.FA_TOKEN_EXPIRE);
+        logger.info("token过期");
+        cb(new Error("token过期"));
         return;
     }
 
-    console.log('authRemote 解密出userid',res.userId);
-    playerDao.get_player_by_id(res.userId, function (err, user) {
+    logger.info('authRemote 解密出playerid',res.player_id);
+    playerDao.get_player_by_id(res.player_id, function (err, player) {
         if (err) {
-            console.log(err);
-            console.log('auth getuserbyid err');
-            cb(err);
+            logger.error('auth getplayerbyid err' + err);
+            cb(new Error(err));
             return;
         }
-        //cb = function(err，code, user, cb)
-        cb(null, Code.OK, user);
+        cb(null,player);
     });
 };
 
