@@ -418,10 +418,10 @@ gameRemote.prototype.get = function(uid,channel,channelService,cb) {
 /**
  * 用户离开房间，剔除用户
  * */
-gameRemote.prototype.kick = function(uid, sid, name, cb) {
+gameRemote.prototype.kick = function(uid, sid, channel_id, cb) {
 	console.log('gameRemote.prototype.kick.........');
     var self = this;
-    var channel = this.channelService.getChannel(name, false);
+    var channel = this.channelService.getChannel(channel_id, false);
     var channelService = this.channelService;
     // leave channel
     var rid = uid.split('*')[1];
@@ -436,40 +436,6 @@ gameRemote.prototype.kick = function(uid, sid, name, cb) {
         var users = channel.getMembers();
         console.log("------------users:"+users);
     }
-    gameDao.getPlayerLocal(rid,username,function(err,location){
-        gameDao.cleanOpenMark(rid,location,function(err){
-            gameDao.rmPlayer(rid,uid,function(err){
-
-                var param = {
-                    route: 'onLeave',
-                    user: username
-                };
-                channel.pushMessage(param);
-
-                gameDao.getIsGameNum(rid,function(err,isGameNumArr){
-                    var sum = 0;
-                    var game_winner;
-                    for(var i=1;i<6;i++){
-                        if(isGameNumArr[i]==1){
-                            sum = sum +isGameNumArr[i];
-                            game_winner=i;
-                        }
-                    }
-                    if(sum<=1){
-                        //重新开始
-						console.log('gameLogicRemote.restartGame......');
-                        gameLogicRemote.restartGame(self.app,uid,rid,channel,channelService,game_winner);
-                        cb();
-
-                    }else{
-                        cb();
-                    }
-                });
-            });
-        });
-    });
-
-
-    //cb();
+    cb();
 };
 

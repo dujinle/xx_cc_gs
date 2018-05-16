@@ -317,8 +317,10 @@ var onUserLeave = function(app, session) {
 	if(!session || !session.uid) {
 		return;
 	}
-	//app.rpc.chat.chatRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
-	//app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
 	logger.info('loginout .......' + session.uid);
+	app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'),function(){
+		session.unbind(session.uid);
+	});
+	//app.rpc.chat.chatRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
 };
 
