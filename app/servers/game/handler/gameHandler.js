@@ -36,6 +36,8 @@ handler.game_process = function(msg,session,next){
 	//收到发牌准备消息，然后处理进行发牌
 	if(process == 'ready'){
 		console.log('ready......');
+		gameLogicRemote.ready(rid,msg.location,channel,username);
+		next(null,{msg:"receive process successfully"});
 	}else if(process == 'qiang'){
 		console.log('player qiang zhuang');
 		gameLogicRemote.qiang(rid,msg.location,msg.flag,channel,username);

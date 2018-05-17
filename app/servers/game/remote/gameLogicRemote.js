@@ -1,7 +1,7 @@
 /**
  * Created by wuningjian on 3/3/16.
  */
-
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 var gameDao   = require('../../../dao/gameDao');
 var playerDao = require('../../../dao/playerDao');
 var delayDao  = require('../../../dao/delayDao');
@@ -19,7 +19,7 @@ var gameLogicRemote = module.exports;
 gameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 	////如果name不存在且flag为true，则创建channel
 	var users = channel.getMembers();
-	console.log("--------users in fapai:"+users);
+	logger.info("--------users in fapai:"+users);
 	for(var i = 0; i < users.length; i++) {
 		users[i] = users[i].split('*')[0];
 	}
@@ -64,7 +64,7 @@ gameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 				channel.pushMessage(param);
 				for(var i = 0; i < 4;i++){
 					gameDao.update_pai(rid,paixing[i],i + 1,function(err){
-						console.log("gameDao.updatePai success");
+						logger.info("gameDao.updatePai success");
 					});
 				}
 			});
@@ -73,7 +73,9 @@ gameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 			gameDao.sub_round(rid,0,function(err,res){
 				for(var i = 0; i < 4;i++){
 					gameDao.update_pai(rid,paixing[i],i + 1,function(err){
-						console.log("gameDao.updatePai success");
+						gameDao.set_player_is_game(rid,i + 1,4,function(err,res){
+							logger.info("gameDao.updatePai success");
+						});
 					});
 				}
 				var param = {
@@ -105,7 +107,7 @@ gameLogicRemote.getCardArr = function(rid){
 			j++;
 		}
 	}
-	console.log("arr:"+arr);
+	logger.info("arr:"+arr);
 
 	var k = 0;
 	var t = 0;
@@ -122,7 +124,7 @@ gameLogicRemote.getCardArr = function(rid){
 
 	cache.put(rid,restPaiArr);//剩余的牌存到缓存当中，关键字是房间号
 
-	console.log("paiArr:"+paiArr);
+	logger.info("paiArr:"+paiArr);
 
 	var paixing = [];
 
@@ -131,20 +133,20 @@ gameLogicRemote.getCardArr = function(rid){
 	paixing[2] = [paiArr[2],paiArr[6],paiArr[10],paiArr[14]];
 	paixing[3] = [paiArr[3],paiArr[7],paiArr[11],paiArr[15]];
 
-	console.log("paixing:"+paixing);
+	logger.info("paixing:"+paixing);
 	return paixing;
 };
 
 gameLogicRemote.get_card_arr_from_cache = function(rid){
 	var paiArr = cache.get(rid);
 
-	console.log("paiArr:"+paiArr);
+	logger.info("paiArr:"+paiArr);
 	var paixing = [];
 	paixing[0] = [paiArr[0],paiArr[4],paiArr[8],paiArr[12]];
 	paixing[1] = [paiArr[1],paiArr[5],paiArr[9],paiArr[13]];
 	paixing[2] = [paiArr[2],paiArr[6],paiArr[10],paiArr[14]];
 	paixing[3] = [paiArr[3],paiArr[7],paiArr[11],paiArr[15]];
-	console.log("paixing:"+paixing);
+	logger.info("paixing:"+paixing);
 	cache.del(rid);
 	return paixing;
 };
@@ -157,8 +159,8 @@ gameLogicRemote.bipai = function(rid,location1,location2,cb){
 	var self = this;
 	gameDao.get_pai(rid,location1,function(err,pai1){
 		gameDao.get_pai(rid,location2,function(err,pai2){
-			console.log("pai1:" + JSON.stringify(pai1));
-			console.log("pai2:" + JSON.stringify(pai2));
+			logger.info("pai1:" + JSON.stringify(pai1));
+			logger.info("pai2:" + JSON.stringify(pai2));
 			//开始构造牌型
 			var pai1_1 = pai1[0] + "+" + pai1[1];
 			if(pai1[0] > pai1[1]){
@@ -180,7 +182,7 @@ gameLogicRemote.bipai = function(rid,location1,location2,cb){
 				paijiuDao.get_paijiu_by_paixing(pai2_1,function(err,res2_1){
 					paijiuDao.get_paijiu_by_paixing(pai1_2,function(err,res1_2){
 						paijiuDao.get_paijiu_by_paixing(pai2_2,function(err,res2_2){
-							console.log(JSON.stringify(res1_1) + JSON.stringify(res1_2) + JSON.stringify(res2_1) + JSON.stringify(res2_2));
+							logger.info(JSON.stringify(res1_1) + JSON.stringify(res1_2) + JSON.stringify(res2_1) + JSON.stringify(res2_2));
 							if(res1_1.score >= res2_1.score  && res1_2.score >= res2_2.score){
 								var head_flag = utils.get_up8_flag(res1_1.score);
 								var tail_flag = utils.get_up8_flag(res1_2.score);
@@ -211,39 +213,55 @@ gameLogicRemote.bipai = function(rid,location1,location2,cb){
 gameLogicRemote.peipai = function(rid,location,marks,select,channel,username){
 	var users = channel.getMembers();
 	var paixing = new Array();
-	paixing.push(marks[0]);
-	paixing.push(marks[1]);
-	gameDao.get_pai(rid,location,function(err,res){
-		for(var i = 0; i < res.length;i++){
-			var flag = false;
-			for(var j = 0;j < marks.length;j++){
-				if(res[i] == marks[j]){
-					flag = true;
-					break;
+	gameDao.set_player_is_game(rid,location,5,function(err,res){
+		gameDao.get_pai(rid,location,function(err,res){
+			for(var i = 0; i < res.length;i++){
+				var flag = false;
+				for(var j = 0;j < marks.length;j++){
+					if(res[i] == marks[j]){
+						flag = true;
+						break;
+					}
+				}
+				if(flag == false){
+					paixing.push(res[i]);
 				}
 			}
-			if(flag == false){
-				paixing.push(res[i]);
-			}
-		}
-		gameDao.update_peipai(rid,paixing,location,function(err,res){
-			var param = {
-				route:'onPeiPai',
-				location:location,
-				marks:marks,
-				select:select
-			};
-			channel.pushMessage(param);
-			gameDao.get_peipai_num(rid,function(err,peipai_num){
-				if(users.length <= peipai_num){
-					setTimeout(function(){
+			var pai_1 = paixing[0] + paixing[1];
+			var pai_2 = marks[0] + marks[1];
+			var flag = true;
+			paijiuDao.get_paijiu_by_paixing(pai_1,function(err,res_1){
+				paijiuDao.get_paijiu_by_paixing(pai_2,function(err,res_2){
+					if(res_1.score >= res_2.score){
+						paixing.unshift(marks);
+					}else{
+						paixing.push(marks[0]);
+						paixing.push(marks[1]);
+						flag = false;
+					}
+
+					gameDao.update_peipai(rid,paixing,location,function(err,res){
 						var param = {
-							route:'onPeiPaiFinish',
-							location:location
+							route:'onPeiPai',
+							location:location,
+							marks:marks,
+							select:select,
+							flag:flag
 						};
 						channel.pushMessage(param);
-					},1000);
-				}
+						gameDao.get_peipai_num(rid,function(err,peipai_num){
+							if(users.length <= peipai_num){
+								setTimeout(function(){
+									var param = {
+										route:'onPeiPaiFinish',
+										location:location
+									};
+									channel.pushMessage(param);
+								},1000);
+							}
+						});
+					});
+				})
 			});
 		});
 	});
@@ -251,7 +269,7 @@ gameLogicRemote.peipai = function(rid,location,marks,select,channel,username){
 
 gameLogicRemote.qiang = function(rid,location,flag,channel,username){
 	var users = channel.getMembers();
-	console.log("--------users in fapai:"+users);
+	logger.info("--------users in fapai:"+users);
 	for(var i = 0; i < users.length; i++) {
 		users[i] = users[i].split('*')[0];
 	}
@@ -312,31 +330,127 @@ gameLogicRemote.qiang = function(rid,location,flag,channel,username){
 	});
 };
 
-gameLogicRemote.xiazhu = function(rid,location,chips,channel,channelService){
-	var users = channel.getMembers();
-	console.log("--------users in fapai:"+users);
-	gameDao.set_xiazhu(rid,location,chips,function(err,res){
+gameLogicRemote.ready = function(rid,location,channel,username){
+	gameDao.set_player_is_game(rid,location,1,function(err,res){
 		var param = {
-			route:'onXiazhu',
-			location:location,
-			chips:chips
+			route:'onReady',
+			location:location
 		};
 		channel.pushMessage(param);
-		setTimeout(function(){
-			gameDao.get_every_score(rid,function(err,scores){
-				if(scores.length >= users.length - 1){
-					var num1 = utils.get_random_num(1,6);
-					var num2 = utils.get_random_num(1,6);
-					var local = (num1 + num2) % 4;
-					if(local == 0){
-						local = 4;
+		var reayd_num = 0;
+		gameDao.get_all_is_game(rid,function(err,is_games){
+			if(is_games != null){
+				for(var i = 0;i < is_games.length;i++){
+					if(is_games[i] == 1){
+						reayd_num = reayd_num + 1;
 					}
-					gameDao.set_first_location(rid,local,4,function(err,res){
-						gameLogicRemote.fapai(rid,num1,num2,channel,channelService);
-					});
 				}
-			});
-		},2000);
+				gameDao.get_players_location(rid,function(err,locations){
+					if(locations.length == reayd_num){
+						var num1 = utils.get_random_num(1,6);
+						var num2 = utils.get_random_num(1,6);
+						var local = (num1 + num2) % locations.length;
+						if(local == 0){
+							local = locations.length;
+						}
+						var zhuang_id = locations[local - 1];
+						async.waterfall([
+							function(cb){
+								if(locations[0] != null){
+									gameDao.set_player_is_game(rid,locations[0],2,function(err,res){
+										if(!!err){
+											cb(new Error("set_player_is_game: 2 faled"));
+										}else{
+											cb(null);
+										}
+									});
+								}
+							},
+							function(cb){
+								if(locations[1] != null){
+									gameDao.set_player_is_game(rid,locations[1],2,function(err,res){
+										if(!!err){
+											cb(new Error("set_player_is_game: 2 faled"));
+										}else{
+											cb(null);
+										}
+									});
+								}
+							},
+							function(cb){
+								if(locations[2] != null){
+									gameDao.set_player_is_game(rid,locations[2],2,function(err,res){
+										if(!!err){
+											cb(new Error("set_player_is_game: 2 faled"));
+										}else{
+											cb(null);
+										}
+									});
+								}
+							},
+							function(cb){
+								if(locations[3] != null){
+									gameDao.set_player_is_game(rid,locations[3],2,function(err,res){
+										if(!!err){
+											cb(new Error("set_player_is_game: 2 faled"));
+										}else{
+											cb(null);
+										}
+									});
+								}
+							}
+						],function(err,result){
+							if(!!err){
+								logger.error(err.message);
+							}else{
+								setTimeout(function(){
+									gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
+										gameDao.sub_local_gold(rid,zhuang_id,100,function(err,res){
+											var param = {
+												route:'onGetZhuang',
+												nums:[num1,num2],
+												zhuang_local:zhuang_id
+											};
+											channel.pushMessage(param);
+										});
+									});
+								},1000);
+							}
+						});
+					}
+				});
+			}
+		});
+	});
+};
+
+gameLogicRemote.xiazhu = function(rid,location,chips,channel,channelService){
+	var users = channel.getMembers();
+	logger.info("--------users in fapai:"+users);
+	gameDao.set_xiazhu(rid,location,chips,function(err,res){
+		gameDao.set_player_is_game(rid,location,3,function(err,res){
+			var param = {
+				route:'onXiazhu',
+				location:location,
+				chips:chips
+			};
+			channel.pushMessage(param);
+			setTimeout(function(){
+				gameDao.get_every_score(rid,function(err,scores){
+					if(scores.length >= users.length - 1){
+						var num1 = utils.get_random_num(1,6);
+						var num2 = utils.get_random_num(1,6);
+						var local = (num1 + num2) % 4;
+						if(local == 0){
+							local = 4;
+						}
+						gameDao.set_first_location(rid,local,4,function(err,res){
+							gameLogicRemote.fapai(rid,num1,num2,channel,channelService);
+						});
+					}
+				});
+			},2000);
+		});
 	});
 };
 
@@ -357,10 +471,10 @@ gameLogicRemote.open = function(rid,location,channel,channelService){
 					if(my_location > 4){
 						my_location = 1;
 					}
-					console.log("zhuang_local:" + zhuang_local + " my_location:" + my_location);
+					logger.info("zhuang_local:" + zhuang_local + " my_location:" + my_location);
 					if(room_info["location" + my_location] != null && room_info["location" + my_location] != 'null'){
 						gameLogicRemote.bipai(rid,zhuang_local,my_location,function(location1,location2,is_win,flag){
-							console.log("bipai:" + location1 + " location2:" + location2 + " is_win:" + is_win + " flag:" + flag);
+							logger.info("bipai:" + location1 + " location2:" + location2 + " is_win:" + is_win + " flag:" + flag);
 							if(is_win == 'win'){
 								var score = JSON.parse(room_info["score_" + my_location]);
 								if(flag == true){
@@ -400,7 +514,7 @@ gameLogicRemote.open = function(rid,location,channel,channelService){
 };
 
 gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
-	console.log('locals_score:' + JSON.stringify(locals_score) + rid);
+	logger.info('locals_score:' + JSON.stringify(locals_score) + rid);
 	var temp_score = [0,0,0,0];
 	gameDao.get_room_by_room_id(rid,function(err,room_info){
 		var zhuang_score = locals_score[room_info.zhuang_location - 1];
@@ -433,7 +547,7 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 					callback_win,
 					callback_win
 				],function(err){
-					console.log("zhuang_score >> callback_win temp_score;" + JSON.stringify(temp_score));
+					logger.info("zhuang_score >> callback_win temp_score;" + JSON.stringify(temp_score));
 					my_location = room_info.zhuang_location;
 					var callback_lose = function(callback){
 						my_location = my_location + 1;
@@ -470,7 +584,7 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 						callback_lose,
 						callback_lose
 					],function(err){
-						console.log("zhuang_score >> callback_lose temp_score;" + JSON.stringify(temp_score));
+						logger.info("zhuang_score >> callback_lose temp_score;" + JSON.stringify(temp_score));
 						gameDao.sub_local_gold(rid,room_info.zhuang_location,temp_score[room_info.zhuang_location - 1],function(err,res){
 							gameDao.sub_zhuang_score(rid,temp_score[room_info.zhuang_location - 1],function(err,code){
 								gameDao.reset_room(rid,function(err,res){
@@ -515,7 +629,7 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 					callback,
 					callback
 				],function(err){
-					console.log("zhuang_score >> callback temp_score;" + JSON.stringify(temp_score));
+					logger.info("zhuang_score >> callback temp_score;" + JSON.stringify(temp_score));
 					gameDao.sub_local_gold(rid,room_info.zhuang_location,temp_score[room_info.zhuang_location - 1],function(err,res){
 						gameDao.sub_zhuang_score(rid,temp_score[room_info.zhuang_location - 1],function(err,code){
 							gameDao.reset_room(rid,function(err,res){
@@ -567,7 +681,7 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 					callback_lose,
 					callback_lose
 				],function(err){
-					console.log("zhuang_score << callback_lose temp_score;" + JSON.stringify(temp_score));
+					logger.info("zhuang_score << callback_lose temp_score;" + JSON.stringify(temp_score));
 					my_location = room_info.zhuang_location;
 					//循环计算赢得玩家并更新分数
 					var callback_win = function(callback){
@@ -605,7 +719,7 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 						callback_win,
 						callback_win
 					],function(err){
-						console.log("zhuang_score << callback_win temp_score;" + JSON.stringify(temp_score));
+						logger.info("zhuang_score << callback_win temp_score;" + JSON.stringify(temp_score));
 						gameDao.sub_local_gold(rid,room_info.zhuang_location,temp_score[room_info.zhuang_location - 1],function(err,res){
 							gameDao.sub_zhuang_score(rid,temp_score[room_info.zhuang_location - 1],function(err,code){
 								gameDao.reset_room(rid,function(err,res){
@@ -650,7 +764,7 @@ gameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 					callback,
 					callback
 				],function(err){
-					console.log("zhuang_score << callback temp_score;" + JSON.stringify(temp_score));
+					logger.info("zhuang_score << callback temp_score;" + JSON.stringify(temp_score));
 					gameDao.sub_local_gold(rid,room_info.zhuang_location,temp_score[room_info.zhuang_location - 1],function(err,res){
 						gameDao.sub_zhuang_score(rid,temp_score[room_info.zhuang_location - 1],function(err,code){
 							gameDao.reset_room(rid,function(err,res){

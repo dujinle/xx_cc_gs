@@ -5,6 +5,7 @@ var gameDao = module.exports;
 var pomelo = require('pomelo');
 var utils   = require('../util/utils');
 var sqlTemp = pomelo.app.get('dbclient');
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 
 //该js文件都是对数据表game_room进行操作
 
@@ -17,7 +18,7 @@ gameDao.create_room_by_player_id = function(player_id,nick_name,room_type,renshu
 	var args = [room_num,player_id,nick_name,room_type,parseInt(wait_time),renshu,max_type,fangka_num,fangka_type,now];
 	sqlTemp.insert(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:createRoom error");
+			logger.error("db:createRoom error");
 			utils.invokeCallback(cb,err,null)
 		}else{
 			utils.invokeCallback(cb,null,res.insertId);
@@ -35,11 +36,37 @@ gameDao.get_qiang_zhuang = function(rid,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			if(!!res && res.length > 0){
-				console.log("getRoom:"+JSON.stringify(res));
+				logger.info("getRoom:"+JSON.stringify(res));
 				var qiang_zhuang = JSON.parse(res[0].qiang_flag);
 				utils.invokeCallback(cb,null,qiang_zhuang);
 			}else{
-				console.log("getRoom: no found room......");
+				logger.info("getRoom: no found room......");
+				utils.invokeCallback(cb,null,null);
+			}
+		}
+	});
+/*}}}*/
+};
+
+gameDao.get_all_is_game = function(rid,cb){
+/*{{{*/
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			logger.error("getRoom: no found room......" + err.message);
+			utils.invokeCallback(cb,err,null);
+		}else{
+			if(!!res && res.length > 0){
+				logger.info("getRoom:"+JSON.stringify(res));
+				var is_games = new Array();
+				is_games.push(res[0].is_game_1);
+				is_games.push(res[0].is_game_2);
+				is_games.push(res[0].is_game_3);
+				is_games.push(res[0].is_game_4);
+				utils.invokeCallback(cb,null,is_games);
+			}else{
+				logger.info("getRoom: no found room......");
 				utils.invokeCallback(cb,null,null);
 			}
 		}
@@ -56,10 +83,10 @@ gameDao.get_qiang_num = function(rid,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			if(!!res && res.length > 0){
-				console.log("get_qiang_num:"+JSON.stringify(res));
+				logger.info("get_qiang_num:"+JSON.stringify(res));
 				utils.invokeCallback(cb,null,res[0].qiang_num);
 			}else{
-				console.log("get_qiang_num: no found room......");
+				logger.info("get_qiang_num: no found room......");
 				utils.invokeCallback(cb,null,null);
 			}
 		}
@@ -76,7 +103,7 @@ gameDao.set_qiang_zhuang = function(rid,location,flag,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			if(!!res && res.length > 0){
-				console.log("set_qiang_zhuang:"+JSON.stringify(res));
+				logger.info("set_qiang_zhuang:"+JSON.stringify(res));
 				var qiang_zhuang = JSON.parse(res[0].qiang_flag);
 				if(flag == true){
 					qiang_zhuang.push(location);
@@ -85,7 +112,7 @@ gameDao.set_qiang_zhuang = function(rid,location,flag,cb){
 				args = [JSON.stringify(qiang_zhuang),rid];
 				sqlTemp.query(sql,args,function(err,res){
 					if(err!==null){
-						console.log("update game_room set qiang_flag" + err.message);
+						logger.info("update game_room set qiang_flag" + err.message);
 						utils.invokeCallback(cb,err,null);
 					}else{
 						utils.invokeCallback(cb,null,qiang_zhuang);
@@ -115,7 +142,7 @@ gameDao.sub_local_gold = function(rid,location,score,cb){
 	var args = [score,rid];
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.log("update game_room set qiang_flag" + err.message);
+			logger.info("update game_room set qiang_flag" + err.message);
 			utils.invokeCallback(cb,err,null);
 		}else{
 			utils.invokeCallback(cb,null,200);
@@ -126,7 +153,7 @@ gameDao.sub_local_gold = function(rid,location,score,cb){
 
 gameDao.sub_zhuang_score = function(rid,score,cb){
 /*{{{*/
-	console.log("set_zhuang_score chips:" + score);
+	logger.info("set_zhuang_score chips:" + score);
 	var sql = 'update game_room set zhuang_score = zhuang_score + ? where rid = ?';
 	args = [score,rid];
 	sqlTemp.query(sql,args,function(err,res){
@@ -141,7 +168,7 @@ gameDao.sub_zhuang_score = function(rid,score,cb){
 
 gameDao.set_xiazhu = function(rid,location,chips,cb){
 /*{{{*/
-	console.log("set_xiazhu chips:" + JSON.stringify(chips) + location);
+	logger.info("set_xiazhu chips:" + JSON.stringify(chips) + location);
 	var sql = null;
 	if(location == 1){
 		sql = 'update game_room set score_1 = ? where rid = ?';
@@ -172,7 +199,7 @@ gameDao.get_every_score = function(rid,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			if(!!res && res.length > 0){
-				console.log("getRoom:"+JSON.stringify(res));
+				logger.info("getRoom:"+JSON.stringify(res));
 				var room_info = res[0];
 				var scores = new Array();
 				if(room_info['score_1'] != null){
@@ -186,7 +213,7 @@ gameDao.get_every_score = function(rid,cb){
 				}
 				utils.invokeCallback(cb,null,scores);
 			}else{
-				console.log("getRoom: no found room......");
+				logger.info("getRoom: no found room......");
 				utils.invokeCallback(cb,null,null);
 			}
 		}
@@ -196,7 +223,7 @@ gameDao.get_every_score = function(rid,cb){
 
 gameDao.set_zhuang_location = function(rid,location,cb){
 /*{{{*/
-	console.log("set_zhuang_location:"+location);
+	logger.info("set_zhuang_location:"+location);
 	sql = 'update game_room set zhuang_location = ? where rid = ?';
 	args = [location,rid];
 	sqlTemp.query(sql,args,function(err,res){
@@ -211,7 +238,7 @@ gameDao.set_zhuang_location = function(rid,location,cb){
 
 gameDao.set_first_location = function(rid,location,length,cb){
 /*{{{*/
-	console.log("set_first_location:"+location);
+	logger.info("set_first_location:"+location);
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
@@ -219,7 +246,7 @@ gameDao.set_first_location = function(rid,location,length,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			if(!!res && res.length > 0){
-				console.log("getRoom:"+JSON.stringify(res));
+				logger.info("getRoom:"+JSON.stringify(res));
 				var local = res[0].zhuang_location;
 				var local = (local + location - 1) % 4;
 				if(local == 0){
@@ -235,7 +262,7 @@ gameDao.set_first_location = function(rid,location,length,cb){
 					}
 				});
 			}else{
-				console.log("getRoom: no found room......");
+				logger.info("getRoom: no found room......");
 				utils.invokeCallback(cb,null,null);
 			}
 		}
@@ -252,10 +279,10 @@ gameDao.get_room_by_room_id = function(rid,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			if(!!res && res.length > 0){
-				console.log("getRoom:"+JSON.stringify(res));
+				logger.info("getRoom:"+JSON.stringify(res));
 				utils.invokeCallback(cb,null,res[0]);
 			}else{
-				console.log("getRoom: no found room......");
+				logger.info("getRoom: no found room......");
 				utils.invokeCallback(cb,null,null);
 			}
 		}
@@ -267,17 +294,17 @@ gameDao.get_room_by_room_num = function(room_num,cb){
 /*{{{*/
 	var sql = 'select * from game_room where room_num = ?';
 	var args = [room_num];
-	console.log('start select game_room by room_num:',room_num);
+	logger.info('start select game_room by room_num:',room_num);
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:get_room_by_room_num error......");
+			logger.error("db:get_room_by_room_num error......");
 			utils.invokeCallback(cb,err,null);
 		}else{
 			if(!!res && res.length > 0){
-				console.log("getRoom:"+JSON.stringify(res));
+				logger.info("getRoom:"+JSON.stringify(res));
 				utils.invokeCallback(cb,null,res[0]);
 			}else{
-				console.log("getRoom: no found room......");
+				logger.info("getRoom: no found room......");
 				utils.invokeCallback(cb,null,null);
 			}
 		}
@@ -292,20 +319,20 @@ gameDao.add_player = function(rid,uid,location,cb){
 	var new_player_num;
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:add_player step 1 error");
+			logger.error("db:add_player step 1 error");
 			utils.invokeCallback(cb,err,null);
 		}else{
 			//更改玩家数量
 			new_player_num = res[0].real_num+1;
 			var sql1 = 'update game_room set real_num = ? where rid = ?';
 			var args1 = [new_player_num,rid];
-			console.log("args1:",args1,location);
+			logger.info("args1:",args1,location);
 			sqlTemp.update(sql1,args1,function(err,res){
 				if(err!==null){
-					console.error("db:add_player step 2 error");
+					logger.error("db:add_player step 2 error");
 					utils.invokeCallback(cb,err,null);
 				}else{
-					console.log("db:add_player step 1 success");
+					logger.info("db:add_player step 1 success");
 					//location 添加对应玩家名
 					var sql2 = '';
 					var args2 = [];
@@ -327,14 +354,14 @@ gameDao.add_player = function(rid,uid,location,cb){
 							args2 = [uid,rid];
 							break;
 						default:
-							console.error("add_player step 3 error");
+							logger.error("add_player step 3 error");
 					}
 					sqlTemp.update(sql2,args2,function(err,res){
 						if(err!==null){
-							console.error("db:add_player step 3 error");
+							logger.error("db:add_player step 3 error");
 							utils.invokeCallback(cb,err,null);
 						}else{
-							console.log("add_player step 3 success");
+							logger.info("add_player step 3 success");
 							//cb(location,new_player_num);
 							utils.invokeCallback(cb,err,new_player_num);
 						}
@@ -353,19 +380,19 @@ gameDao.add_wait_time = function(rid,cb){
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:add_wait_time step 1 error");
+			logger.error("db:add_wait_time step 1 error");
 			utils.invokeCallback(cb,err,null);
 		}else{
 			var wait_time = res[0].wait_time + 2;
 			var sql1 = 'update game_room set wait_time = ? where rid = ?';
 			var args1 = [wait_time,rid];
-			console.log("args1:",args1);
+			logger.info("args1:",args1);
 			sqlTemp.update(sql1,args1,function(err,res){
 				if(err!==null){
-					console.error("db:add_wait_time step 2 error");
+					logger.error("db:add_wait_time step 2 error");
 					utils.invokeCallback(cb,err,null);
 				}else{
-					console.log("db:add_wait_time step 1 success");
+					logger.info("db:add_wait_time step 1 success");
 					utils.invokeCallback(cb,err,wait_time);
 				}
 			});
@@ -378,13 +405,13 @@ gameDao.dissolve_room = function(rid,cb){
 /*{{{*/
 	var sql = 'update game_room set is_gaming = ? where rid = ?';
 	var args = [-1,rid];
-	console.log("args:",args);
+	logger.info("args:",args);
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:dissolve_room error");
+			logger.error("db:dissolve_room error");
 			utils.invokeCallback(cb,err,null);
 		}else{
-			console.log("db:dissolve_room success");
+			logger.info("db:dissolve_room success");
 			utils.invokeCallback(cb,err,rid);
 		}
 	});
@@ -393,12 +420,12 @@ gameDao.dissolve_room = function(rid,cb){
 
 gameDao.leave_room = function(rid,location,cb){
 /*{{{*/
-	console.log("db:leave_room step 1 success");
+	logger.info("db:leave_room step 1 success");
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:leave_room step 1 error");
+			logger.error("db:leave_room step 1 error");
 			utils.invokeCallback(cb,err,null);
 		}else{
 			var room_info = res[0];
@@ -423,23 +450,23 @@ gameDao.leave_room = function(rid,location,cb){
 					args = ["null",rid];
 					break;
 				default:
-					console.error("leave_room step 2 error");
+					logger.error("leave_room step 2 error");
 			}
 			sqlTemp.update(sql,args,function(err,res){
 				if(err!==null){
-					console.error("db:leave_room step 2 error");
+					logger.error("db:leave_room step 2 error");
 					utils.invokeCallback(cb,err,null);
 				}else{
-					console.log("leave_room step 2 success");
+					logger.info("leave_room step 2 success");
 					//cb(location,new_player_num);
 					sql = 'update game_room set real_num = read_num - 1 where rid = ?';
 					args = [rid];
 					sqlTemp.update(sql,args,function(err,res){
 						if(err!==null){
-							console.error("db:leave_room step 3 error");
+							logger.error("db:leave_room step 3 error");
 							utils.invokeCallback(cb,err,null);
 						}else{
-							console.log("leave_room step 3 success");
+							logger.info("leave_room step 3 success");
 							utils.invokeCallback(cb,err,res[0]);
 						}
 					});
@@ -454,13 +481,13 @@ gameDao.start_game = function(rid,cb){
 /*{{{*/
 	var sql = 'update game_room set is_gaming = ? where rid = ?';
 	var args = [1,rid];
-	console.log("args:",args);
+	logger.info("args:",args);
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:start_game error");
+			logger.error("db:start_game error");
 			utils.invokeCallback(cb,err,null);
 		}else{
-			console.log("db:start_game success" + JSON.stringify(res));
+			logger.info("db:start_game success" + JSON.stringify(res));
 			utils.invokeCallback(cb,err,rid);
 		}
 	});
@@ -474,10 +501,10 @@ gameDao.get_player_local = function(rid,player_id,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	var location;
-	console.log("--------------player input getplayerlocal"+player_id);
+	logger.info("--------------player input getplayerlocal"+player_id);
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:getPlayerLocal error");
+			logger.error("db:getPlayerLocal error");
 			utils.invokeCallback(cb, err, null);
 		}else{
 			if(player_id == res[0].location1.split('*')[0]){
@@ -489,7 +516,7 @@ gameDao.get_player_local = function(rid,player_id,cb){
 			}else if(player_id == res[0].location4.split('*')[0]){
 				location = 4;
 			}else {
-				console.error("db:getPlayerLocal2 error");
+				logger.error("db:getPlayerLocal2 error");
 				utils.invokeCallback(cb, "db:getPlayerLocal2 error", null);
 			}
 			//cb(location);
@@ -502,10 +529,10 @@ gameDao.get_local_player_id = function(rid,location,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	var player_id;
-	console.log("--------------player input get_local_player_id" + location);
+	logger.info("--------------player input get_local_player_id" + location);
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:getPlayerLocal error");
+			logger.error("db:getPlayerLocal error");
 			utils.invokeCallback(cb, err, null);
 		}else{
 			if(location == 1){
@@ -517,7 +544,7 @@ gameDao.get_local_player_id = function(rid,location,cb){
 			}else if(location == 4){
 				player_id = res[0].location4.split('*')[0];
 			}else {
-				console.error("db:getPlayerLocal2 error");
+				logger.error("db:getPlayerLocal2 error");
 				utils.invokeCallback(cb, "db:getPlayerLocal2 error", null);
 			}
 			//cb(location);
@@ -530,10 +557,10 @@ gameDao.get_players_location = function(rid,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	var location;
-	console.log("--------------player input getplayerslocal");
+	logger.info("--------------player input getplayerslocal");
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:getPlayerLocal error");
+			logger.error("db:getPlayerLocal error");
 			utils.invokeCallback(cb, err, null);
 		}else{
 			var locations = new Array();
@@ -559,10 +586,10 @@ gameDao.get_peipai_num = function(rid,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
 	var location;
-	console.log("get_peipai_num ..............");
+	logger.info("get_peipai_num ..............");
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:getPlayerLocal error");
+			logger.error("db:getPlayerLocal error");
 			utils.invokeCallback(cb, err, null);
 		}else{
 			utils.invokeCallback(cb,null ,res[0].peipai_num);
@@ -575,10 +602,10 @@ gameDao.set_is_gaming = function(rid,is_gaming,cb){
 	var args = [is_gaming,rid];
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
-			console.error("gameDao.subRound error");
+			logger.error("gameDao.subRound error");
 			utils.invokeCallback(cb,err, null);
 		}else{
-			console.log("gameDao.subRound success");
+			logger.info("gameDao.subRound success");
 			utils.invokeCallback(cb,null,is_gaming);
 		}
 	});
@@ -591,10 +618,10 @@ gameDao.sub_round = function(rid,round,cb){
 	var args = [round,rid];
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
-			console.error("gameDao.subRound error");
+			logger.error("gameDao.subRound error");
 			utils.invokeCallback(cb,err, null);
 		}else{
-			console.log("gameDao.subRound success");
+			logger.info("gameDao.subRound success");
 			gameDao.get_round(rid,function(err,resRound){
 				utils.invokeCallback(cb,null,resRound);
 			});
@@ -610,7 +637,7 @@ gameDao.get_round = function(rid,cb){
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("gameDao.getRound");
+			logger.error("gameDao.getRound");
 			utils.invokeCallback(cb,err, null);
 		}else{
 			utils.invokeCallback(cb,null,res[0].round);
@@ -626,7 +653,7 @@ gameDao.rmPlayer = function(rid,uid,cb){
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err, res){
 		if(err!==null){
-			console.error("db:rmPlayer failed");
+			logger.error("db:rmPlayer failed");
 			utils.invokeCallback(cb, err, null);
 		}else{
 			var new_player_num;
@@ -641,7 +668,7 @@ gameDao.rmPlayer = function(rid,uid,cb){
 				if(err!==null){
 					utils.invokeCallback(cb, err, null);
 				}else{
-					console.log("db:rmPlayer1 succeed");
+					logger.info("db:rmPlayer1 succeed");
 				}
 			});
 
@@ -651,7 +678,7 @@ gameDao.rmPlayer = function(rid,uid,cb){
 				var args2 = ['null',0,rid];
 				sqlTemp.update(sql2,args2,function(err,res){
 					if(err!==null){
-						console.error("db:rmPlayer2_1 failed");
+						logger.error("db:rmPlayer2_1 failed");
 						utils.invokeCallback(cb, err, null);
 					}
 				});
@@ -660,7 +687,7 @@ gameDao.rmPlayer = function(rid,uid,cb){
 				var args2 = ['null',0,rid];
 				sqlTemp.update(sql2,args2,function(err,res){
 					if(err!==null){
-						console.error("db:rmPlayer2_2 failed");
+						logger.error("db:rmPlayer2_2 failed");
 						utils.invokeCallback(cb, err, null);
 					}
 				});
@@ -669,7 +696,7 @@ gameDao.rmPlayer = function(rid,uid,cb){
 				var args2 = ['null',0,rid];
 				sqlTemp.update(sql2,args2,function(err,res){
 					if(err!==null){
-						console.error("db:rmPlayer2_3 failed");
+						logger.error("db:rmPlayer2_3 failed");
 						utils.invokeCallback(cb, err, null);
 					}
 				});
@@ -678,7 +705,7 @@ gameDao.rmPlayer = function(rid,uid,cb){
 				var args2 = ['null',0,rid];
 				sqlTemp.update(sql2,args2,function(err,res){
 					if(err!==null){
-						console.error("db:rmPlayer2_4 failed");
+						logger.error("db:rmPlayer2_4 failed");
 						utils.invokeCallback(cb, err, null);
 					}
 				});
@@ -687,7 +714,7 @@ gameDao.rmPlayer = function(rid,uid,cb){
 				var args2 = ['null',0,rid];
 				sqlTemp.update(sql2,args2,function(err,res){
 					if(err!==null){
-						console.error("db:rmPlayer2_5 failed");
+						logger.error("db:rmPlayer2_5 failed");
 						utils.invokeCallback(cb, err, null);
 					}
 				});
@@ -698,6 +725,35 @@ gameDao.rmPlayer = function(rid,uid,cb){
 	});
 };
 
+gameDao.set_player_is_game = function(rid,location,value,cb){
+	var sql;
+	var args =[JSON.stringify(pai),rid];
+	switch (location){
+		case 1:
+			sql = 'update game_room set is_game_1 = ? where rid = ?';
+			break;
+		case 2:
+			sql = 'update game_room set is_game_2 = ? where rid = ?';
+			break;
+		case 3:
+			sql = 'update game_room set is_game_3 = ? where rid = ?';
+			break;
+		case 4:
+			sql = 'update game_room set is_game_4 = ? where rid = ?';
+			break;
+		default:
+			logger.error("db:gameDao updatePai location error");
+	}
+	sqlTemp.update(sql,args,function(err,res){
+		if(err!==null){
+			logger.error("db:updatePai error" + err.message);
+			utils.invokeCallback(cb, err, null);
+		}else{
+			logger.info("db:updatePai succeed");
+			utils.invokeCallback(cb, null, null);
+		}
+	});
+};
 /**
  * 更新牌型，牌型与玩家位置绑定
  * */
@@ -718,14 +774,14 @@ gameDao.update_pai = function(rid,pai,location,cb){
 			sql = 'update game_room set pai4 = ? where rid = ?';
 			break;
 		default:
-			console.error("db:gameDao updatePai location error");
+			logger.error("db:gameDao updatePai location error");
 	}
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:updatePai error");
+			logger.error("db:updatePai error");
 			utils.invokeCallback(cb, err, null);
 		}else{
-			console.log("db:updatePai succeed");
+			logger.info("db:updatePai succeed");
 			//cb();
 			utils.invokeCallback(cb, null, null);
 		}
@@ -749,14 +805,14 @@ gameDao.update_peipai = function(rid,pai,location,cb){
 			sql = 'update game_room set pai4 = ?,peipai_num = peipai_num + 1 where rid = ?';
 			break;
 		default:
-			console.error("db:gameDao updatePai location error");
+			logger.error("db:gameDao updatePai location error");
 	}
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:updatePai error");
+			logger.error("db:updatePai error");
 			utils.invokeCallback(cb, err, null);
 		}else{
-			console.log("db:updatePai succeed");
+			logger.info("db:updatePai succeed");
 			//cb();
 			utils.invokeCallback(cb, null, null);
 		}
@@ -770,7 +826,7 @@ gameDao.get_pai = function(rid,location,cb){
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:pushPai error");
+			logger.error("db:pushPai error");
 			utils.invokeCallback(cb, err, null);
 		}else{
 			switch (location){
@@ -791,7 +847,7 @@ gameDao.get_pai = function(rid,location,cb){
 					utils.invokeCallback(cb, null, JSON.parse(res[0].pai4));
 					break;
 				default:
-					console.error("db:pushPai1 error");
+					logger.error("db:pushPai1 error");
 					utils.invokeCallback(cb, "db:pushPai1 error", null);
 					break;
 			}
@@ -807,7 +863,7 @@ gameDao.get_all_pai = function(rid,cb){
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:getAllPai error");
+			logger.error("db:getAllPai error");
 			utils.invokeCallback(cb, err, null);
 		}else{
 			allPai = new Array();
@@ -828,10 +884,10 @@ gameDao.setTimeoutMark = function(rid,time_mark,cb){
 	var args = [time_mark,rid];
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:setTimeoutMark error");
+			logger.error("db:setTimeoutMark error");
 			utils.invokeCallback(cb,err, null);
 		}else {
-			console.log("db:setTimeoutMark success");
+			logger.info("db:setTimeoutMark success");
 			//cb();
 			utils.invokeCallback(cb,null, null);
 		}
@@ -846,7 +902,7 @@ gameDao.getTimeoutMark = function(rid,cb){
 	var args = [rid];
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			console.error("db:getTimeoutMark error");
+			logger.error("db:getTimeoutMark error");
 			utils.invokeCallback(cb,err, null);
 		}else{
 			//cb(res[0].timeout_mark);
@@ -865,22 +921,22 @@ gameDao.reset_room = function(rid,cb){
 		if(err!==null){
 			utils.invokeCallback(cb, err, null);
 		}else{
-			console.log("gameDao.reset_room set pai success");
+			logger.info("gameDao.reset_room set pai success");
 			sql = 'update game_room set score_1 = ?, score_2 = ?,score_3 = ?,score_4 = ?,peipai_num = ? where rid=?';
 			args =["null","null","null","null",0,rid];
 			sqlTemp.update(sql,args,function(err,res){
 				if(err!==null){
 					utils.invokeCallback(cb, err, null);
 				}else{
-					console.log("gameDao.reset_room set chips success");
+					logger.info("gameDao.reset_room set chips success");
 					sql = 'select * from game_room where rid = ?';
 					args = [rid];
 					sqlTemp.query(sql,args,function(err,res){
 						if(err!==null){
-							console.error("db:getAllPai error");
+							logger.error("db:getAllPai error");
 							utils.invokeCallback(cb, err, null);
 						}else{
-							console.log("reset_room:" + JSON.stringify(res));
+							logger.info("reset_room:" + JSON.stringify(res));
 							utils.invokeCallback(cb, null, res[0]);
 						}
 					});
