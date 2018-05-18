@@ -126,6 +126,21 @@ gameDao.set_qiang_zhuang = function(rid,location,flag,cb){
 /*}}}*/
 };
 
+gameDao.set_cur_turn = function(rid,cur_turn,cb){
+/*{{{*/
+	var sql = 'update game_room set cur_turn = ? where rid = ?';
+	var args = [cur_turn,rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			logger.info("update game_room set cur_turn" + err.message);
+			utils.invokeCallback(cb,err,null);
+		}else{
+			utils.invokeCallback(cb,null,cur_turn);
+		}
+	});
+/*}}}*/
+};
+
 gameDao.sub_local_gold = function(rid,location,score,cb){
 /*{{{*/
 	var sql = null;
@@ -161,6 +176,51 @@ gameDao.sub_zhuang_score = function(rid,score,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			utils.invokeCallback(cb,null,200);
+		}
+	});
+/*}}}*/
+};
+
+gameDao.set_qieguo = function(rid,qieguo,cb){
+/*{{{*/
+	logger.info("set_qieguo:" + qieguo);
+	var sql = 'update game_room set qieguo = ? where rid = ?';
+	args = [qieguo,rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb,err,null);
+		}else{
+			utils.invokeCallback(cb,null,qieguo);
+		}
+	});
+/*}}}*/
+};
+
+gameDao.set_qieguo_flag = function(rid,qieguo_flag,cb){
+/*{{{*/
+	logger.info("set_qieguo_flag:" + qieguo_flag);
+	var sql = 'update game_room set qieguo_flag = ? where rid = ?';
+	args = [qieguo_flag,rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb,err,null);
+		}else{
+			utils.invokeCallback(cb,null,qieguo_flag);
+		}
+	});
+/*}}}*/
+};
+
+gameDao.set_all_player_is_game = function(rid,is_game,cb){
+/*{{{*/
+	logger.info("set_all_player_is_game:" + is_game);
+	var sql = 'update game_room set is_game_1 = ?, is_game_2 = ?, is_game_3 = ?, is_game_4 = ? where rid = ?';
+	args = [is_game,is_game,is_game,is_game,rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb,err,null);
+		}else{
+			utils.invokeCallback(cb,null,is_game);
 		}
 	});
 /*}}}*/
@@ -727,7 +787,7 @@ gameDao.rmPlayer = function(rid,uid,cb){
 
 gameDao.set_player_is_game = function(rid,location,value,cb){
 	var sql;
-	var args =[JSON.stringify(pai),rid];
+	var args =[value,rid];
 	switch (location){
 		case 1:
 			sql = 'update game_room set is_game_1 = ? where rid = ?';
@@ -750,7 +810,7 @@ gameDao.set_player_is_game = function(rid,location,value,cb){
 			utils.invokeCallback(cb, err, null);
 		}else{
 			logger.info("db:updatePai succeed");
-			utils.invokeCallback(cb, null, null);
+			utils.invokeCallback(cb, null, value);
 		}
 	});
 };

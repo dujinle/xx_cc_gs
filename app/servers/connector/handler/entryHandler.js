@@ -214,6 +214,85 @@ handler.get_room_info = function(msg, session, next) {
 /*}}}*/
 };
 
+handler.repair_enter_room = function(msg, session, next) {
+/*{{{*/
+	var self = this;
+	logger.info("handler.get room info:" + JSON.stringify(msg));
+	var rid = msg.rid;
+	var player_id = msg.player_id;
+	gameDao.get_room_by_room_id(rid,function(err,res){
+		if(err){
+			next(null, {code:500,msg:err.message});
+		}else if(res != null){
+			var uid = player_id + '*' + rid;
+			session.bind(uid);
+			session.set('rid', rid);
+			session.push('rid', function(err) {
+				if(err) {
+					console.error('set rid for session service failed! error is : %j', err.stack);
+				}
+			});
+			session.on('closed', onUserLeave.bind(null, self.app));
+			async.parallel([
+				function(callback){
+					if(res.location1 != null && res.location1 != "null"){
+						var player_id = res.location1.split('*')[0];
+						playerDao.get_player_by_id(player_id,function(err,res){
+							res['location'] = 1;
+							callback(null, res);
+						});
+					}else{
+						callback(null,"null");
+					}
+				},
+				function(callback){
+					if(res.location2 != null && res.location2 != "null"){
+						var player_id = res.location2.split('*')[0];
+						playerDao.get_player_by_id(player_id,function(err,res){
+							res['location'] = 2;
+							callback(null, res);
+						});
+					}else{
+						callback(null,"null");
+					}
+				},
+				function(callback){
+					if(res.location3 != null && res.location3 != "null"){
+						var player_id = res.location3.split('*')[0];
+						playerDao.get_player_by_id(player_id,function(err,res){
+							res['location'] = 3;
+							callback(null, res);
+						});
+					}else{
+						callback(null,"null");
+					}
+				},
+				function(callback){
+					if(res.location4 != null && res.location4 != "null"){
+						var player_id = res.location4.split('*')[0];
+						playerDao.get_player_by_id(player_id,function(err,res){
+							res['location'] = 4;
+							callback(null, res);
+						});
+					}else{
+						callback(null,"null");
+					}
+				}
+			],function(err,result){
+				if(!!err){
+					next(null, {code:Code.FAIL,msg:err.message});
+				}else{
+					self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true,function(){
+						next(null, {code:Code.OK,msg:result});
+					});
+				}
+			});
+		}else{
+			next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
+		}
+	});
+/*}}}*/
+};
 handler.dissolve_room = function(msg, session, next) {
 /*{{{*/
 	logger.info("handler.dissolve_room:" + JSON.stringify(msg));
