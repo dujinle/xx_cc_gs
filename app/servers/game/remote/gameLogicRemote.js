@@ -57,41 +57,58 @@ gameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 		//S:花色 1方块 2梅花 3红桃 4黑桃
 		//这里需要完成发牌逻辑
 		var paiArr = cache.get(rid);
+		var round = 0;
+		var paixing = null;
 		if(paiArr == null){
-			var paixing = gameLogicRemote.getCardArr(rid);
-			gameDao.sub_round(rid,1,function(err,res){
-				var param = {
-					route:'onShoupai',
-					paixing:paixing,
-					round:res
-				};
-				channel.pushMessage(param);
-				for(var i = 0; i < 4;i++){
-					gameDao.update_pai(rid,paixing[i],i + 1,function(err){
-						gameDao.set_player_is_game(rid,i + 1,4,function(err,res){
-							logger.info("gameDao.updatePai success");
-						});
-					});
-				}
-			});
+			paixing = gameLogicRemote.getCardArr(rid);
+			round = 1;
 		}else{
-			var paixing = gameLogicRemote.get_card_arr_from_cache(rid);
-			gameDao.sub_round(rid,0,function(err,res){
-				for(var i = 0; i < 4;i++){
-					gameDao.update_pai(rid,paixing[i],i + 1,function(err){
-						gameDao.set_player_is_game(rid,i + 1,4,function(err,res){
+			round = 0;
+			paixing = gameLogicRemote.get_card_arr_from_cache(rid);
+		}
+		gameDao.sub_round(rid,round,function(err,my_round){
+			async.waterfall([
+				function(cb){
+					gameDao.update_pai(rid,paixing[0],1,function(err){
+						gameDao.set_player_is_game(rid,1,4,function(err,res){
+							logger.info("gameDao.updatePai location 1 success");
+							cb(null);
+						});
+					});
+				},
+				function(cb){
+					gameDao.update_pai(rid,paixing[1],2,function(err){
+						gameDao.set_player_is_game(rid,2,4,function(err,res){
+							logger.info("gameDao.updatePai location 2 success");
+							cb(null);
+						});
+					});
+				},
+				function(cb){
+					gameDao.update_pai(rid,paixing[2],3,function(err){
+						gameDao.set_player_is_game(rid,3,4,function(err,res){
+							logger.info("gameDao.updatePai location 3 success");
+							cb(null);
+						});
+					});
+				},
+				function(cb){
+					gameDao.update_pai(rid,paixing[3],4,function(err){
+						gameDao.set_player_is_game(rid,4,4,function(err,res){
 							logger.info("gameDao.updatePai success");
+							cb(null);
 						});
 					});
 				}
+			],function(err,result){
 				var param = {
 					route:'onShoupai',
 					paixing:paixing,
-					round:res
+					round:my_round
 				};
 				channel.pushMessage(param);
 			});
-		}
+		});
 	},3000);
 };
 
