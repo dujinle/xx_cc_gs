@@ -975,31 +975,20 @@ gameDao.getTimeoutMark = function(rid,cb){
  * 重置数据
  * */
 gameDao.reset_room = function(rid,cb){
-	var sql = 'update game_room set pai1 = ?, pai2 = ?,pai3 = ?, pai4 = ? where rid=?';
-	var args =["null","null","null","null",rid];
+	var sql = 'update game_room set peipai_num = ?, qieguo = ?,qieguo_flag = ? where rid=?';
+	var args =[0,0,0,rid];
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
 			utils.invokeCallback(cb, err, null);
 		}else{
 			logger.info("gameDao.reset_room set pai success");
-			sql = 'update game_room set score_1 = ?, score_2 = ?,score_3 = ?,score_4 = ?,peipai_num = ? where rid=?';
-			args =["null","null","null","null",0,rid];
-			sqlTemp.update(sql,args,function(err,res){
+			sql = 'select * from game_room where rid=?';
+			args = [rid];
+			sqlTemp.query(sql,args,function(err,res){
 				if(err!==null){
 					utils.invokeCallback(cb, err, null);
 				}else{
-					logger.info("gameDao.reset_room set chips success");
-					sql = 'select * from game_room where rid = ?';
-					args = [rid];
-					sqlTemp.query(sql,args,function(err,res){
-						if(err!==null){
-							logger.error("db:getAllPai error");
-							utils.invokeCallback(cb, err, null);
-						}else{
-							logger.info("reset_room:" + JSON.stringify(res));
-							utils.invokeCallback(cb, null, res[0]);
-						}
-					});
+					utils.invokeCallback(cb, null, res[0]);
 				}
 			});
 		}

@@ -384,78 +384,21 @@ gameLogicRemote.ready = function(rid,location,channel,username){
 							local = locations.length;
 						}
 						var zhuang_id = locations[local - 1];
-						async.waterfall([
-							function(cb){
-								if(locations[0] != null){
-									gameDao.set_player_is_game(rid,locations[0],2,function(err,res){
-										if(!!err){
-											cb(new Error("set_player_is_game: 2 faled"));
-										}else{
-											cb(null);
-										}
-									});
-								}else{
-									cb(null);
-								}
-							},
-							function(cb){
-								if(locations[1] != null){
-									gameDao.set_player_is_game(rid,locations[1],2,function(err,res){
-										if(!!err){
-											cb(new Error("set_player_is_game: 2 faled"));
-										}else{
-											cb(null);
-										}
-									});
-								}else{
-									cb(null);
-								}
-							},
-							function(cb){
-								if(locations[2] != null){
-									gameDao.set_player_is_game(rid,locations[2],2,function(err,res){
-										if(!!err){
-											cb(new Error("set_player_is_game: 2 faled"));
-										}else{
-											cb(null);
-										}
-									});
-								}else{
-									cb(null);
-								}
-							},
-							function(cb){
-								if(locations[3] != null){
-									gameDao.set_player_is_game(rid,locations[3],2,function(err,res){
-										if(!!err){
-											cb(new Error("set_player_is_game: 2 faled"));
-										}else{
-											cb(null);
-										}
-									});
-								}else{
-									cb(null);
-								}
-							}
-						],function(err,result){
-							if(!!err){
-								logger.error(err.message);
-							}else{
-								setTimeout(function(){
-									gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
-										gameDao.sub_local_gold(rid,zhuang_id,100,function(err,res){
-											gameDao.set_is_gaming(rid,2,function(err,res){
-												var param = {
-													route:'onGetZhuang',
-													nums:[num1,num2],
-													zhuang_local:zhuang_id
-												};
-												channel.pushMessage(param);
-											});
+						gameDao.set_all_player_is_game(rid,2,function(err,res){
+							setTimeout(function(){
+								gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
+									gameDao.sub_local_gold(rid,zhuang_id,100,function(err,res){
+										gameDao.set_is_gaming(rid,2,function(err,res){
+											var param = {
+												route:'onGetZhuang',
+												nums:[num1,num2],
+												zhuang_local:zhuang_id
+											};
+											channel.pushMessage(param);
 										});
 									});
-								},1000);
-							}
+								});
+							},1000);
 						});
 					}
 				});
@@ -861,14 +804,12 @@ gameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 					temp_scole.push(room_info.left_score_2);
 					temp_scole.push(room_info.left_score_3);
 					temp_scole.push(room_info.left_score_4);
-					gameDao.set_is_gaming(rid,-1,function(err,res){
-						var param = {
-							'route':'onQieguo',
-							'flag':flag,
-							'scores':temp_scole
-						};
-						channel.pushMessage(param);
-					});
+					var param = {
+						'route':'onQieguo',
+						'flag':flag,
+						'scores':temp_scole
+					};
+					channel.pushMessage(param);
 				});
 			});
 		});
