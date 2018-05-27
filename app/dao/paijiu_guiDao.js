@@ -10,21 +10,10 @@ var Code = require('../consts/code');
 var paijiuDao = module.exports;
 
 var self = this;
-paijiuDao.get_paijiu_by_paixing = function (which,paixing, cb) {
-
-	console.log('get_paijiu_by_paixing' + paixing + " which table:" + which);
-
-	var sql = 'select * from paijiu where paixing = ?';
+paijiuDao.get_paijiu_by_paixing = function (paixing, cb) {
+	console.log('get_paijiu_by_paixing' + paixing);
+	var sql  = 'select * from paijiu where paixing = ?';
 	var args = [paixing];
-	//鬼大
-	if(which == 1){
-		sql = 'select * from paijiu_gui where paixing = ?';
-	//玄大
-	}else if(which == 2){
-		sql = 'select * from paijiu_xuan where paixing = ?';
-	}else{
-		sql = 'select * from paijiu where paixing = ?'
-	}
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (!!err) {
 			console.error(err);

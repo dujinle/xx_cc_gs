@@ -12,6 +12,20 @@ CREATE TABLE paijiu(
 	name VARCHAR(64)\
 );
 
+CREATE TABLE paijiu_xuan(
+	id INT PRIMARY KEY AUTO_INCREMENT,\
+	paixing VARCHAR(32),\
+	score INT DEFAULT 0,\
+	name VARCHAR(64)\
+);
+
+CREATE TABLE paijiu_gui(
+	id INT PRIMARY KEY AUTO_INCREMENT,\
+	paixing VARCHAR(32),\
+	score INT DEFAULT 0,\
+	name VARCHAR(64)\
+);
+
 CREATE TABLE player(
 	id INT PRIMARY KEY AUTO_INCREMENT,\
 	player_id VARCHAR(32),\

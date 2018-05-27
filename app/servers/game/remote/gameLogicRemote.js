@@ -201,30 +201,32 @@ gameLogicRemote.bipai = function(rid,location1,location2,cb){
 			if(pai2[2] > pai2[3]){
 				pai2_2 = pai2[3] + "+" + pai2[2];
 			}
-			paijiuDao.get_paijiu_by_paixing(pai1_1,function(err,res1_1){
-				paijiuDao.get_paijiu_by_paixing(pai2_1,function(err,res2_1){
-					paijiuDao.get_paijiu_by_paixing(pai1_2,function(err,res1_2){
-						paijiuDao.get_paijiu_by_paixing(pai2_2,function(err,res2_2){
-							logger.info(JSON.stringify(res1_1) + JSON.stringify(res1_2) + JSON.stringify(res2_1) + JSON.stringify(res2_2));
-							if(res1_1.score >= res2_1.score  && res1_2.score >= res2_2.score){
-								var head_flag = utils.get_up8_flag(res1_1.score);
-								var tail_flag = utils.get_up8_flag(res1_2.score);
-								if(head_flag == true && tail_flag == true){
-									cb(location1,location2,'win',true);
+			gameDao.get_max_type(rid,function(err,max_type){
+				paijiuDao.get_paijiu_by_paixing(max_type,pai1_1,function(err,res1_1){
+					paijiuDao.get_paijiu_by_paixing(max_type,pai2_1,function(err,res2_1){
+						paijiuDao.get_paijiu_by_paixing(max_type,pai1_2,function(err,res1_2){
+							paijiuDao.get_paijiu_by_paixing(max_type,pai2_2,function(err,res2_2){
+								logger.info(JSON.stringify(res1_1) + JSON.stringify(res1_2) + JSON.stringify(res2_1) + JSON.stringify(res2_2));
+								if(res1_1.score >= res2_1.score  && res1_2.score >= res2_2.score){
+									var head_flag = utils.get_up8_flag(res1_1.score);
+									var tail_flag = utils.get_up8_flag(res1_2.score);
+									if(head_flag == true && tail_flag == true){
+										cb(location1,location2,'win',true);
+									}else{
+										cb(location1,location2,'win',false);
+									}
+								}else if(res1_1.score < res2_1.score  && res1_2.score < res2_2.score){
+									var head_flag = utils.get_up8_flag(res2_1.score);
+									var tail_flag = utils.get_up8_flag(res2_2.score);
+									if(head_flag == true && tail_flag == true){
+										cb(location1,location2,'lose',true);
+									}else{
+										cb(location1,location2,'lose',false);
+									}
 								}else{
-									cb(location1,location2,'win',false);
+									cb(location1,location2,'equal',false);
 								}
-							}else if(res1_1.score < res2_1.score  && res1_2.score < res2_2.score){
-								var head_flag = utils.get_up8_flag(res2_1.score);
-								var tail_flag = utils.get_up8_flag(res2_2.score);
-								if(head_flag == true && tail_flag == true){
-									cb(location1,location2,'lose',true);
-								}else{
-									cb(location1,location2,'lose',false);
-								}
-							}else{
-								cb(location1,location2,'equal',false);
-							}
+							});
 						});
 					});
 				});
@@ -259,39 +261,41 @@ gameLogicRemote.peipai = function(rid,location,marks,select,channel,username){
 				pai_2 = marks[1] + "+" + marks[0];
 			}
 			var flag = true;
-			paijiuDao.get_paijiu_by_paixing(pai_1,function(err,res_1){
-				paijiuDao.get_paijiu_by_paixing(pai_2,function(err,res_2){
-					if(res_1.score >= res_2.score){
-						paixing.unshift(marks[0]);
-						paixing.unshift(marks[1]);
-					}else{
-						paixing.push(marks[0]);
-						paixing.push(marks[1]);
-						flag = false;
-					}
+			gameDao.get_max_type(rid,function(err,max_type){
+				paijiuDao.get_paijiu_by_paixing(max_type,pai_1,function(err,res_1){
+					paijiuDao.get_paijiu_by_paixing(max_type,pai_2,function(err,res_2){
+						if(res_1.score >= res_2.score){
+							paixing.unshift(marks[0]);
+							paixing.unshift(marks[1]);
+						}else{
+							paixing.push(marks[0]);
+							paixing.push(marks[1]);
+							flag = false;
+						}
 
-					gameDao.update_peipai(rid,paixing,location,function(err,res){
-						var param = {
-							route:'onPeiPai',
-							location:location,
-							marks:marks,
-							select:select,
-							flag:flag
-						};
-						channel.pushMessage(param);
-						gameDao.get_peipai_num(rid,function(err,peipai_num){
-							if(users.length <= peipai_num){
-								setTimeout(function(){
-									var param = {
-										route:'onPeiPaiFinish',
-										location:location
-									};
-									channel.pushMessage(param);
-								},1000);
-							}
+						gameDao.update_peipai(rid,paixing,location,function(err,res){
+							var param = {
+								route:'onPeiPai',
+								location:location,
+								marks:marks,
+								select:select,
+								flag:flag
+							};
+							channel.pushMessage(param);
+							gameDao.get_peipai_num(rid,function(err,peipai_num){
+								if(users.length <= peipai_num){
+									setTimeout(function(){
+										var param = {
+											route:'onPeiPaiFinish',
+											location:location
+										};
+										channel.pushMessage(param);
+									},1000);
+								}
+							});
 						});
-					});
-				})
+					})
+				});
 			});
 		});
 	});

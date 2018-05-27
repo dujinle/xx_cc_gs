@@ -94,6 +94,26 @@ gameDao.get_qiang_num = function(rid,cb){
 /*}}}*/
 };
 
+gameDao.get_max_type = function(rid,cb){
+/*{{{*/
+	var sql = 'select * from game_room where rid = ?';
+	var args = [rid];
+	sqlTemp.query(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb,err,null);
+		}else{
+			if(!!res && res.length > 0){
+				logger.info("get_max_type:"+JSON.stringify(res));
+				utils.invokeCallback(cb,null,res[0].max_type);
+			}else{
+				logger.info("get_max_type: no found room......");
+				utils.invokeCallback(cb,null,null);
+			}
+		}
+	});
+/*}}}*/
+};
+
 gameDao.set_qiang_zhuang = function(rid,location,flag,cb){
 /*{{{*/
 	var sql = 'select * from game_room where rid = ?';

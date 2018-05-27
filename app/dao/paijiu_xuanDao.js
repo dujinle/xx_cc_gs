@@ -7,24 +7,13 @@ var Code = require('../consts/code');
 
 
 //直接暴露模块的方法使用时无需在new
-var paijiuDao = module.exports;
+var paijiu_xuanDao = module.exports;
 
 var self = this;
-paijiuDao.get_paijiu_by_paixing = function (which,paixing, cb) {
-
-	console.log('get_paijiu_by_paixing' + paixing + " which table:" + which);
-
-	var sql = 'select * from paijiu where paixing = ?';
+paijiu_xuanDao.get_paijiu_by_paixing = function (paixing, cb) {
+	console.log('get_paijiu_xuan_by_paixing' + paixing);
+	var sql  = 'select * from paijiu_xuan where paixing = ?';
 	var args = [paixing];
-	//鬼大
-	if(which == 1){
-		sql = 'select * from paijiu_gui where paixing = ?';
-	//玄大
-	}else if(which == 2){
-		sql = 'select * from paijiu_xuan where paixing = ?';
-	}else{
-		sql = 'select * from paijiu where paixing = ?'
-	}
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (!!err) {
 			console.error(err);
