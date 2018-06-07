@@ -5,6 +5,8 @@
 
 var gonghuiDao = require('../../../dao/gonghuiDao');
 var playerDao = require('../../../dao/playerDao');
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
+
 
 module.exports = function (app) {
     return new Handler(app);
@@ -21,96 +23,92 @@ handler.gonghuiProcess = function (msg, session, next) {
 
 	if(process == "getGonghui"){
 		var gonghui_id  = msg.data.gonghui_id;
-		console.log('handler.get_gonghui_by_id..............');
+		logger.info('handler.get_gonghui_by_id..............');
 		gonghuiDao.get_gonghui_by_id(gonghui_id, function (err, res) {
 			if (err) {
-				console.log(err.message + '===========err============');
-				console.log(err);
-				next(null, {
-					code: 500,
-					msg: 'find error'
-				});
+				logger.info(err.message + '===========err============');
+				next(null, {code: 500,msg: 'find error'});
 			}else{
-				next(null, {
-					code: 200,
-					msg: res
-				});
+				next(null, {code: 200,msg: res});
+			}
+		});
+	}else if(process == "getGonghuiGongHuiId"){
+		var gonghui_id  = msg.data.gonghui_id;
+		logger.info('handler.get_gonghui_by_gonghui_id..............');
+		gonghuiDao.get_gonghui_by_gonghui_id(gonghui_id, function (err, res) {
+			if (err) {
+				logger.info(err.message + '===========err============');
+				next(null, {code: 500,msg: 'find error'});
+			}else{
+				next(null, {code: 200,msg: res});
+			}
+		});
+	}else if(process == "getGonghuiPlayerId"){
+		var player_id  = msg.data.player_id;
+		logger.info('handler.get_gonghui_by_player_id..............');
+		gonghuiDao.get_gonghui_by_player_id(player_id, function (err, res) {
+			if (err) {
+				logger.info(err.message + '===========err============');
+				next(null, {code: 500,msg: 'find error'});
+			}else{
+				next(null, {code: 200,msg: res});
 			}
 		});
 	}else if(process == "getGonghuiAns"){
 		var player_id  = msg.data.player_id;
-		console.log('handler.get_gonghui_by_id..............');
+		logger.info('handler.get_gonghui_by_id..............');
 		gonghuiDao.get_gonghui_ans_by_player_id(player_id, function (err, res) {
 			if (err) {
-				console.log(err.message + '===========err============');
-				console.log(err);
+				logger.info(err.message + '===========err============');
 				next(null, {
 					code: 500,
 					msg: 'find error'
 				});
 			}else if(res){
-				console.log("getGonghuiAns return code" + 200);
+				logger.info("getGonghuiAns return code" + 200);
 				next(null, {code: 200,msg: res});
 			}else{
-				console.log("getGonghuiAns return code" + 202);
+				logger.info("getGonghuiAns return code" + 202);
 				next(null, {code: 202,msg:null});
 			}
 		});
 	}else if(process == "xuka"){
-		console.log('handler.xuka..................');
+		logger.info('handler.xuka..................');
 		var gonghui_id = msg.data.gonghui_id;
 		var player_id = msg.data.player_name;
 		var player_name = msg.data.player_name;
-		var phone_num = msg.data.data.telphone;
+		var phone_num = msg.data.telphone;
 		gonghuiDao.xuka(gonghui_id,player_id,player_name,phone_num, function (err, res) {
 			if (err) {
-				console.log(err.message + '===========err============');
-				console.log(err);
-				next(null, {
-					code: 500,
-					msg: 'creat error'
-				});
+				logger.info(err.message + '===========err============');
+				next(null, {code: 500,msg: err.message});
 			}else{
-				next(null, {
-					code: 200,
-					msg: res
-				});
+				next(null, {code: 200,msg: res});
 			}
 		});
 	}else if(process == "update_gonghui"){
-		console.log('handler.update_gonghui..................');
+		logger.info('handler.update_gonghui..................');
 		var gonghui_id = msg.data.id;
 		var danjia = msg.data.danjia;
 		var xuanyan = msg.data.xuanyan;
 		var gonggao = msg.data.gonggao;
 		gonghuiDao.update_gonghui(gonghui_id,danjia,xuanyan,gonggao, function (err, res) {
 			if (err) {
-				console.log(err.message + '===========err============');
-				console.log(err);
-				next(null, {
-					code: 500,
-					msg: 'update error'
-				});
+				logger.info(err.message + '===========err============');
+				next(null, {code: 500,msg: err.message});
 			}else{
-				next(null, {
-					code: 200,
-					msg: res
-				});
+				next(null, {code: 200,msg: res});
 			}
 		});
 	}else if(process == "join_gonghui"){
-		console.log('handler.join_gonghui..................');
+		logger.info('handler.join_gonghui..................');
 		var gonghui_id = msg.data.gonghui_id;
 		var player_id = msg.data.player_id;
 
 		gonghuiDao.get_gonghui_by_gonghui_id(gonghui_id, function (err, res) {
 			if (err) {
-				console.log(err.message + '===========err============');
-				console.log(err);
-				next(null, {
-					code: 500,
-					msg: 'find error'
-				});
+				logger.info(err.message + '===========err============');
+				next(null, {code: 500,msg: 'find error'});
 			}else{
 				if(res == null){
 					next(null,{code:202,msg:null});
@@ -132,7 +130,7 @@ handler.gonghuiProcess = function (msg, session, next) {
 			}
 		});
 	}else if(process == "shenqing"){
-		console.log('handler.add_gonghui..................');
+		logger.info('handler.add_gonghui..................');
 		var player_id = msg.data.player_id;
 		var player_name = msg.data.player_name;
 		var gonghui_name = msg.data.gonghui_name;
@@ -140,8 +138,7 @@ handler.gonghuiProcess = function (msg, session, next) {
 		var level = msg.data.level;
 		gonghuiDao.add_gonghui_ans(player_id,player_name,gonghui_name,telphone,level, function (err, res) {
 			if (err) {
-				console.log(err.message + '===========err============');
-				console.log(err);
+				logger.info(err.message + '===========err============');
 				next(null, {code: 500,msg: 'add_gonghui error'});
 			}else{
 				next(null, {code: 200,msg: res});
