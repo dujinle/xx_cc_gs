@@ -24,10 +24,10 @@ handler.gameInfoProcess = function (msg, session, next) {
 		var index = msg.data.index;
 		var length = msg.data.length;
 		var player_id = msg.data.player_id;
-		logger.log('handler.get_buy_fangka_list..............');
+		logger.info('handler.get_buy_fangka_list..............');
 		gameInfoDao.get_buy_fangka_list(player_id,index,length, function (err, res) {
 			if (err) {
-				logger.log(err.message + '===========err============');
+				logger.info(err.message + '===========err============');
 				next(null, {code: 500,msg: 'find error'});
 			}else{
 				next(null, {code: 200,msg: res});
@@ -37,11 +37,11 @@ handler.gameInfoProcess = function (msg, session, next) {
 		var index = msg.data.index;
 		var length = msg.data.length;
 		var player_id = msg.data.player_id;
-		logger.log('handler.get_game_history_list..............');
+		logger.info('handler.get_game_history_list..............');
 		gameInfoDao.get_game_history_list(player_id,index,length, function (err, res) {
 			if (err) {
-				logger.log(err.message + '===========err============');
-				logger.log(err);
+				logger.info(err.message + '===========err============');
+				logger.info(err);
 				next(null, {code: 500,msg: 'find error'});
 			}else{
 				next(null, {code: 200,msg: res});
@@ -51,7 +51,7 @@ handler.gameInfoProcess = function (msg, session, next) {
 		var data = msg.data;
 		gameInfoDao.update_game(data,function(err,res){
 			if (err) {
-				logger.log(err.message + '===========err============');
+				logger.info(err.message + '===========err============');
 				next(null, {code: 500,msg: 'update error'});
 			}else{
 				next(null, {code: 200,msg: res});
