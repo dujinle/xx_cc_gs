@@ -3,6 +3,8 @@
  */
 
 var playerDao = require('../../../dao/playerDao');
+var gBroadcastDao = require('../../../dao/gBroadcastDao');
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 
 module.exports = function(app){
     return new Broadcast(app)
@@ -67,3 +69,4 @@ Broadcast.prototype.sendMes = function(msg,session,next){
     //console.log("content:"+msg.content);
 
 };
+
