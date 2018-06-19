@@ -109,9 +109,9 @@ gonghuiDao.sub_gonghui_renshu = function (gonghui_id,value, cb) {
 	});
 };
 
-gonghuiDao.update_gonghui = function (gonghui_id,danjia,xuanyan,gonggao, cb) {
-	var sql       = 'update gonghui set danjia = ?,gonggao = ?,xuanyan = ? where id = ?';
-	var args      = [danjia, gonggao, xuanyan,gonghui_id];
+gonghuiDao.update_gonghui = function (gonghui_id,danjia,xuanyan, cb) {
+	var sql       = 'update gonghui set danjia = ?,xuanyan = ? where id = ?';
+	var args      = [danjia, xuanyan,gonghui_id];
 
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if(err){

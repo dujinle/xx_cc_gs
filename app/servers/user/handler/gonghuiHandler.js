@@ -91,8 +91,7 @@ handler.gonghuiProcess = function (msg, session, next) {
 		var gonghui_id = msg.data.id;
 		var danjia = msg.data.danjia;
 		var xuanyan = msg.data.xuanyan;
-		var gonggao = msg.data.gonggao;
-		gonghuiDao.update_gonghui(gonghui_id,danjia,xuanyan,gonggao, function (err, res) {
+		gonghuiDao.update_gonghui(gonghui_id,danjia,xuanyan,function (err, res) {
 			if (err) {
 				logger.info(err.message + '===========err============');
 				next(null, {code: 500,msg: err.message});
