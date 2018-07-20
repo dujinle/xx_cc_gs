@@ -1,3 +1,4 @@
+var fs = require('fs');
 var pomelo = require('pomelo');
 var routeUtil = require('./app/util/routeUtil');
 //var Listenner = require('./app/servers/components/handler/listenner');
@@ -22,7 +23,12 @@ app.configure('production|development', 'connector', function(){
 			connector : pomelo.connectors.hybridconnector,
 			heartbeat : 30,
 			useDict : true,
-			useProtobuf : true
+			useProtobuf : true,
+			ssl: {
+				type: 'wss',
+				key: fs.readFileSync('../shared/server.key'),
+				cert: fs.readFileSync('../shared/server.crt')
+			}
 		});
 
 	//var dbclient = require('./app/servers/dao/mysql').init(app);
@@ -33,7 +39,13 @@ app.configure('production|development', 'gate|login', function(){
 	app.set('connectorConfig',
 		{
 			connector : pomelo.connectors.hybridconnector,
-			useProtobuf : true
+			useProtobuf : true,
+			useDict : true,
+			ssl: {
+				type: 'wss',
+				key: fs.readFileSync('../shared/server.key'),
+				cert: fs.readFileSync('../shared/server.crt')
+			}
 		});
 });
 

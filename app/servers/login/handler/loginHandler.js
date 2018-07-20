@@ -4,11 +4,13 @@
  */
 
 var playerDao =require('../../../dao/playerDao');
-var tokenService = require('../../../util/token');
+var utils = require('../../../util/utils');
 var Code = require('../../../consts/code');
 var logger = require('pomelo-logger').getLogger('pomelo', __filename);
-
+var https = require('https');
 var Token   = require('../../../util/token');
+var WXBizDataCrypt = require('../../../util/WXBizDataCrypt');
+var cache  = require('memory-cache');
 var secret  = 'secret'
 
 module.exports = function (app) {
@@ -102,4 +104,120 @@ var updateLogin  = function(player){
             }
         });
     }
+}
+
+handler.wxlogin = function (msg, session, next) {
+	logger.info('wxlogin:' + JSON.stringify(msg)) ;
+	var wx_code = msg.wx_code;
+	var encrypted_data = msg.encrypted_data;
+	var raw_data = msg.raw_data;
+	var signature = msg.signature;
+	var iv = msg.iv;
+	var session_key = msg.session_key;
+	if(session_key != null){
+		var wx_session_key = cache.get(session_key);
+		if(!!wx_session_key){
+			var wx_key = wx_session_key.split('|')[0];
+			var signature_n = Token.sha1(raw_data + wx_key);
+			if(signature_n != signature){
+				next(null, {code: Code.FA_LOGIN_SIGNATURE, data:'signature 验证失败 请重新登录'});
+			}else{
+				var pc = new WXBizDataCrypt('wxcc483092644e1691',wx_key);
+				var data = pc.decryptData(encrypted_data, iv);
+				var player_id = data.openId;
+				var nick_name = data.nickName;
+				var sex_type = data.gender;
+				var img_url = data.avatarUrl;
+				playerDao.get_player_by_player_id(player_id,function(err,player){
+					if(!!err){
+						next(null, {code:Code.SQL_ERROR,msg:err});
+						return;
+					}
+					if(player == null){
+						playerDao.create_player_by_player_id(player_id,nick_name,sex_type,img_url,function(err,player){
+							if(!!err) {
+								logger.info('createPlayer err!',JSON.stringify(err));
+								next(null, {code: Code.SQL_ERROR, msg:err});
+								return;
+							}
+							updateLogin(player);
+							cache.put(uuid,jdata['session_key'] + '|' + jdata['openid']);
+							var token = Token.create(player.id, Date.now(), secret);
+							next(null, {code: Code.OK, token:token , session_token:session_key});
+						});
+					}else{
+						playerDao.update_player_by_player_id(player_id,nick_name,img_url,sex_type,function(err,player){
+							if(!!err){
+								next(null, {code:Code.SQL_ERROR,msg:err});
+								return;
+							}else{
+								updateLogin(player);
+								cache.put(uuid,jdata['session_key'] + '|' + jdata['openid']);
+								var token = Token.create(player.id, Date.now(), secret);
+								next(null, {code: Code.OK, token:token , session_token:session_key});
+							}
+						});
+					}
+				});
+			}
+		}else{
+			next(null, {code: Code.FA_LOGIN_INVALID, msg:'请重新登录，验证已经过期！'});
+		}
+	}else{
+		https.get('https://api.weixin.qq.com/sns/jscode2session?appid=wxcc483092644e1691&secret=f070d7d52322077434b53827041be68c&js_code=' + wx_code + '&grant_type=authorization_code',function(req,res){
+			var html = '';
+			req.on('data',function(data){
+				html += data;
+			});
+			req.on('end',function(){
+				var jdata = JSON.parse(html);
+				var uuid = utils.get_uuid();
+				var signature_n = Token.sha1(raw_data + jdata['session_key']);
+				logger.info(html,jdata,signature_n);
+				if(signature_n != signature){
+					next(null, {code: Code.FA_LOGIN_SIGNATURE, data:'signature 验证失败 请重新登录'});
+				}else{
+					var pc = new WXBizDataCrypt('wxcc483092644e1691', jdata['session_key']);
+					var data = pc.decryptData(encrypted_data, iv);
+					logger.info(data);
+
+					var player_id = data.openId;
+					var nick_name = data.nickName;
+					var sex_type = data.gender;
+					var img_url = data.avatarUrl;
+					playerDao.get_player_by_player_id(player_id,function(err,player){
+						if(!!err){
+							next(null, {code:Code.SQL_ERROR,msg:err});
+							return;
+						}
+						if(player == null){
+							playerDao.create_player_by_player_id(player_id,nick_name,sex_type,img_url,function(err,player){
+								if(!!err) {
+									logger.info('createPlayer err!',JSON.stringify(err));
+									next(null, {code: Code.SQL_ERROR, msg:err});
+									return;
+								}
+								updateLogin(player);
+								cache.put(uuid,jdata['session_key'] + '|' + jdata['openid']);
+								var token = Token.create(player.id, Date.now(), secret);
+								next(null, {code: Code.OK, token:token,session_token:uuid});
+							});
+						}else{
+							playerDao.update_player_by_player_id(player_id,nick_name,img_url,sex_type,function(err,player){
+								if(!!err){
+									next(null, {code:Code.SQL_ERROR,msg:err});
+									return;
+								}else{
+									updateLogin(player);
+									cache.put(uuid,jdata['session_key'] + '|' + jdata['openid']);
+									var token = Token.create(player.id, Date.now(), secret);
+									next(null, {code: Code.OK, token:token , session_token:uuid});
+								}
+							});
+						}
+					});
+				}
+			});
+		});
+	}
 }

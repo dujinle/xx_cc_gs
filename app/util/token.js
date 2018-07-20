@@ -19,10 +19,25 @@ module.exports.create = function(player_id, timestamp, pwd) {
 	return enc;
 };
 
-function decry(token){
+module.exports.wx_create = function(session_key,open_id,pwd){
+	logger.info('create wx_token uid ',open_id);
+	var msg = session_key + '|' + open_id;
+	var cipher = crypto.createCipher('aes-256-cbc', pwd);
+	var enc = cipher.update(msg, 'utf8', 'hex');
+	enc += cipher.final('hex');
+	logger.info('token.js token -> ',enc);
+	return enc;
+	
+};
 
+function decry(token){
     var res =parse(token,"secret");
     logger.info(res);
+}
+
+function wx_decry(token){
+	var res = wx_parse(token,"secret");
+	logger.info(res);
 }
 
 /**
@@ -48,6 +63,26 @@ module.exports.parse = function(token, pwd) {
 	}
     logger.info('解码player_id --- '+ts[0]+' '+ts,'timestamp '+ts[1]);
 	return {player_id: ts[0], timestamp: Number(ts[1])};
+};
+
+module.exports.sha1 = function(mystr){
+	var sha = crypto.createHash('sha1');
+	sha.update(mystr);
+	return sha.digest('hex');
+};
+
+module.exports.wx_parse = function(key,data,iv) {
+	var dec;
+	try {
+		var decipher = crypto.createDecipheriv('aes-128-cbc',key,iv);
+		decipher.setAutoPadding(true);
+		dec = decipher.update(data, 'binary', 'utf8');
+		dec += decipher.final('utf8');
+	} catch(err) {
+		logger.error('[token] fail to decrypt token. %j', err);
+		return null;
+	}
+	return JSON.parse(dec);
 };
 //var token = require('./token.js');
 //var res = token.create(1,Date.now(),'secret')
