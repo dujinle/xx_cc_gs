@@ -33,6 +33,7 @@ CREATE TABLE player(
 	nick_name VARCHAR(64),\
 	head_img_url VARCHAR(256),\
 	sex        INT DEFAULT 0,\
+	gold        INT DEFAULT 0,\
 	fangka_num INT DEFAULT 0,\
 	round_num INT DEFAULT 0,\
 	all_score INT DEFAULT 0,\
@@ -125,7 +126,7 @@ CREATE TABLE game_room(
 	max_type  INT,\
 	fangka_num INT,\
 	fangka_type INT,\
-	wait_time INT,\
+	wait_time INT DEFAULT 0,\
 	creat_time BIGINT,\
 	timeout_mark BIGINT,\
 	player_num INT DEFAULT 0,\

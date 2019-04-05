@@ -43,56 +43,58 @@ gameRemote.prototype.enter_wait_room = function(uid, sid, channel_id, flag,cb) {
 gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 /*{{{*/
 	console.log("gameRemote.enter_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id + " location:" + location);
-	var channel = this.channelService.getChannel(channel_id, false);
+	var channel = this.channelService.getChannel(channel_id, true);
 	var channelService = this.channelService;
 	var username = uid.split('*')[0];
 	var rid = uid.split('*')[1];
 	var self = this;
 
 	if( !! channel) {
+		channel.add(uid, sid);
 		gameDao.get_room_by_room_id(rid,function(err,res){
 			playerDao.get_player_by_id(username,function(err,player){
 				//如果是房主进入房间则直接进入不用消费房卡，因为建房时已经消费
-				if(res.fangzhu_id == player.id){
-					gameDao.add_player(rid,uid,location,function(err,res){
-						var param = {
-							route: 'onEnterRoom',
-							player: player,
-							location:location  //同时分配位置
-						};
-						channel.pushMessage(param);
-					});
-					cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num});
-				}else{
-					//玩家进入房间确定房间模式是否需要消费房卡
-					if(res.fangka_type == 1){
-						if(player.fangka_num - 1 >= 0){
-							playerDao.sub_fangka(player.id,1,function(err,res){
-								gameDao.add_player(rid,uid,location,function(err,res){
-									var param = {
-										route: 'onEnterRoom',
-										player: player,
-										location:location  //同时分配位置
-									};
-									channel.pushMessage(param);
-								});
-							});
-							cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num - 1});
-						}else{
-							cb({'code':202,'msg':'房卡数量不够，无法进入游戏房间！'});
-						}
-					}else{
-						gameDao.add_player(rid,uid,location,function(err,res){
-							var param = {
-								route: 'onEnterRoom',
-								player: player,
-								location:location  //同时分配位置
-							};
-							channel.pushMessage(param);
-						});
-						cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num});
+				//判断玩家是否有金币和房卡 不够不允许进入游戏
+				if(res.game_type == 1){
+					//抢庄 庄家消费所有玩家的房卡
+					if(location == 1 && player.fangka_num < res.player_num){
+						cb({'code':201,'msg':'房卡不够用无法进入游戏，请充值房卡！'});
+						return;
+					}
+					if(player.gold <= 0){
+						cb({'code':201,'msg':'没有金币无法进入游戏，请充值金币！'});
+						return;
+					}
+				}else if(res.game_type == 2){
+					//随机庄 每人消费一张房卡
+					if(player.fangka_num < 1){
+						cb({'code':201,'msg':'房卡不够用无法进入游戏，请充值房卡！'});
+						return;
+					}
+					if(player.gold <= 0){
+						cb({'code':201,'msg':'没有金币无法进入游戏，请充值金币！'});
+						return;
+					}
+				}else if(res.game_type == 3){
+					//转庄 每人消费一张房卡
+					if(player.fangka_num < 1){
+						cb({'code':201,'msg':'房卡不够用无法进入游戏，请充值房卡！'});
+						return;
+					}
+					if(player.gold <= 0){
+						cb({'code':201,'msg':'没有金币无法进入游戏，请充值金币！'});
+						return;
 					}
 				}
+				gameDao.add_player(rid,uid,location,function(err,res){
+					var param = {
+						route: 'onEnterRoom',
+						player: player,
+						location:location  //同时分配位置
+					};
+					channel.pushMessage(param);
+				});
+				cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num});
 			});
 		});
 	}else{
@@ -163,25 +165,15 @@ gameRemote.prototype.leave_room = function(uid, sid, channel_id,flag,location,cb
 	var self = this;
 	var players = new Array();
 	if( !! channel) {
-		if(location != null){
-			gameDao.leave_room(rid,location,function(err,res){
-				var param = {
-					route: 'onLeaveRoom',
-					location:location,
-					player_id:username,
-					data:res
-				};
-				channel.pushMessage(param);
-			});
-		}else{
+		gameDao.leave_room(rid,uid,function(err,res){
 			var param = {
 				route: 'onLeaveRoom',
-				location:null,
+				location:location,
 				player_id:username,
-				data:null
+				data:res
 			};
 			channel.pushMessage(param);
-		}
+		});
 		var users_ext = channel.getMembers();
 		for(var i = 0; i < users_ext.length;i++){
 			if(users_ext[i] == uid){
@@ -198,81 +190,108 @@ gameRemote.prototype.leave_room = function(uid, sid, channel_id,flag,location,cb
 /*}}}*/
 };
 
-gameRemote.prototype.start_game = function(uid, sid, channel_id,flag,cb) {
+gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 /*{{{*/
-	console.log("gameRemote.start_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
+	console.log("gameRemote.start_room......rid:" + rid + " sid:" + sid + " channel_id:" + channel_id);
 	var channel = this.channelService.getChannel(channel_id, flag);
 	var channelService = this.channelService;
-	var username = uid.split('*')[0];
-	var rid = uid.split('*')[1];
 	var self = this;
 
 	if( !! channel) {
 		gameDao.start_game(rid,function(err,res){
-			var users = channel.getMembers();
-			for(var i = 0; i < users.length; i++) {
-				users[i] = users[i].split('*')[0];
-			}
-			async.parallel([
-				function(callback){
-					if(users[0]!=null){
-						playerDao.get_player_by_id(users[0],function(err,res){
-							gameDao.get_player_local(rid,users[0],function(err,location){
-								res['location'] = location;
-								callback(null, res);
-							});
-						});
-					}else{
-						callback(null,'null');
-					}
-				},
-				function(callback){
-					if(users[1]!=null){
-						playerDao.get_player_by_id(users[1],function(err,res){
-							gameDao.get_player_local(rid,users[1],function(err,location){
-								res['location'] = location;
-								callback(null, res);
-							});
-						});
-					}else{
-						callback(null,'null');
-					}
-				},
-				function(callback){
-					if(users[2]!=null){
-						playerDao.get_player_by_id(users[2],function(err,res){
-							gameDao.get_player_local(rid,users[2],function(err,location){
-								res['location'] = location;
-								callback(null, res);
-							});
-						});
-					}else{
-						callback(null,'null');
-					}
-				},
-				function(callback){
-					if(users[3]!=null){
-						playerDao.get_player_by_id(users[3],function(err,res){
-							gameDao.get_player_local(rid,users[3],function(err,location){
-								res['location'] = location;
-								callback(null, res);
-							});
-						});
-					}else{
-						callback(null,'null');
-					}
+			gameDao.get_room_by_room_id(rid,function(err,room_info){
+				if(room_info.game_type == 1){
+					gameDao.set_zhuang_location(rid,1,function(err,ret){});
 				}
-			],
-			function(err, results){
-				//console.log("async parallel"+JSON.stringify(results[0]));
-				//console.log("async parallel"+results);
-				//channelService.pushMessageByUids('onInit',results,[{uid:uid,sid:sid}]);
-				//return results;
-				var param = {
-					route: 'onStartGame',
-					players: results
-				};
-				channel.pushMessage(param);
+				var users = channel.getMembers();
+				for(var i = 0; i < users.length; i++) {
+					users[i] = users[i].split('*')[0];
+				}
+				async.parallel([
+					function(callback){
+						if(users[0]!=null){
+							playerDao.get_player_by_id(users[0],function(err,res){
+								gameDao.get_player_local(rid,users[0],function(err,location){
+									if(room_info.game_type == 1 && location == 1){
+										playerDao.sub_fangka(users[0],users.length,function(err,pret){
+										})
+									}else if(room_info.game_type != 1){
+										playerDao.sub_fangka(users[0],1,function(err,pret){
+										});
+									}
+									res['location'] = location;
+									callback(null, res);
+								});
+							});
+						}else{
+							callback(null,'null');
+						}
+					},
+					function(callback){
+						if(users[1]!=null){
+							playerDao.get_player_by_id(users[1],function(err,res){
+								gameDao.get_player_local(rid,users[1],function(err,location){
+									if(room_info.game_type == 1 && location == 1){
+										playerDao.sub_fangka(users[0],users.length,function(err,pret){
+										})
+									}else if(room_info.game_type != 1){
+										playerDao.sub_fangka(users[0],1,function(err,pret){
+										});
+									}
+									res['location'] = location;
+									callback(null, res);
+								});
+							});
+						}else{
+							callback(null,'null');
+						}
+					},
+					function(callback){
+						if(users[2]!=null){
+							playerDao.get_player_by_id(users[2],function(err,res){
+								gameDao.get_player_local(rid,users[2],function(err,location){
+									if(room_info.game_type == 1 && location == 1){
+										playerDao.sub_fangka(users[0],users.length,function(err,pret){
+										})
+									}else if(room_info.game_type != 1){
+										playerDao.sub_fangka(users[0],1,function(err,pret){
+										});
+									}
+									res['location'] = location;
+									callback(null, res);
+								});
+							});
+						}else{
+							callback(null,'null');
+						}
+					},
+					function(callback){
+						if(users[3]!=null){
+							playerDao.get_player_by_id(users[3],function(err,res){
+								gameDao.get_player_local(rid,users[3],function(err,location){
+									if(room_info.game_type == 1 && location == 1){
+										playerDao.sub_fangka(users[0],users.length,function(err,pret){
+										})
+									}else if(room_info.game_type != 1){
+										playerDao.sub_fangka(users[0],1,function(err,pret){
+										});
+									}
+									res['location'] = location;
+									callback(null, res);
+								});
+							});
+						}else{
+							callback(null,'null');
+						}
+					}
+				],
+				function(err, results){
+					var param = {
+						route: 'onStartGame',
+						players: results
+					};
+					channel.pushMessage(param);
+				});
 			});
 		});
 	}

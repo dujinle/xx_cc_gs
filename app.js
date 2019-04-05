@@ -1,20 +1,15 @@
 var fs = require('fs');
 var pomelo = require('pomelo');
 var routeUtil = require('./app/util/routeUtil');
-//var Listenner = require('./app/servers/components/handler/listenner');
-//var timeoutHandler = require('./app/servers/components/timeoutHandler');
 /**
  * Init app for client.
  */
 var app = pomelo.createApp();
 app.set('name', 'xx_cc_gs-server');
-//app.set('aroute','enjoypuke.top');
-//app.set('aroute','187j615c32.iok.la');
 app.configure('production|development',function () {
 	var mysql = require('./config/mysql');
 	app.set('mysql',mysql[app.get('env')]);
 });
-//console.log(__filename,app.get('mysql'));
 
 // app configuration
 app.configure('production|development', 'connector', function(){
@@ -30,9 +25,6 @@ app.configure('production|development', 'connector', function(){
 				cert: fs.readFileSync('../shared/server.crt')
 			}
 		});
-
-	//var dbclient = require('./app/servers/dao/mysql').init(app);
-	//app.set('dbclient', dbclient);
 });
 
 app.configure('production|development', 'gate|login', function(){

@@ -92,7 +92,7 @@ gonghuiDao.xuka = function (gonghui_id,player_id,player_name,phone_num, cb) {
 };
 
 gonghuiDao.sub_gonghui_renshu = function (gonghui_id,value, cb) {
-	var sql       = 'update gonghui set renshu = renshu + ?, where gonghui_id = ?';
+	var sql       = 'update gonghui set renshu = renshu + ? where gonghui_id = ?';
 	var args      = [value,gonghui_id];
 
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {

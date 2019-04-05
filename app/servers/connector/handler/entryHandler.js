@@ -78,15 +78,8 @@ handler.create = function(msg, session, next) {
 	var room_type = msg.room_type;
 	var player_id = msg.player_id;
 	var max_type = msg.max_type;
-	var fangka_type = msg.fangka_type;
-	var wait_time = msg.wait_time;
-	var fangka_num = 0;
+	var fangka_num = 1;
 	var self = this;
-	if(fangka_type == 1){
-		fangka_num = 1;
-	}else if(fangka_type == 2){
-		fangka_num = renshu;
-	}
 	logger.info("session id:" + session.id + " uid:" + session.uid);
 	playerDao.get_player_by_id(player_id,function(err,player){
 		if(player.fangka_num < fangka_num){
@@ -95,31 +88,15 @@ handler.create = function(msg, session, next) {
 			return;
 		}
 		playerDao.sub_fangka(player_id,fangka_num,function(err,res){
-			gameDao.create_room_by_player_id(player_id,player.nick_name,room_type,renshu,max_type,fangka_type,wait_time,fangka_num,function(err,res){
+			console.log(err,res);
+			gameDao.create_room_by_player_id(player_id,player.nick_name,room_type,renshu,max_type,function(err,res){
 				logger.info('create room succ:' + JSON.stringify(res));
-
-				var rid = res;
-				var uid = player_id + '*' + rid;
-				session.bind(uid);
-				session.set('rid', rid);
-				session.push('rid', function(err) {
-					if(err) {
-						console.error('set rid for session service failed! error is : %j', err.stack);
-					}
-				});
-
-				session.on('closed', onUserLeave.bind(null, self.app));
-
-				logger.info("session id:" + session.id + " uid:" + session.uid);
-				gameDao.get_room_by_room_id(res,function(err,res){
-					if(err){
-						next(null, {code:500,msg:err.message});
-					}else{
-						self.app.rpc.game.gameRemote.enter_wait_room(session, uid, self.app.get('serverId'), rid, true,function(){
-							next(null, {code:200,msg:res});
-						});
-					}
-				});
+				if(err){
+					next(null, {code:500,msg:err.message});
+				}else{
+					next(null, {code:200,msg:res});
+				}
+				return;
 			});
 		});
 	});
@@ -201,16 +178,42 @@ handler.enter_wait_room = function(msg, session, next) {
 handler.get_room_info = function(msg, session, next) {
 /*{{{*/
 	logger.info("handler.get room info:" + JSON.stringify(msg));
-	var rid = msg.rid;
-	gameDao.get_room_by_room_id(rid,function(err,res){
-		if(err){
-			next(null, {code:500,msg:err.message});
-		}else if(res != null){
-			next(null, {code:200,msg:res});
-		}else{
-			next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
-		}
-	});
+	var process = msg.process;
+	if(process == 'getRoomByPlayerId'){
+		var player_id = msg.player_id;
+		gameDao.get_rooms_by_player_id(player_id,function(err,res){
+			if(err){
+				next(null, {code:500,msg:err.message});
+			}else{
+				next(null, {code:200,msg:res});
+			}
+			return;
+		});
+	}else if(process == 'getRoomById'){
+		var rid = msg.rid;
+		gameDao.get_room_by_room_id(rid,function(err,res){
+			if(err){
+				next(null, {code:500,msg:err.message});
+			}else if(res != null){
+				next(null, {code:200,msg:res});
+			}else{
+				next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
+			}
+			return;
+		});
+	}else{
+		var rid = msg.rid;
+		gameDao.get_room_by_room_id(rid,function(err,res){
+			if(err){
+				next(null, {code:500,msg:err.message});
+			}else if(res != null){
+				next(null, {code:200,msg:res});
+			}else{
+				next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
+			}
+			return;
+		});
+	}
 /*}}}*/
 };
 
@@ -339,8 +342,34 @@ handler.enter = function(msg, session, next) {
 		if(err){
 			next(null, {code:500,msg:err.message});
 		}else if(res != null){
+			if(res['location' + location] != null && res['location' + location] != 'null'){
+				next(null, {'code':201,'msg':'位置已经被占用！'});
+				return;
+			}
+			if(res.real_num >= res.player_num){
+				next(null, {'code':201,'msg':'位置已经被占用！'});
+				return;
+			}
+			//确定庄家位置是否有人 如果没有则最后一个进入的人不可以进入其他位置
+			if(res.real_num + 1 == res.player_num && res.game_type == 1){
+				if(res.location1 == null || res.location1 == 'null'){
+					if(location != 1){
+						next(null, {'code':201,'msg':'其他位置无法进入，只可以进入庄家位置!'});
+						return;
+					}
+				}
+			}
 			var rid = res.rid;
 			var uid = player_id + '*' + rid;
+			session.bind(uid);
+			session.set('rid', rid);
+			session.push('rid', function(err) {
+				if(err) {
+					console.error('set rid for session service failed! error is : %j', err.stack);
+				}
+			});
+			session.on('closed', onUserLeave.bind(null, self.app));
+			logger.info("session id:" + session.id + " uid:" + session.uid);
 			self.app.rpc.game.gameRemote.enter_room(session, uid, self.app.get('serverId'), rid, location,function(data){
 				next(null, data);
 			});
@@ -376,11 +405,9 @@ handler.delay_wait_time = function(msg, session, next) {
 handler.start_game = function(msg, session, next) {
 /*{{{*/
 	var self = this;
-	var player_id = msg.player_id;
 	var rid = msg.rid;
 
-	var uid = player_id + '*' + rid;
-	self.app.rpc.game.gameRemote.start_game(session, uid, self.app.get('serverId'), rid,false,function(){
+	self.app.rpc.game.gameRemote.start_game(session, rid, self.app.get('serverId'), rid,false,function(){
 		next(null, {code:200});
 	});
 /*}}}*/

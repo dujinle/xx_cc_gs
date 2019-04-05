@@ -16,6 +16,7 @@ var Player = function(opts){
 	this.fangka_num = opts.fangka_num;
 	this.head_img_url = opts.head_img_url;
     this.gender = opts.sex;          //性别
+    this.gold = opts.gold;          //金币
     this.createTime = opts.createTime;  //
 	this.round_num = opts.round_num;
 	this.all_score = opts.all_score;
