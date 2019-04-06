@@ -14,7 +14,7 @@ var cache	 = require('memory-cache');
 var SJGameLogicRemote = module.exports;
 
 /**
- * fa pai
+ * fa pai 玩家状态是5
  * */
 SJGameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 	////如果name不存在且flag为true，则创建channel
@@ -236,6 +236,7 @@ SJGameLogicRemote.bipai = function(rid,location1,location2,cb){
 	});
 };
 
+/*玩家状态 6*/
 SJGameLogicRemote.peipai = function(rid,location,marks,select,channel,username){
 	var users = channel.getMembers();
 	var paixing = new Array();
@@ -283,17 +284,17 @@ SJGameLogicRemote.peipai = function(rid,location,marks,select,channel,username){
 								flag:flag
 							};
 							channel.pushMessage(param);
-							gameDao.get_peipai_num(rid,function(err,peipai_num){
-								if(users.length <= peipai_num){
-									setTimeout(function(){
+							setTimeout(function(){
+								gameDao.get_peipai_num(rid,function(err,peipai_num){
+									if(users.length <= peipai_num){
 										var param = {
 											route:'onPeiPaiFinish',
 											location:location
 										};
 										channel.pushMessage(param);
-									},1000);
-								}
-							});
+									}
+								});
+							},1000);
 						});
 					})
 				});
@@ -609,8 +610,10 @@ SJGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,channel,
 				}else{
 					param['isqie'] = 0;
 				}
-				gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
-					channel.pushMessage(param);
+				gameDao.set_all_player_is_game(rid,7,function(err,res){
+					gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
+						channel.pushMessage(param);
+					});
 				});
 			});
 		});
@@ -628,7 +631,7 @@ SJGameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 
 SJGameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 	if(flag == false){
-		gameDao.set_all_player_is_game(rid,7,function(err,is_game){
+		gameDao.set_all_player_is_game(rid,8,function(err,is_game){
 			gameDao.set_qieguo_flag(rid,0,function(err,qieguo_flag){
 				var param = {
 					'route':'onQieguo',
@@ -639,7 +642,7 @@ SJGameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 		});
 	}else{
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
-			gameDao.set_all_player_is_game(rid,7,function(err,is_game){
+			gameDao.set_all_player_is_game(rid,8,function(err,is_game){
 				gameDao.set_qieguo_flag(rid,1,function(err,qieguo_flag){
 					//更新每一个玩家的金币数量
 					for(var i = 1;i < 5;i++){

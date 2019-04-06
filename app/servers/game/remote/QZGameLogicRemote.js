@@ -14,7 +14,7 @@ var cache	 = require('memory-cache');
 var QZGameLogicRemote = module.exports;
 
 /**
- * fa pai
+ * fa pai 玩家状态是5
  * */
 QZGameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 	////如果name不存在且flag为true，则创建channel
@@ -283,17 +283,17 @@ QZGameLogicRemote.peipai = function(rid,location,marks,select,channel,username){
 								flag:flag
 							};
 							channel.pushMessage(param);
-							gameDao.get_peipai_num(rid,function(err,peipai_num){
-								if(users.length <= peipai_num){
-									setTimeout(function(){
+							setTimeout(function(){
+								gameDao.get_peipai_num(rid,function(err,peipai_num){
+									if(users.length <= peipai_num){
 										var param = {
 											route:'onPeiPaiFinish',
 											location:location
 										};
 										channel.pushMessage(param);
-									},1000);
-								}
-							});
+									}
+								});
+							},1000);
 						});
 					})
 				});
@@ -387,13 +387,15 @@ QZGameLogicRemote.ready = function(rid,location,channel,username){
 							gameDao.set_all_player_is_game(rid,2,function(err,res){
 								gameDao.get_room_by_room_id(rid,function(err,room_info){
 									gameDao.sub_local_gold(rid,room_info.zhuang_location,100,function(err,res){
-										var param = {
-											route:'onGetZhuang',
-											zhuang_local:room_info.zhuang_location,
-											scores:[room_info.left_score_1,room_info.left_score_2,room_info.left_score_3,room_info.left_score_4]
-										};
-										param['scores'][room_info.zhuang_location - 1] = 100;
-										channel.pushMessage(param);
+										gameDao.set_is_gaming(rid,2,function(err,res){
+											var param = {
+												route:'onGetZhuang',
+												zhuang_local:room_info.zhuang_location,
+												scores:[room_info.left_score_1,room_info.left_score_2,room_info.left_score_3,room_info.left_score_4]
+											};
+											param['scores'][room_info.zhuang_location - 1] = 100;
+											channel.pushMessage(param);
+										});
 									});
 								});
 							});
@@ -409,7 +411,7 @@ QZGameLogicRemote.xiazhu = function(rid,location,chips,channel,channelService){
 	var users = channel.getMembers();
 	logger.info("--------users in fapai:"+users);
 	gameDao.set_xiazhu(rid,location,chips,function(err,res){
-		gameDao.set_player_is_game(rid,location,2,function(err,res){
+		gameDao.set_player_is_game(rid,location,3,function(err,res){
 			var param = {
 				route:'onXiazhu',
 				location:location,
@@ -418,7 +420,14 @@ QZGameLogicRemote.xiazhu = function(rid,location,chips,channel,channelService){
 			channel.pushMessage(param);
 			setTimeout(function(){
 				gameDao.get_every_score(rid,function(err,scores){
-					if(scores.length >= users.length - 1){
+					var xiazhu_num = 0;
+					for(var i = 0;i < scores.length;i++){
+						if(scores[i] == null){
+							continue;
+						}
+						xiazhu_num += 1;
+					}
+					if(xiazhu_num >= users.length - 1){
 						var num1 = utils.get_random_num(1,6);
 						var num2 = utils.get_random_num(1,6);
 						var local = (num1 + num2) % 4;
@@ -527,8 +536,10 @@ QZGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,channel,
 				}else{
 					param['isqie'] = 0;
 				}
-				gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
-					channel.pushMessage(param);
+				gameDao.set_all_player_is_game(rid,7,function(err,res){
+					gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
+						channel.pushMessage(param);
+					});
 				});
 			});
 		});
@@ -606,7 +617,7 @@ QZGameLogicRemote.end_game = function(rid,locals_score,channel,channelService){
 
 QZGameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 	if(flag == false){
-		gameDao.set_all_player_is_game(rid,7,function(err,is_game){
+		gameDao.set_all_player_is_game(rid,8,function(err,is_game){
 			gameDao.set_qieguo_flag(rid,0,function(err,qieguo_flag){
 				var param = {
 					'route':'onQieguo',
@@ -617,7 +628,7 @@ QZGameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 		});
 	}else{
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
-			gameDao.set_all_player_is_game(rid,7,function(err,is_game){
+			gameDao.set_all_player_is_game(rid,8,function(err,is_game){
 				gameDao.set_qieguo_flag(rid,1,function(err,qieguo_flag){
 					//更新每一个玩家的金币数量
 					for(var i = 1;i < 5;i++){
