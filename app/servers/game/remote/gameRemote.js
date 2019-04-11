@@ -17,28 +17,6 @@ var gameRemote = function(app) {
     this.app = app;
     this.channelService = app.get('channelService');
 };
-/*用户进入房间等待页面 则放入channel中等待信息push*/
-/*
-	channel_id 即 前面的rid 房间号id
-	sid 即 server id
- */
-gameRemote.prototype.enter_wait_room = function(uid, sid, channel_id, flag,cb) {
-/*{{{*/
-	console.log("gameRemote.enter_wait_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id + " flag:" + flag);
-	var channel = this.channelService.getChannel(channel_id, flag);
-	var channelService = this.channelService;
-	//如果name不存在且flag为true，则创建channel
-	var username = uid.split('*')[0];
-	var rid = uid.split('*')[1];
-	var self = this;
-
-	if( !! channel) {
-		//把玩家加入channel
-		channel.add(uid, sid);
-	}
-	cb();
-/*}}}*/
-};
 
 gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 /*{{{*/
@@ -103,9 +81,9 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 /*}}}*/
 };
 
-gameRemote.prototype.delay_wait_time = function(uid, sid, channel_id,flag,cb) {
-/*{{{*/
-	console.log("gameRemote.delay_wait_time......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
+gameRemote.prototype.repair_enter_room = function(uid, sid, channel_id, flag,cb) {
+	/*{{{*/
+	console.log("gameRemote.enter_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id + " location:" + location);
 	var channel = this.channelService.getChannel(channel_id, flag);
 	var channelService = this.channelService;
 	var username = uid.split('*')[0];
@@ -113,44 +91,28 @@ gameRemote.prototype.delay_wait_time = function(uid, sid, channel_id,flag,cb) {
 	var self = this;
 
 	if( !! channel) {
-		gameDao.add_wait_time(rid,function(err,res){
-			var param = {
-				route: 'onDelayWaitTime',
-				wait_time: res
-			};
-			channel.pushMessage(param);
-		});
-	}
-	cb();
-/*}}}*/
-};
-
-gameRemote.prototype.dissolve_room = function(uid, sid, channel_id,flag,cb) {
-/*{{{*/
-	console.log("gameRemote.dissolve_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
-	var channel = this.channelService.getChannel(channel_id, flag);
-	var channelService = this.channelService;
-	var username = uid.split('*')[0];
-	var rid = uid.split('*')[1];
-	var self = this;
-	var players = new Array();
-	if( !! channel) {
-		gameDao.dissolve_room(rid,function(err,res){
-			var param = {
-				route: 'onDissolveRoom',
-				rid:rid
-			};
-			channel.pushMessage(param);
-			var users_ext = channel.getMembers();
-			for(var i = 0; i < users_ext.length;i++){
-				var abc = channel.leave(users_ext[i], sid);
-				players.push(users_ext[i]);
-				console.log("remove from channel uid:" + uid + " abc:" + abc);
+		channel.add(uid, sid);
+		gameDao.get_room_by_room_id(rid,function(err,room_info){
+			var location = -1;
+			for(var i = 1;i <= 4;i++){
+				if(room_info['location' + i] == uid){
+					location = i;
+					break;
+				}
 			}
-			cb(players);
+			if(location != -1){
+				gameDao.add_player(rid,uid,location,function(err,res){
+					var param = {
+						route: 'onRepairEnterRoom',
+						location:location  //同时分配位置
+					};
+					channel.pushMessage(param);
+				});
+			}
 		});
+		cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num});
 	}else{
-		cb(players);
+		cb({'code':202,'msg':'没有找到房间信道！'});
 	}
 /*}}}*/
 };
@@ -300,141 +262,6 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 };
 
 /**
- * 向playerID推送房间所有用户基本信息,room infomation
- * @param channelService
- * @param channel
- * @param uid 新进入房间的用户playerID*room_num
- */
-
-gameRemote.prototype.get = function(uid,channel,channelService,cb) {
-    var users = [];
-    var usersInfo = [];
-    //var channel = this.channelService.getChannel(name, flag);
-    //var channelService = this.channelService;
-
-    var rid;
-
-    if( !! channel) {
-        users = channel.getMembers();
-        rid = users[0].split('*')[1];
-    }
-    for(var i = 0; i < users.length; i++) {
-        users[i] = users[i].split('*')[0];
-    }
-    async.parallel([
-            function(callback){
-                if(users[0]!=null){
-                    playerDao.getPlayerByPlayerId(users[0],function(err,res){
-                        gameDao.getPlayerLocal(rid,users[0],function(err,location){
-                            var player1 = {
-                                location:location,
-                                nickName:res.nickName,
-                                gold:    res.gold,
-                                vip:     res.vip,
-                                gender:  res.gender,
-                                level:   res.level
-                            };
-                            callback(null, player1);
-                        });
-                    });
-
-                }else{
-                    callback(null,'null');
-                }
-            },
-            function(callback){
-                if(users[1]!=null){
-                    playerDao.getPlayerByPlayerId(users[1],function(err,res){
-                        gameDao.getPlayerLocal(rid,users[1],function(err,location){
-                            var player2 = {
-                                location:location,
-                                nickName:res.nickName,
-                                gold:    res.gold,
-                                vip:     res.vip,
-                                gender:  res.gender,
-                                level:   res.level
-                            };
-                            callback(null, player2);
-                        });
-                    });
-
-                }else{
-                    callback(null,'null');
-                }
-            },
-            function(callback){
-                if(users[2]!=null){
-                    playerDao.getPlayerByPlayerId(users[2],function(err,res){
-                        gameDao.getPlayerLocal(rid,users[2],function(err,location){
-                            var player3 = {
-                                location:location,
-                                nickName:res.nickName,
-                                gold:    res.gold,
-                                vip:     res.vip,
-                                gender:  res.gender,
-                                level:   res.level
-                            };
-                            callback(null, player3);
-                        });
-                    });
-
-                }else{
-                    callback(null,'null');
-                }
-            },
-            function(callback){
-                if(users[3]!=null){
-                    playerDao.getPlayerByPlayerId(users[3],function(err,res){
-                        gameDao.getPlayerLocal(rid,users[3],function(err,location){
-                            var player4 = {
-                                location:location,
-                                nickName:res.nickName,
-                                gold:    res.gold,
-                                vip:     res.vip,
-                                gender:  res.gender,
-                                level:   res.level
-                            };
-                            callback(null, player4);
-                        });
-                    });
-
-                }else{
-                    callback(null,'null');
-                }
-            },
-            function(callback){
-                if(users[4]!=null){
-                    playerDao.getPlayerByPlayerId(users[4],function(err,res){
-                        gameDao.getPlayerLocal(rid,users[4],function(err,location){
-                            var player5 = {
-                                location:location,
-                                nickName:res.nickName,
-                                gold:    res.gold,
-                                vip:     res.vip,
-                                gender:  res.gender,
-                                level:   res.level
-                            };
-                            callback(null, player5);
-                        });
-                    });
-
-                }else{
-                    callback(null,'null');
-                }
-            }
-        ],
-        function(err, results){
-            //console.log("async parallel"+JSON.stringify(results[0]));
-            //console.log("async parallel"+results);
-            //channelService.pushMessageByUids('onInit',results,[{uid:uid,sid:sid}]);
-            //return results;
-            cb(results);
-        });
-
-    //return users;
-};
-
-/**
  * 用户离开房间，剔除用户
  * */
 gameRemote.prototype.kick = function(uid, sid, channel_id, cb) {
@@ -455,30 +282,40 @@ gameRemote.prototype.kick = function(uid, sid, channel_id, cb) {
 		var users = channel.getMembers();
 		console.log("------------users:"+users);
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
-			//游戏没有开始直接退出放间
-			if(is_gaming == 0){
-				
-			
-			}
-				
-		});
-		gameDao.get_player_local(rid,username,function(err,location){
-			var param = {
-				'route':'onKick',
-				'location':location
-			};
-			channel.pushMessage(param);
-			var t = setTimeout(function(){
-				var p = {
-					'route':'onQuit',
-					'location':location
-				};
-				channel.pushMessage(p);
-			},1000 * 60 * 3);
-			cache.put(uid,{
-				'type':'disConnect',
-				'time':(new Date()).getDate();
-				'func':t
+			gameDao.get_player_local(rid,username,function(err,location){
+				//游戏没有开始直接退出放间
+				if(room_info.is_gaming == 0){
+					gameDao.leave_room(rid,uid,function(err,res){
+						var param = {
+							route: 'onLeaveRoom',
+							location:location,
+							player_id:username,
+							data:res
+						};
+						channel.pushMessage(param);
+					});
+				}else if(room_info.is_gaming != -1){
+					var param = {
+						'route':'onKick',
+						'location':location
+					};
+					channel.pushMessage(param);
+					var t = setTimeout(function(){
+						//玩家超时之后解散房间但是保留房间信息 以便于确认信息
+						gameDao.dissolve_room(rid,function(err,res){
+							var p = {
+								'route':'onQuit',
+								'location':location
+							};
+							channel.pushMessage(p);
+						});
+					},1000 * 60 * 3);
+					cache.put(uid,{
+						'type':'disConnect',
+						'time':(new Date()).getDate(),
+						'func':t
+					});
+				}
 			});
 		});
 	}

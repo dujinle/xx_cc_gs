@@ -459,7 +459,7 @@ gameDao.get_room_by_room_id = function(rid,cb){
 
 gameDao.get_rooms_by_player_id = function(player_id,cb){
 /*{{{*/
-	var sql = 'select * from game_room where fangzhu_id = ?';
+	var sql = 'select * from game_room where fangzhu_id = ? and is_gaming = 0';
 	var args = [player_id];
 	logger.info('start select game_room by fangzhu_id:',player_id);
 	sqlTemp.query(sql,args,function(err,res){
@@ -561,33 +561,6 @@ gameDao.add_player = function(rid,uid,location,cb){
 	});
 /*}}}*/
 
-};
-
-gameDao.add_wait_time = function(rid,cb){
-/*{{{*/
-	var sql = 'select * from game_room where rid = ?';
-	var args = [rid];
-	sqlTemp.query(sql,args,function(err,res){
-		if(err!==null){
-			logger.error("db:add_wait_time step 1 error");
-			utils.invokeCallback(cb,err,null);
-		}else{
-			var wait_time = res[0].wait_time + 2;
-			var sql1 = 'update game_room set wait_time = ? where rid = ?';
-			var args1 = [wait_time,rid];
-			logger.info("args1:",args1);
-			sqlTemp.update(sql1,args1,function(err,res){
-				if(err!==null){
-					logger.error("db:add_wait_time step 2 error");
-					utils.invokeCallback(cb,err,null);
-				}else{
-					logger.info("db:add_wait_time step 1 success");
-					utils.invokeCallback(cb,err,wait_time);
-				}
-			});
-		}
-	});
-/*}}}*/
 };
 
 gameDao.dissolve_room = function(rid,cb){
@@ -1133,14 +1106,16 @@ gameDao.reset_game_lunzhuang = function(rid,cb){
 };
 
 gameDao.remove_room = function(rid,cb){
-	var sql = 'delete from game_room where rid=?';
-	var args =[rid];
+	var sql = 'update game_room set is_gaming = ? where rid = ?';
+	var args = [-1,rid];
+	logger.info("args:",args);
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
-			utils.invokeCallback(cb, err, null);
+			logger.error("db:remove_room error");
+			utils.invokeCallback(cb,err,null);
 		}else{
-			logger.info("gameDao delete from game_room success");
-			utils.invokeCallback(cb, null, res);
+			logger.info("db:remove_room success");
+			utils.invokeCallback(cb,err,rid);
 		}
 	});
 };
