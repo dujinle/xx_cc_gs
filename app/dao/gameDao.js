@@ -1112,8 +1112,8 @@ gameDao.reset_room = function(rid,cb){
 };
 
 gameDao.reset_game_lunzhuang = function(rid,cb){
-	var sql = 'update game_room set left_score_1 = ?,left_score_2 = ?,left_score_3 = ?,left_score_4 = ? where rid=?';
-	var args =[0,0,0,0,rid];
+	var sql = 'update game_room set round = ?,cur_turn = ?,left_score_1 = ?,left_score_2 = ?,left_score_3 = ?,left_score_4 = ? where rid=?';
+	var args =[0,0,0,0,0,0,rid];
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
 			utils.invokeCallback(cb, err, null);
@@ -1128,6 +1128,19 @@ gameDao.reset_game_lunzhuang = function(rid,cb){
 					utils.invokeCallback(cb, null, res[0]);
 				}
 			});
+		}
+	});
+};
+
+gameDao.remove_room = function(rid,cb){
+	var sql = 'delete from game_room where rid=?';
+	var args =[rid];
+	sqlTemp.update(sql,args,function(err,res){
+		if(err!==null){
+			utils.invokeCallback(cb, err, null);
+		}else{
+			logger.info("gameDao delete from game_room success");
+			utils.invokeCallback(cb, null, res);
 		}
 	});
 };

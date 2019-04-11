@@ -655,6 +655,12 @@ QZGameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 						'scores':temp_scole
 					};
 					channel.pushMessage(param);
+					//进行游戏的最后结算 并删除房间
+					gameDao.remove_room(rid,function(err,res){
+						playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
+							console.log('进行游戏的最后结算 并删除房间！');
+						});
+					});
 				});
 			});
 		});

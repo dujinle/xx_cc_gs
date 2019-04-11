@@ -808,7 +808,13 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 					};
 					//如果轮庄完成则游戏结束
 					if(room_info.wait_time >= room_info.player_num){
+						/*游戏结束房主获取一个金币*/
 						param['lun_zhuang'] = false;
+						gameDao.remove_room(rid,function(err,res){
+							playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
+								console.log('进行游戏的最后结算 并删除房间！');
+							});
+						});
 					}
 					else{
 						gameDao.reset_game_lunzhuang(rid,function(err,res){

@@ -439,22 +439,49 @@ gameRemote.prototype.get = function(uid,channel,channelService,cb) {
  * */
 gameRemote.prototype.kick = function(uid, sid, channel_id, cb) {
 	console.log('gameRemote.prototype.kick.........');
-    var self = this;
-    var channel = this.channelService.getChannel(channel_id, false);
-    var channelService = this.channelService;
-    // leave channel
-    var rid = uid.split('*')[1];
-    var username = uid.split('*')[0];
-    console.log("--------uid:"+uid);
-    console.log("--------sid:"+sid);
-    if( !! channel) {
-        var users_ext = channel.getMembers();
-        console.log("------------users_ext:"+users_ext);
-        var abc = channel.leave(uid, sid);
-        console.log("------------leave status:"+abc);
-        var users = channel.getMembers();
-        console.log("------------users:"+users);
-    }
-    cb();
+	var self = this;
+	var channel = this.channelService.getChannel(channel_id, false);
+	var channelService = this.channelService;
+	// leave channel
+	var rid = uid.split('*')[1];
+	var username = uid.split('*')[0];
+	console.log("--------uid:"+uid);
+	console.log("--------sid:"+sid);
+	if( !! channel) {
+		var users_ext = channel.getMembers();
+		console.log("------------users_ext:"+users_ext);
+		var abc = channel.leave(uid, sid);
+		console.log("------------leave status:"+abc);
+		var users = channel.getMembers();
+		console.log("------------users:"+users);
+		gameDao.get_room_by_room_id(rid,function(err,room_info){
+			//游戏没有开始直接退出放间
+			if(is_gaming == 0){
+				
+			
+			}
+				
+		});
+		gameDao.get_player_local(rid,username,function(err,location){
+			var param = {
+				'route':'onKick',
+				'location':location
+			};
+			channel.pushMessage(param);
+			var t = setTimeout(function(){
+				var p = {
+					'route':'onQuit',
+					'location':location
+				};
+				channel.pushMessage(p);
+			},1000 * 60 * 3);
+			cache.put(uid,{
+				'type':'disConnect',
+				'time':(new Date()).getDate();
+				'func':t
+			});
+		});
+	}
+	cb();
 };
 
