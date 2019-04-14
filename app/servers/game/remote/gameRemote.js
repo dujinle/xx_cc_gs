@@ -309,7 +309,7 @@ gameRemote.prototype.kick = function(uid, sid, channel_id, cb) {
 							};
 							channel.pushMessage(p);
 						});
-					},1000 * 60 * 3);
+					},1000 * 30 * 5);
 					cache.put(uid,{
 						'type':'disConnect',
 						'time':(new Date()).getDate(),
