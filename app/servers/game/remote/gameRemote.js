@@ -83,7 +83,7 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 
 gameRemote.prototype.repair_enter_room = function(uid, sid, channel_id, flag,cb) {
 	/*{{{*/
-	console.log("gameRemote.enter_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id + " location:" + location);
+	console.log("gameRemote.repair_enter_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
 	var channel = this.channelService.getChannel(channel_id, flag);
 	var channelService = this.channelService;
 	var username = uid.split('*')[0];
