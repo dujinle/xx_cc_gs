@@ -107,6 +107,13 @@ gameRemote.prototype.repair_enter_room = function(uid, sid, channel_id, flag,cb)
 						location:location  //同时分配位置
 					};
 					channel.pushMessage(param);
+					//更新一下玩家的网络状态
+					var cacheData = cache.get(uid);
+					if(cacheData != null){
+						cacheData.type = 'Connect';
+						clearTimeout(cacheData.t);
+						cache.put(uid,cacheData);
+					}
 				});
 			}
 		});
@@ -121,7 +128,6 @@ gameRemote.prototype.leave_room = function(uid, sid, channel_id,flag,location,cb
 /*{{{*/
 	console.log("gameRemote.leave_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
 	var channel = this.channelService.getChannel(channel_id, flag);
-	var channelService = this.channelService;
 	var username = uid.split('*')[0];
 	var rid = uid.split('*')[1];
 	var self = this;
@@ -264,11 +270,10 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 /**
  * 用户离开房间，剔除用户
  * */
-gameRemote.prototype.kick = function(uid, sid, channel_id, cb) {
+gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 	console.log('gameRemote.prototype.kick.........');
 	var self = this;
 	var channel = this.channelService.getChannel(channel_id, false);
-	var channelService = this.channelService;
 	// leave channel
 	var rid = uid.split('*')[1];
 	var username = uid.split('*')[0];
@@ -281,6 +286,11 @@ gameRemote.prototype.kick = function(uid, sid, channel_id, cb) {
 		console.log("------------leave status:"+abc);
 		var users = channel.getMembers();
 		console.log("------------users:"+users);
+		//再次确认是否已经断开网络，如果不是则 消除当前的断网信息
+		var cacheData = cache.get(uid);
+		if(cacheData != null && cacheData.type == 'Connect'){
+			return;
+		}
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
 			gameDao.get_player_local(rid,username,function(err,location){
 				//游戏没有开始直接退出放间

@@ -157,11 +157,6 @@ handler.repair_enter_room = function(msg, session, next) {
 			next(null, {code:500,msg:err.message});
 		}else if(res != null){
 			var uid = player_id + '*' + rid;
-			var cache_player = cache.get(uid);
-			if(cache_player != null){
-				clearTimeout(cache_player.t);
-				cache.del(uid);
-			}
 			session.bind(uid);
 			session.set('rid', rid);
 			session.push('rid', function(err) {
@@ -271,6 +266,10 @@ var onUserLeave = function(app, session) {
 	}
 	logger.info('loginout .......' + session.uid);
 	app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'),function(){
+		var cacheData = cache.get(uid);
+		if(cacheData != null && cacheData.type == 'Connect'){
+			return;
+		}
 		session.unbind(session.uid);
 	});
 	//app.rpc.chat.chatRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
