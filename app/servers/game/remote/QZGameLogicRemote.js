@@ -9,7 +9,6 @@ var paijiuDao  = require('../../../dao/paijiuDao');
 var utils   = require('../../../util/utils');
 var pomelo	= require('pomelo');
 var async	 = require('async');
-var cache	 = require('memory-cache');
 
 var QZGameLogicRemote = module.exports;
 
@@ -26,7 +25,8 @@ QZGameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 
 	gameDao.get_room_by_room_id(rid,function(err,roomInfo){
 		var all_chip = roomInfo['left_score_' + roomInfo.zhuang_location];
-		var paiArr = cache.get(rid);
+		var cacheData = cache.get(rid);
+		var paiArr = cacheData.paixing;
 		if(paiArr == null){
 			gameDao.set_cur_turn(rid,0,function(err,cur_turn){
 				var param = {
@@ -36,7 +36,8 @@ QZGameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 					all_chip:all_chip,
 					location:roomInfo.first_fapai  //返回第一个出牌的人
 				};
-				channel.pushMessage(param);
+				utils.pushMessage(rid,channel,param,cache);
+				//channel.pushMessage(param);
 			});
 		}else{
 			gameDao.set_cur_turn(rid,1,function(err,cur_turn){
@@ -47,7 +48,8 @@ QZGameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 					all_chip:all_chip,
 					location:roomInfo.first_fapai  //返回第一个出牌的人
 				};
-				channel.pushMessage(param);
+				utils.pushMessage(rid,channel,param,cache);
+				//channel.pushMessage(param);
 			});
 		}
 	});
@@ -57,7 +59,8 @@ QZGameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 		//P:牌数字2-14
 		//S:花色 1方块 2梅花 3红桃 4黑桃
 		//这里需要完成发牌逻辑
-		var paiArr = cache.get(rid);
+		var cacheData = cache.get(rid);
+		var paiArr = cacheData.paixing;
 		var round = 0;
 		var paixing = null;
 		if(paiArr == null){
@@ -107,7 +110,8 @@ QZGameLogicRemote.fapai = function(rid,num1,num2,channel,channelService){
 					paixing:paixing,
 					round:my_round
 				};
-				channel.pushMessage(param);
+				utils.pushMessage(rid,channel,param,cache);
+				//channel.pushMessage(param);
 			});
 		});
 	},3000);
@@ -145,8 +149,9 @@ QZGameLogicRemote.getCardArr = function(rid){
 			t++;
 		}
 	}
-
-	cache.put(rid,restPaiArr);//剩余的牌存到缓存当中，关键字是房间号
+	var cacheData = cache.get(rid);
+	cacheData.paixing = restPaiArr;
+	cache.put(rid,cacheData);//剩余的牌存到缓存当中，关键字是房间号
 
 	logger.info("paiArr:"+paiArr);
 
@@ -171,7 +176,9 @@ QZGameLogicRemote.get_card_arr_from_cache = function(rid){
 	paixing[2] = [paiArr[2],paiArr[6],paiArr[10],paiArr[14]];
 	paixing[3] = [paiArr[3],paiArr[7],paiArr[11],paiArr[15]];
 	logger.info("paixing:"+paixing);
-	cache.del(rid);
+	var cacheData = cache.get(rid);
+	cacheData.paixing = null;
+	cache.put(rid,cacheData);
 	return paixing;
 };
 
@@ -282,7 +289,8 @@ QZGameLogicRemote.peipai = function(rid,location,marks,select,channel,username){
 								select:select,
 								flag:flag
 							};
-							channel.pushMessage(param);
+							utils.pushMessage(rid,channel,param,cache);
+							//channel.pushMessage(param);
 							setTimeout(function(){
 								gameDao.get_peipai_num(rid,function(err,peipai_num){
 									if(users.length <= peipai_num){
@@ -290,7 +298,8 @@ QZGameLogicRemote.peipai = function(rid,location,marks,select,channel,username){
 											route:'onPeiPaiFinish',
 											location:location
 										};
-										channel.pushMessage(param);
+										utils.pushMessage(rid,channel,param,cache);
+										//channel.pushMessage(param);
 									}
 								});
 							},1000);
@@ -314,7 +323,8 @@ QZGameLogicRemote.qiang = function(rid,location,flag,channel,username){
 			location:location,
 			flag:flag
 		};
-		channel.pushMessage(param);
+		utils.pushMessage(rid,channel,param,cache);
+		//channel.pushMessage(param);
 		gameDao.get_qiang_num(rid,function(err,num){
 			if(num >= users.length){
 				gameDao.get_qiang_zhuang(rid,function(err,qiangzuangs){
@@ -335,7 +345,8 @@ QZGameLogicRemote.qiang = function(rid,location,flag,channel,username){
 											nums:[num1,num2],
 											zhuang_local:zhuang_id
 										};
-										channel.pushMessage(param);
+										//channel.pushMessage(param);
+										utils.pushMessage(rid,channel,param,cache);
 									});
 								});
 							},1000);
@@ -354,7 +365,8 @@ QZGameLogicRemote.qiang = function(rid,location,flag,channel,username){
 										nums:[num1,num2],
 										zhuang_local:zhuang_id
 									};
-									channel.pushMessage(param);
+									utils.pushMessage(rid,channel,param,cache);
+									//channel.pushMessage(param);
 								});
 							});
 						},1000);
@@ -365,13 +377,15 @@ QZGameLogicRemote.qiang = function(rid,location,flag,channel,username){
 	});
 };
 
-QZGameLogicRemote.ready = function(rid,location,channel,username){
+QZGameLogicRemote.ready = function(rid,location,cache,channel,username){
 	gameDao.set_player_is_game(rid,location,1,function(err,res){
 		var param = {
 			route:'onReady',
 			location:location
 		};
-		channel.pushMessage(param);
+		utils.pushMessage(rid,channel,param,cache);
+		//channel.pushMessage(param);
+
 		var ready_num = 0;
 		gameDao.get_all_is_game(rid,function(err,is_games){
 			if(is_games != null){
@@ -394,7 +408,8 @@ QZGameLogicRemote.ready = function(rid,location,channel,username){
 												scores:[room_info.left_score_1,room_info.left_score_2,room_info.left_score_3,room_info.left_score_4]
 											};
 											param['scores'][room_info.zhuang_location - 1] = 100;
-											channel.pushMessage(param);
+											utils.pushMessage(rid,channel,param,cache);
+											//channel.pushMessage(param);
 										});
 									});
 								});
@@ -417,7 +432,8 @@ QZGameLogicRemote.xiazhu = function(rid,location,chips,channel,channelService){
 				location:location,
 				chips:chips
 			};
-			channel.pushMessage(param);
+			utils.pushMessage(rid,channel,param,cache);
+			//channel.pushMessage(param);
 			setTimeout(function(){
 				gameDao.get_every_score(rid,function(err,scores){
 					var xiazhu_num = 0;
@@ -538,7 +554,8 @@ QZGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,channel,
 				}
 				gameDao.set_all_player_is_game(rid,7,function(err,res){
 					gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
-						channel.pushMessage(param);
+						utils.pushMessage(rid,channel,param,cache);
+						//channel.pushMessage(param);
 					});
 				});
 			});
@@ -553,7 +570,8 @@ QZGameLogicRemote.open = function(rid,location,channel,channelService){
 				route:'onOpen',
 				all_pai:all_pai
 			};
-			channel.pushMessage(param);
+			utils.pushMessage(rid,channel,param,cache);
+			//channel.pushMessage(param);
 		});
 		setTimeout(function(){
 			var locals_score = [0,0,0,0];
@@ -623,7 +641,8 @@ QZGameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 					'route':'onQieguo',
 					'flag':flag
 				};
-				channel.pushMessage(param);
+				utils.pushMessage(rid,channel,param,cache);
+				//channel.pushMessage(param);
 			});
 		});
 	}else{
@@ -654,10 +673,12 @@ QZGameLogicRemote.qieguo = function(rid,location,flag,channel,channelService){
 						'flag':flag,
 						'scores':temp_scole
 					};
-					channel.pushMessage(param);
+					utils.pushMessage(rid,channel,param,cache);
+					//channel.pushMessage(param);
 					//进行游戏的最后结算 并删除房间
 					gameDao.remove_room(rid,function(err,res){
 						playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
+							cache.del(rid);
 							console.log('进行游戏的最后结算 并删除房间！');
 						});
 					});
@@ -676,7 +697,8 @@ QZGameLogicRemote.get_local_player = function(rid,send_from,location,channel,cha
 				'send_from':send_from,
 				'location':location
 			};
-			channel.pushMessage(param);
+			utils.pushMessage(rid,channel,param,cache);
+			//channel.pushMessage(param);
 		});
 	});
 };
@@ -688,5 +710,6 @@ QZGameLogicRemote.send_gift = function(rid,send_from,send_to,type,channel,channe
 		'send_to':send_to,
 		"type":type
 	};
-	channel.pushMessage(param);
+	utils.pushMessage(rid,channel,param,cache);
+	//channel.pushMessage(param);
 };

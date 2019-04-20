@@ -7,7 +7,6 @@ var delayDao = require("../../../dao/delayDao");
 var SJGameLogicRemote = require("../remote/SJGameLogicRemote");
 var QZGameLogicRemote = require("../remote/QZGameLogicRemote");
 var LZGameLogicRemote = require("../remote/LZGameLogicRemote");
-var gameRemote = require("../remote/gameRemote");
 
 module.exports = function(app) {
 	return new Handler(app);
@@ -15,11 +14,11 @@ module.exports = function(app) {
 
 var Handler = function(app) {
 	this.app = app;
+	this.cache = app.get('cache');
 };
 
 var handler = Handler.prototype;
 
-//var gameRemote = require('../remote/gameRemote.js');
 
 handler.game_process = function(msg,session,next){
 	console.log("gameHandler gameProcess"+JSON.stringify(msg));
@@ -40,7 +39,7 @@ handler.game_process = function(msg,session,next){
 	if(process == 'ready'){
 		console.log('ready......');
 		if(game_type == 1){
-			QZGameLogicRemote.ready(rid,msg.location,channel,username);
+			QZGameLogicRemote.ready(rid,msg.location,this.cache,channel,username);
 		}else if(game_type == 3){
 			var lun_zhuang_flag = msg.lun_zhuang_flag;
 			LZGameLogicRemote.ready(rid,msg.location,lun_zhuang_flag,channel,username);

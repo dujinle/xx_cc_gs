@@ -114,3 +114,13 @@ utils.get_up8_flag = function(score){
 	}
 	return false;
 };
+
+utils.pushMessage = function(rid,channel,param,cache){
+	param['uuid'] = utils.get_uuid();
+	channel.pushMessage(param);
+	var cacheData = cache.get(rid);
+	console.log('cacheData update before',cacheData,cache);
+	cacheData.channelMsg.push(param);
+	cache.put(rid,cacheData);
+	console.log('cacheData update after',cacheData);
+};

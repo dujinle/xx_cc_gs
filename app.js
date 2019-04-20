@@ -1,11 +1,13 @@
 var fs = require('fs');
 var pomelo = require('pomelo');
 var routeUtil = require('./app/util/routeUtil');
+var cache     = require('memory-cache');
 /**
  * Init app for client.
  */
 var app = pomelo.createApp();
 app.set('name', 'xx_cc_gs-server');
+app.set('cache',cache);
 app.configure('production|development',function () {
 	var mysql = require('./config/mysql');
 	app.set('mysql',mysql[app.get('env')]);

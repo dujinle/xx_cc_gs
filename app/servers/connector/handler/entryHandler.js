@@ -247,7 +247,6 @@ handler.start_game = function(msg, session, next) {
 /*{{{*/
 	var self = this;
 	var rid = msg.rid;
-
 	self.app.rpc.game.gameRemote.start_game(session, rid, self.app.get('serverId'), rid,false,function(){
 		next(null, {code:200});
 	});
@@ -266,7 +265,7 @@ var onUserLeave = function(app, session) {
 	}
 	logger.info('loginout .......' + session.uid);
 	app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'),function(){
-		var cacheData = cache.get(uid);
+		var cacheData = cache.get(session.uid);
 		if(cacheData != null && cacheData.type == 'Connect'){
 			return;
 		}
