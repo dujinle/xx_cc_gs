@@ -6,7 +6,6 @@ var playerDao = require('../../../dao/playerDao');
 var pomelo    = require('pomelo');
 var gameLogicRemote = require('./gameLogicRemote');
 var async     = require('async');
-var cache     = require('memory-cache');
 
 
 module.exports = function(app) {
@@ -15,6 +14,7 @@ module.exports = function(app) {
 
 var gameRemote = function(app) {
     this.app = app;
+	this.cache = app.get('cache');
     this.channelService = app.get('channelService');
 };
 
@@ -108,16 +108,16 @@ gameRemote.prototype.repair_enter_room = function(uid, sid, channel_id, flag,cb)
 					};
 					channel.pushMessage(param);
 					//更新一下玩家的网络状态
-					var cacheData = cache.get(uid);
+					var cacheData = self.cache.get(uid);
 					if(cacheData != null){
 						cacheData.type = 'Connect';
 						clearTimeout(cacheData.t);
-						cache.put(uid,cacheData);
+						self.cache.put(uid,cacheData);
 					}
 				});
 			}
 		});
-		cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num});
+		cb({'code':200,'msg':'进入游戏房间！'});
 	}else{
 		cb({'code':202,'msg':'没有找到房间信道！'});
 	}
@@ -259,6 +259,12 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 						players: results
 					};
 					channel.pushMessage(param);
+					var cacheData = {
+						'channelMsg':[],
+						'paixing':null,
+						'connect':null
+					};
+					self.cache.put(rid,cacheData);
 				});
 			});
 		});
@@ -287,7 +293,7 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 		var users = channel.getMembers();
 		console.log("------------users:"+users);
 		//再次确认是否已经断开网络，如果不是则 消除当前的断网信息
-		var cacheData = cache.get(uid);
+		var cacheData = self.cache.get(uid);
 		if(cacheData != null && cacheData.type == 'Connect'){
 			return;
 		}
@@ -320,7 +326,7 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 							channel.pushMessage(p);
 						});
 					},1000 * 30 * 5);
-					cache.put(uid,{
+					self.cache.put(uid,{
 						'type':'disConnect',
 						'time':(new Date()).getDate(),
 						'func':t
