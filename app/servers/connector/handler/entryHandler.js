@@ -6,7 +6,6 @@
 var Code	  = require('../../../consts/code');
 var playerDao = require('../../../dao/playerDao');
 var gameDao   = require('../../../dao/gameDao');
-var cache     = require('memory-cache');
 var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 
 var async	 = require('async');
@@ -17,6 +16,7 @@ module.exports = function (app) {
 };
 
 var Handler = function (app) {
+	this.cache = app.get('cache');
 	this.app = app;
 };
 
@@ -152,10 +152,15 @@ handler.repair_enter_room = function(msg, session, next) {
 	logger.info("handler.get room info:" + JSON.stringify(msg));
 	var rid = msg.rid;
 	var player_id = msg.player_id;
+	var uuid = msg.uuid;
 	gameDao.get_room_by_room_id(rid,function(err,res){
 		if(err){
 			next(null, {code:500,msg:err.message});
 		}else if(res != null){
+			if(res.is_gaming == -1){
+				next(null, {code:202,msg:'本局游戏已经结束，房间已经解散，无法进入房间！'});
+				return;
+			}
 			var uid = player_id + '*' + rid;
 			session.bind(uid);
 			session.set('rid', rid);
@@ -165,8 +170,8 @@ handler.repair_enter_room = function(msg, session, next) {
 				}
 			});
 			session.on('closed', onUserLeave.bind(null, self.app));
-			
-			self.app.rpc.game.gameRemote.repair_enter_room(session, uid, self.app.get('serverId'), rid, false,function(){
+
+			self.app.rpc.game.gameRemote.repair_enter_room(session, uid, uuid,self.app.get('serverId'), rid, false,function(){
 				next(null, {code:Code.OK,msg:'进入房间成功'});
 			});
 		}else{
@@ -265,10 +270,6 @@ var onUserLeave = function(app, session) {
 	}
 	logger.info('loginout .......' + session.uid);
 	app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'),function(){
-		var cacheData = cache.get(session.uid);
-		if(cacheData != null && cacheData.type == 'Connect'){
-			return;
-		}
 		session.unbind(session.uid);
 	});
 	//app.rpc.chat.chatRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);

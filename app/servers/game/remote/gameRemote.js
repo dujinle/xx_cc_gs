@@ -80,8 +80,8 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 	}
 /*}}}*/
 };
-
-gameRemote.prototype.repair_enter_room = function(uid, sid, channel_id, flag,cb) {
+//uuid 发送的请求id
+gameRemote.prototype.repair_enter_room = function(uid,uuid, sid, channel_id, flag,cb) {
 	/*{{{*/
 	console.log("gameRemote.repair_enter_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
 	var channel = this.channelService.getChannel(channel_id, flag);
@@ -108,11 +108,25 @@ gameRemote.prototype.repair_enter_room = function(uid, sid, channel_id, flag,cb)
 					};
 					channel.pushMessage(param);
 					//更新一下玩家的网络状态
-					var cacheData = self.cache.get(uid);
-					if(cacheData != null){
-						cacheData.type = 'Connect';
-						clearTimeout(cacheData.t);
-						self.cache.put(uid,cacheData);
+					var cacheData = self.cache.get(rid);
+					console.log('onRepairEnterRoom',cacheData);
+					var send_flag = false;
+					for(var i = 0;i < cacheData.channelMsg.length;i++){
+						var msg = cacheData.channelMsg[i];
+						if(uuid == null){
+							send_flag = true;
+						}else if(msg.uuid == uuid){
+							send_flag = true;
+							continue;
+						}
+						if(send_flag == true){
+							channelService.pushMessageByUids(msg.route,msg,[{'uid':uid,'sid':sid}]);
+						}
+					}
+					if(cacheData.connect != null){
+						cacheData.connect.type = 'Connect';
+						clearTimeout(cacheData.connect.t);
+						self.cache.put(rid,cacheData);
 					}
 				});
 			}
@@ -123,7 +137,7 @@ gameRemote.prototype.repair_enter_room = function(uid, sid, channel_id, flag,cb)
 	}
 /*}}}*/
 };
-
+/*退出放间 只能是在游戏没有开始前或者游戏结束后 可以执行*/
 gameRemote.prototype.leave_room = function(uid, sid, channel_id,flag,location,cb) {
 /*{{{*/
 	console.log("gameRemote.leave_room......uid:" + uid + " sid:" + sid + " channel_id:" + channel_id);
