@@ -47,10 +47,6 @@ handler.game_process = function(msg,session,next){
 			SJGameLogicRemote.ready(rid,msg.location,this.cache,channel,username);
 		}
 		next(null,{msg:"receive process successfully"});
-	}else if(process == 'qiang'){
-		console.log('player qiang zhuang');
-		SJGameLogicRemote.qiang(rid,msg.location,msg.flag,channel,username);
-		next(null,{msg:"receive process successfully"});
 	}else if(process == 'xiazhu'){
 		console.log('player xiazhu');
 		if(game_type == 1){

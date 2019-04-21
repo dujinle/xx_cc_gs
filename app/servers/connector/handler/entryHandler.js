@@ -269,8 +269,13 @@ var onUserLeave = function(app, session) {
 		return;
 	}
 	logger.info('loginout .......' + session.uid);
-	app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'),function(){
+	app.rpc.game.gameRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'),function(players){
 		session.unbind(session.uid);
+		if(players != null){
+			for(var i = 0; i < players.length;i++){
+				session.unbind(players[i]);
+			}
+		}
 	});
 	//app.rpc.chat.chatRemote.kick(session, session.uid, app.get('serverId'), session.get('rid'), null);
 };

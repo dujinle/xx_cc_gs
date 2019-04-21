@@ -323,6 +323,7 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 							data:res
 						};
 						channel.pushMessage(param);
+						cb(null);
 					});
 				}else if(room_info.is_gaming != -1){
 					var param = {
@@ -338,6 +339,8 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 								'location':location
 							};
 							channel.pushMessage(p);
+							self.cache.del(rid);
+							cb(users);
 						});
 					},1000 * 30 * 5);
 					cacheData.connect = {
@@ -349,7 +352,8 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 				}
 			});
 		});
+	}else{
+		cb(null);
 	}
-	cb();
 };
 
