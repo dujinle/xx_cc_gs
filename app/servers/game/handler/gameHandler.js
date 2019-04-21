@@ -42,9 +42,9 @@ handler.game_process = function(msg,session,next){
 			QZGameLogicRemote.ready(rid,msg.location,this.cache,channel,username);
 		}else if(game_type == 3){
 			var lun_zhuang_flag = msg.lun_zhuang_flag;
-			LZGameLogicRemote.ready(rid,msg.location,lun_zhuang_flag,channel,username);
+			LZGameLogicRemote.ready(rid,msg.location,lun_zhuang_flag,this.cache,channel,username);
 		}else{
-			SJGameLogicRemote.ready(rid,msg.location,channel,username);
+			SJGameLogicRemote.ready(rid,msg.location,this.cache,channel,username);
 		}
 		next(null,{msg:"receive process successfully"});
 	}else if(process == 'qiang'){
@@ -56,9 +56,9 @@ handler.game_process = function(msg,session,next){
 		if(game_type == 1){
 			QZGameLogicRemote.xiazhu(rid,msg.location,msg.chips,this.cache,channel,channelService);
 		}else if(game_type == 3){
-			LZGameLogicRemote.xiazhu(rid,msg.location,msg.chips,channel,channelService);
+			LZGameLogicRemote.xiazhu(rid,msg.location,msg.chips,this.cache,channel,channelService);
 		}else{
-			SJGameLogicRemote.xiazhu(rid,msg.location,msg.chips,channel,channelService);
+			SJGameLogicRemote.xiazhu(rid,msg.location,msg.chips,this.cache,channel,channelService);
 		}
 		next(null,{msg:"receive process successfully"});
 	}else if(process == 'peipai'){
@@ -66,9 +66,9 @@ handler.game_process = function(msg,session,next){
 		if(game_type == 1){
 			QZGameLogicRemote.peipai(rid,msg.location,msg.peipai,msg.select,this.cache,channel,channelService);
 		}else if(game_type == 3){
-			LZGameLogicRemote.peipai(rid,msg.location,msg.peipai,msg.select,channel,channelService);
+			LZGameLogicRemote.peipai(rid,msg.location,msg.peipai,msg.select,this.cache,channel,channelService);
 		}else{
-			SJGameLogicRemote.peipai(rid,msg.location,msg.peipai,msg.select,channel,channelService);
+			SJGameLogicRemote.peipai(rid,msg.location,msg.peipai,msg.select,this.cache,channel,channelService);
 		}
 		next(null,{msg:"receive process successfully"});
 	}else if(process == 'open'){
@@ -76,9 +76,9 @@ handler.game_process = function(msg,session,next){
 		if(game_type == 1){
 			QZGameLogicRemote.open(rid,msg.location,this.cache,channel,channelService);
 		}else if(game_type == 3){
-			LZGameLogicRemote.open(rid,msg.location,channel,channelService);
+			LZGameLogicRemote.open(rid,msg.location,this.cache,channel,channelService);
 		}else{
-			SJGameLogicRemote.open(rid,msg.location,channel,channelService);
+			SJGameLogicRemote.open(rid,msg.location,this.cache,channel,channelService);
 		}
 		next(null,{msg:"receive process successfully"});
 	}else if(process == 'qieguo'){
@@ -86,9 +86,9 @@ handler.game_process = function(msg,session,next){
 		if(game_type == 1){
 			QZGameLogicRemote.qieguo(rid,msg.location,msg.flag,this.cache,channel,channelService);
 		}else if(game_type == 3){
-			LZGameLogicRemote.qieguo(rid,msg.location,msg.flag,channel,channelService);
+			LZGameLogicRemote.qieguo(rid,msg.location,msg.flag,this.cache,channel,channelService);
 		}else{
-			SJGameLogicRemote.qieguo(rid,msg.location,msg.flag,channel,channelService);
+			SJGameLogicRemote.qieguo(rid,msg.location,msg.flag,this.cache,channel,channelService);
 		}
 		next(null,{msg:"receive process successfully"});
 	}else if(process == 'get_user_info'){
@@ -96,9 +96,9 @@ handler.game_process = function(msg,session,next){
 		if(game_type == 1){
 			QZGameLogicRemote.get_local_player(rid,msg.send_from,msg.location,this.cache,channel,channelService);
 		}else if(game_type == 3){
-			LZGameLogicRemote.get_local_player(rid,msg.send_from,msg.location,channel,channelService);
+			LZGameLogicRemote.get_local_player(rid,msg.send_from,msg.location,this.cache,channel,channelService);
 		}else{
-			SJGameLogicRemote.get_local_player(rid,msg.send_from,msg.location,channel,channelService);
+			SJGameLogicRemote.get_local_player(rid,msg.send_from,msg.location,this.cache,channel,channelService);
 		}
 		next(null,{msg:"receive process successfully"});
 	}else if(process == 'send_gift'){
@@ -106,9 +106,9 @@ handler.game_process = function(msg,session,next){
 		if(game_type == 1){
 			QZGameLogicRemote.send_gift(rid,msg.send_from,msg.send_to,msg.type,this.cache,channel,channelService);
 		}else if(game_type == 3){
-			LZGameLogicRemote.send_gift(rid,msg.send_from,msg.send_to,msg.type,channel,channelService);
+			LZGameLogicRemote.send_gift(rid,msg.send_from,msg.send_to,msg.type,this.cache,channel,channelService);
 		}else{
-			SJGameLogicRemote.send_gift(rid,msg.send_from,msg.send_to,msg.type,channel,channelService);
+			SJGameLogicRemote.send_gift(rid,msg.send_from,msg.send_to,msg.type,this.cache,channel,channelService);
 		}
 		next(null,{msg:"receive process successfully"});
 	}else{

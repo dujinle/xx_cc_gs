@@ -125,7 +125,7 @@ gameRemote.prototype.repair_enter_room = function(uid,uuid, sid, channel_id, fla
 					}
 					if(cacheData.connect != null){
 						cacheData.connect.type = 'Connect';
-						clearTimeout(cacheData.connect.t);
+						clearTimeout(cacheData.connect.func);
 						self.cache.put(rid,cacheData);
 					}
 				});
@@ -307,8 +307,8 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 		var users = channel.getMembers();
 		console.log("------------users:"+users);
 		//再次确认是否已经断开网络，如果不是则 消除当前的断网信息
-		var cacheData = self.cache.get(uid);
-		if(cacheData != null && cacheData.type == 'Connect'){
+		var cacheData = self.cache.get(rid);
+		if(cacheData != null && cacheData.connect && cacheData.connect.type == 'Connect'){
 			return;
 		}
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
@@ -340,11 +340,12 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 							channel.pushMessage(p);
 						});
 					},1000 * 30 * 5);
-					self.cache.put(uid,{
+					cacheData.connect = {
 						'type':'disConnect',
 						'time':(new Date()).getDate(),
 						'func':t
-					});
+					}
+					self.cache.put(rid,cacheData);
 				}
 			});
 		});

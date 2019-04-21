@@ -12,6 +12,17 @@ var async	 = require('async');
 
 var QZGameLogicRemote = module.exports;
 
+/*玩家状态 更新
+	空闲 	0，
+	准备 	1，
+	确定庄 	2，
+	下注	3，
+	发牌	4，
+	配牌	5，
+	开牌	6，
+	结束	7,
+	切锅	8,
+*/
 /**
  * fa pai 玩家状态是5
  * */
@@ -394,6 +405,68 @@ QZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 	});
 };
 
+QZGameLogicRemote.open = function(rid,location,cache,channel,channelService){
+	gameDao.get_all_pai(rid,function(err,all_pai){
+		gameDao.set_all_player_is_game(rid,6,function(err,is_game){
+			var param = {
+				route:'onOpen',
+				all_pai:all_pai
+			};
+			utils.pushMessage(rid,channel,param,cache);
+			//channel.pushMessage(param);
+		});
+		setTimeout(function(){
+			var locals_score = [0,0,0,0];
+			gameDao.get_room_by_room_id(rid,function(err,room_info){
+				var zhuang_local = room_info.zhuang_location;
+				var my_location = room_info.zhuang_location;
+				var calc_score = function(callback){
+					my_location = my_location + 1;
+					if(my_location > 4){
+						my_location = 1;
+					}
+					logger.info("zhuang_local:" + zhuang_local + " my_location:" + my_location);
+					if(room_info["location" + my_location] != null && room_info["location" + my_location] != 'null'){
+						QZGameLogicRemote.bipai(rid,zhuang_local,my_location,function(location1,location2,is_win,flag){
+							logger.info("bipai:" + location1 + " location2:" + location2 + " is_win:" + is_win + " flag:" + flag);
+							if(is_win == 'win'){
+								var score = JSON.parse(room_info["score_" + my_location]);
+								if(flag == true){
+									locals_score[my_location - 1] = locals_score[my_location - 1] - parseInt(score[0]) - parseInt(score[1]);
+									locals_score[zhuang_local - 1] = parseInt(score[0]) + parseInt(score[1]) + locals_score[zhuang_local - 1];
+								}else{
+									locals_score[my_location - 1] = locals_score[my_location - 1] - parseInt(score[0]);
+									locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] + parseInt(score[0]);
+								}
+							}else if(is_win == 'lose'){
+								var score = JSON.parse(room_info["score_" + my_location]);
+								if(flag == true){
+									locals_score[my_location - 1] = locals_score[my_location - 1] + parseInt(score[0]) + parseInt(score[1]);
+									locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]) - parseInt(score[1]);
+								}else{
+									locals_score[my_location - 1] = locals_score[my_location - 1] + parseInt(score[0]);
+									locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]);
+								}
+							}
+							callback(null);
+						});
+					}else{
+						callback(null);
+					}
+				};
+				//依次执行函数，没有上下函数依赖
+				async.waterfall([
+					calc_score,
+					calc_score,
+					calc_score
+				],function(err){
+					QZGameLogicRemote.end_game(rid,locals_score,cache,channel,channelService);
+				});
+			});
+		},1000);
+	});
+};
+
 QZGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,cache,channel,channelService){
 	var zhuang_score = room_info['left_score_' + room_info.zhuang_location];
 	var init_score = zhuang_score;
@@ -494,68 +567,6 @@ QZGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,cache,ch
 				});
 			});
 		});
-	});
-};
-
-QZGameLogicRemote.open = function(rid,location,cache,channel,channelService){
-	gameDao.get_all_pai(rid,function(err,all_pai){
-		gameDao.set_all_player_is_game(rid,6,function(err,is_game){
-			var param = {
-				route:'onOpen',
-				all_pai:all_pai
-			};
-			utils.pushMessage(rid,channel,param,cache);
-			//channel.pushMessage(param);
-		});
-		setTimeout(function(){
-			var locals_score = [0,0,0,0];
-			gameDao.get_room_by_room_id(rid,function(err,room_info){
-				var zhuang_local = room_info.zhuang_location;
-				var my_location = room_info.zhuang_location;
-				var calc_score = function(callback){
-					my_location = my_location + 1;
-					if(my_location > 4){
-						my_location = 1;
-					}
-					logger.info("zhuang_local:" + zhuang_local + " my_location:" + my_location);
-					if(room_info["location" + my_location] != null && room_info["location" + my_location] != 'null'){
-						QZGameLogicRemote.bipai(rid,zhuang_local,my_location,function(location1,location2,is_win,flag){
-							logger.info("bipai:" + location1 + " location2:" + location2 + " is_win:" + is_win + " flag:" + flag);
-							if(is_win == 'win'){
-								var score = JSON.parse(room_info["score_" + my_location]);
-								if(flag == true){
-									locals_score[my_location - 1] = locals_score[my_location - 1] - parseInt(score[0]) - parseInt(score[1]);
-									locals_score[zhuang_local - 1] = parseInt(score[0]) + parseInt(score[1]) + locals_score[zhuang_local - 1];
-								}else{
-									locals_score[my_location - 1] = locals_score[my_location - 1] - parseInt(score[0]);
-									locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] + parseInt(score[0]);
-								}
-							}else if(is_win == 'lose'){
-								var score = JSON.parse(room_info["score_" + my_location]);
-								if(flag == true){
-									locals_score[my_location - 1] = locals_score[my_location - 1] + parseInt(score[0]) + parseInt(score[1]);
-									locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]) - parseInt(score[1]);
-								}else{
-									locals_score[my_location - 1] = locals_score[my_location - 1] + parseInt(score[0]);
-									locals_score[zhuang_local - 1] = locals_score[zhuang_local - 1] - parseInt(score[0]);
-								}
-							}
-							callback(null);
-						});
-					}else{
-						callback(null);
-					}
-				};
-				//依次执行函数，没有上下函数依赖
-				async.waterfall([
-					calc_score,
-					calc_score,
-					calc_score
-				],function(err){
-					QZGameLogicRemote.end_game(rid,locals_score,cache,channel,channelService);
-				});
-			});
-		},1000);
 	});
 };
 
