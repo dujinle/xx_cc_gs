@@ -15,7 +15,7 @@ var handler = Handler.prototype;
 
 handler.storeProcess = function (msg, session, next) {
 	var process = msg.process;
-	var param = msg.data;
+	var param = msg;
 	if(process == "creatOrder"){
 		storeDao.creat_order(param.player_id,param.fangka_num,param.zongjia,param.danjia,function(err,data){
 			if (err) {

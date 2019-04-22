@@ -19,7 +19,7 @@ var handler = Handler.prototype;
 handler.userInfoProcess = function(msg,session,next){
 	var process = msg.process;
 	if(process == "get_player"){
-		var player_id  = msg.data.player_id;
+		var player_id  = msg.player_id;
 		console.log('handler.get_player ', player_id);
 		if (!!player_id) {
 			console.log('start go into playerDao.updatePlayerInfo.......');

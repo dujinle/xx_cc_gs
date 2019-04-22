@@ -22,7 +22,7 @@ handler.gonghuiProcess = function (msg, session, next) {
 	var process = msg.process;
 
 	if(process == "getGonghui"){
-		var gonghui_id  = msg.data.gonghui_id;
+		var gonghui_id  = msg.gonghui_id;
 		logger.info('handler.get_gonghui_by_id..............');
 		gonghuiDao.get_gonghui_by_id(gonghui_id, function (err, res) {
 			if (err) {
@@ -33,7 +33,7 @@ handler.gonghuiProcess = function (msg, session, next) {
 			}
 		});
 	}else if(process == "getGonghuiGongHuiId"){
-		var gonghui_id  = msg.data.gonghui_id;
+		var gonghui_id  = msg.gonghui_id;
 		logger.info('handler.get_gonghui_by_gonghui_id..............');
 		gonghuiDao.get_gonghui_by_gonghui_id(gonghui_id, function (err, res) {
 			if (err) {
@@ -44,7 +44,7 @@ handler.gonghuiProcess = function (msg, session, next) {
 			}
 		});
 	}else if(process == "getGonghuiPlayerId"){
-		var player_id  = msg.data.player_id;
+		var player_id  = msg.player_id;
 		logger.info('handler.get_gonghui_by_player_id..............');
 		gonghuiDao.get_gonghui_by_player_id(player_id, function (err, res) {
 			if (err) {
@@ -55,7 +55,7 @@ handler.gonghuiProcess = function (msg, session, next) {
 			}
 		});
 	}else if(process == "getGonghuiAns"){
-		var player_id  = msg.data.player_id;
+		var player_id  = msg.player_id;
 		logger.info('handler.get_gonghui_by_id..............');
 		gonghuiDao.get_gonghui_ans_by_player_id(player_id, function (err, res) {
 			if (err) {
@@ -74,10 +74,10 @@ handler.gonghuiProcess = function (msg, session, next) {
 		});
 	}else if(process == "xuka"){
 		logger.info('handler.xuka..................');
-		var gonghui_id = msg.data.gonghui_id;
-		var player_id = msg.data.player_name;
-		var player_name = msg.data.player_name;
-		var phone_num = msg.data.telphone;
+		var gonghui_id = msg.gonghui_id;
+		var player_id = msg.player_name;
+		var player_name = msg.player_name;
+		var phone_num = msg.telphone;
 		gonghuiDao.xuka(gonghui_id,player_id,player_name,phone_num, function (err, res) {
 			if (err) {
 				logger.info(err.message + '===========err============');
@@ -88,9 +88,9 @@ handler.gonghuiProcess = function (msg, session, next) {
 		});
 	}else if(process == "update_gonghui"){
 		logger.info('handler.update_gonghui..................');
-		var gonghui_id = msg.data.id;
-		var danjia = msg.data.danjia;
-		var xuanyan = msg.data.xuanyan;
+		var gonghui_id = msg.id;
+		var danjia = msg.danjia;
+		var xuanyan = msg.xuanyan;
 		gonghuiDao.update_gonghui(gonghui_id,danjia,xuanyan,function (err, res) {
 			if (err) {
 				logger.info(err.message + '===========err============');
@@ -101,8 +101,8 @@ handler.gonghuiProcess = function (msg, session, next) {
 		});
 	}else if(process == "join_gonghui"){
 		logger.info('handler.join_gonghui..................');
-		var gonghui_id = msg.data.gonghui_id;
-		var player_id = msg.data.player_id;
+		var gonghui_id = msg.gonghui_id;
+		var player_id = msg.player_id;
 
 		gonghuiDao.get_gonghui_by_gonghui_id(gonghui_id, function (err, res) {
 			if (err) {
@@ -130,11 +130,11 @@ handler.gonghuiProcess = function (msg, session, next) {
 		});
 	}else if(process == "shenqing"){
 		logger.info('handler.add_gonghui..................');
-		var player_id = msg.data.player_id;
-		var player_name = msg.data.player_name;
-		var gonghui_name = msg.data.gonghui_name;
-		var telphone = msg.data.telphone;
-		var level = msg.data.level;
+		var player_id = msg.player_id;
+		var player_name = msg.player_name;
+		var gonghui_name = msg.gonghui_name;
+		var telphone = msg.telphone;
+		var level = msg.level;
 		gonghuiDao.add_gonghui_ans(player_id,player_name,gonghui_name,telphone,level, function (err, res) {
 			if (err) {
 				logger.info(err.message + '===========err============');

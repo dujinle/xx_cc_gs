@@ -21,9 +21,9 @@ handler.gameInfoProcess = function (msg, session, next) {
 	var process = msg.process;
 
 	if(process == "getBuyFangkaList"){
-		var index = msg.data.index;
-		var length = msg.data.length;
-		var player_id = msg.data.player_id;
+		var index = msg.index;
+		var length = msg.length;
+		var player_id = msg.player_id;
 		logger.info('handler.get_buy_fangka_list..............');
 		gameInfoDao.get_buy_fangka_list(player_id,index,length, function (err, res) {
 			if (err) {
@@ -34,9 +34,9 @@ handler.gameInfoProcess = function (msg, session, next) {
 			}
 		});
 	}else if(process == "getGameHistoryList"){
-		var index = msg.data.index;
-		var length = msg.data.length;
-		var player_id = msg.data.player_id;
+		var index = msg.index;
+		var length = msg.length;
+		var player_id = msg.player_id;
 		logger.info('handler.get_game_history_list..............');
 		gameInfoDao.get_game_history_list(player_id,index,length, function (err, res) {
 			if (err) {
@@ -48,7 +48,7 @@ handler.gameInfoProcess = function (msg, session, next) {
 			}
 		});
 	}else if(process == "update_game"){
-		var data = msg.data;
+		var data = msg;
 		gameInfoDao.update_game(data,function(err,res){
 			if (err) {
 				logger.info(err.message + '===========err============');

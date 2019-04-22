@@ -21,7 +21,7 @@ var handler = Handler.prototype;
 handler.gongGaoProcess = function(msg,session,next){
 	var process = msg.process;
 	if(process == "get_gonggao"){
-		var type = msg.data.type;
+		var type = msg.type;
 		gBroadcastDao.getRowByType(type,function(err, res){
 			if(err){
 				logger.info(err.message + '===========err============');
