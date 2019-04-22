@@ -127,6 +127,13 @@ gameRemote.prototype.repair_enter_room = function(uid,uuid, sid, channel_id, fla
 						cacheData.connect.type = 'Connect';
 						clearTimeout(cacheData.connect.func);
 						self.cache.put(rid,cacheData);
+					}else{
+						cacheData.connect = {
+							'type':'Connect',
+							'time':(new Date()).getDate(),
+							'func':null
+						}
+						self.cache.put(rid,cacheData);
 					}
 				});
 			}
@@ -323,7 +330,6 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 							data:res
 						};
 						channel.pushMessage(param);
-						cb(null);
 					});
 				}else if(room_info.is_gaming != -1){
 					var param = {
@@ -352,8 +358,7 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 				}
 			});
 		});
-	}else{
-		cb(null);
 	}
+	cb(null);
 };
 
