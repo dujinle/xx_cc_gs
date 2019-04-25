@@ -2,7 +2,7 @@
  * Created by WTF Wei on 2016/3/25.
  * Function :
  */
-
+var Code	  = require('../../../consts/code');
 var gameInfoDao = require('../../../dao/gameInfoDao');
 var playerDao = require('../../../dao/playerDao');
 var logger = require('pomelo-logger').getLogger('pomelo', __filename);
@@ -52,9 +52,9 @@ handler.gameInfoProcess = function (msg, session, next) {
 		gameInfoDao.update_game(data,function(err,res){
 			if (err) {
 				logger.info(err.message + '===========err============');
-				next(null, {code: 500,msg: 'update error'});
+				next(null, {code: Code.SQL_ERROR,msg: err.message});
 			}else{
-				next(null, {code: 200,msg: res});
+				next(null, {code: Code.OK,msg: res});
 			}
 		});
 	}

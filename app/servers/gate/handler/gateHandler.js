@@ -25,7 +25,7 @@ handler.queryEntry = function(msg, session, next) {
 	var connectors = this.app.getServersByType('connector');
 	logger.info('go into queryEntry:' + JSON.stringify(connectors));
 	if(!connectors || connectors.length === 0) {
-		next(null, {code: Code.FAIL});
+		next(null, {code: Code.FA_NO_SERVER_AVAILABLE,msg:Code.CODEMSG.GATE.FA_NO_SERVER_AVAILABLE});
 		return;
 	}
 	// select connector

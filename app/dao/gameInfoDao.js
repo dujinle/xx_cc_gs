@@ -19,7 +19,7 @@ gameInfoDao.get_buy_fangka_list = function(player_id,index,length,cb){
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (err !== null) {
 			console.log(err.message);//ER_DUP_ENTRY: Duplicate entry '' for key 'INDEX_ACCOUNT_USERNAME'
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			console.log('gameInfoDao creater by imei ok  user:' + JSON.stringify(res));
 			utils.invokeCallback(cb,null,res);
@@ -34,7 +34,7 @@ gameInfoDao.get_game_history_list = function(player_id,index,length,cb){
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (err !== null) {
 			console.log(err.message);//ER_DUP_ENTRY: Duplicate entry '' for key 'INDEX_ACCOUNT_USERNAME'
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			console.log('gameInfoDao creater by imei ok  user:' + JSON.stringify(res));
 			utils.invokeCallback(cb,null,res);
@@ -48,7 +48,7 @@ gameInfoDao.update_game = function(data,cb){
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (err !== null) {
 			console.log(err.message);//ER_DUP_ENTRY: Duplicate entry '' for key 'INDEX_ACCOUNT_USERNAME'
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			console.log('gameInfoDao creater by imei ok  user:' + JSON.stringify(res));
 			playerDao.update_game_info(data,cb);

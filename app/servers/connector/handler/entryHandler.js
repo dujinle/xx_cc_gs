@@ -35,7 +35,7 @@ Handler.prototype.entry = function (msg, session, next) {
 	var token = msg.token, self = this;
 	logger.info(__filename,'entry ok ====token: ',token);
 	if (!token) {
-		next(new Error('invalid entry request: empty token'), {code: 500,msg:"token empty"});
+		next(null, {code: Code.CONNECTOR.FA_TOKEN_INVALID,msg:Code.CODEMSG.CONNECTOR.FA_TOKEN_INVALID});
 		return;
 	}
 
@@ -60,7 +60,7 @@ Handler.prototype.entry = function (msg, session, next) {
 					console.error('set rid for session service failed! error is : %j', err.stack);
 				}
 			});
-			next(null,{code:Code.OK,msg:'get user player task ok',player:player});
+			next(null,{code:Code.OK,msg:Code.CODEMSG.LOGIN.SUCCESS,player:player});
 		}
 	], function (err) {
 		if (err) {
@@ -85,7 +85,7 @@ handler.create = function(msg, session, next) {
 	playerDao.get_player_by_id(player_id,function(err,player){
 		if(player.fangka_num < fangka_num){
 			logger.info("fangka have no enough" + player.fangka_num + " use:" + fangka_num);
-			next(null, {code:203,msg:"房卡数量不足"});
+			next(null, {code:Code.CONNECTOR.FK_CREATE_NOMORE,msg:Code.CODEMSG.CONNECTOR.FK_CREATE_NOMORE});
 			return;
 		}
 		playerDao.sub_fangka(player_id,fangka_num,function(err,res){
@@ -93,9 +93,9 @@ handler.create = function(msg, session, next) {
 			gameDao.create_room_by_player_id(player_id,player.nick_name,room_type,renshu,max_type,function(err,res){
 				logger.info('create room succ:' + JSON.stringify(res));
 				if(err){
-					next(null, {code:500,msg:err.message});
+					next(null, {code:Code.SQL_ERROR,msg:err.message});
 				}else{
-					next(null, {code:200,msg:res});
+					next(null, {code:Code.OK,msg:Code.CODEMSG.CONNECTOR.FK_CREATE_SUCCESS});
 				}
 				return;
 			});
@@ -112,9 +112,11 @@ handler.get_room_info = function(msg, session, next) {
 		var player_id = msg.player_id;
 		gameDao.get_rooms_by_player_id(player_id,function(err,res){
 			if(err){
-				next(null, {code:500,msg:err.message});
+				next(null, {code:Code.SQL_ERROR,msg:err.message});
+			}else if(res == null){
+				next(null, {code:Code.SQL_NULL,msg:Code.CODEMSG.COMMON.SQL_NULL});
 			}else{
-				next(null, {code:200,msg:res});
+				next(null, {code:Code.OK,msg:res});
 			}
 			return;
 		});
@@ -122,23 +124,11 @@ handler.get_room_info = function(msg, session, next) {
 		var rid = msg.rid;
 		gameDao.get_room_by_room_id(rid,function(err,res){
 			if(err){
-				next(null, {code:500,msg:err.message});
-			}else if(res != null){
-				next(null, {code:200,msg:res});
+				next(null, {code:Code.SQL_ERROR,msg:err.message});
+			}else if(res == null){
+				next(null, {code:Code.SQL_NULL,msg:Code.CODEMSG.COMMON.SQL_NULL});
 			}else{
-				next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
-			}
-			return;
-		});
-	}else{
-		var rid = msg.rid;
-		gameDao.get_room_by_room_id(rid,function(err,res){
-			if(err){
-				next(null, {code:500,msg:err.message});
-			}else if(res != null){
-				next(null, {code:200,msg:res});
-			}else{
-				next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
+				next(null, {code:Code.OK,msg:res});
 			}
 			return;
 		});
@@ -155,10 +145,10 @@ handler.repair_enter_room = function(msg, session, next) {
 	var uuid = msg.uuid;
 	gameDao.get_room_by_room_id(rid,function(err,res){
 		if(err){
-			next(null, {code:500,msg:err.message});
+			next(null, {code:Code.SQL_ERROR,msg:err.message});
 		}else if(res != null){
 			if(res.is_gaming == -1){
-				next(null, {code:202,msg:'本局游戏已经结束，房间已经解散，无法进入房间！'});
+				next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_FAIL});
 				return;
 			}
 			var uid = player_id + '*' + rid;
@@ -172,10 +162,10 @@ handler.repair_enter_room = function(msg, session, next) {
 			session.on('closed', onUserLeave.bind(null, self.app));
 
 			self.app.rpc.game.gameRemote.repair_enter_room(session, uid, uuid,self.app.get('serverId'), rid, false,function(){
-				next(null, {code:Code.OK,msg:'进入房间成功'});
+				next(null, {code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
 			});
 		}else{
-			next(null, {code:202,msg:'房间已经不存在，无法进入房间！'});
+			next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_FAIL});
 		}
 	});
 /*}}}*/
@@ -194,7 +184,7 @@ handler.leave_room = function(msg, session, next) {
 		for(var i = 0; i < players.length;i++){
 			session.unbind(players[i]);
 		}
-		next(null, {code:200,msg:"离开房间成功"});
+		next(null, {code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_LEAVE_ROOM_OK});
 	});
 /*}}}*/
 };
@@ -208,21 +198,21 @@ handler.enter = function(msg, session, next) {
 
 	gameDao.get_room_by_room_id(rid,function(err,res){
 		if(err){
-			next(null, {code:500,msg:err.message});
+			next(null, {code:Code.SQL_ERROR,msg:err.message});
 		}else if(res != null){
 			if(res['location' + location] != null && res['location' + location] != 'null'){
-				next(null, {'code':201,'msg':'位置已经被占用！'});
+				next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_BLONG});
 				return;
 			}
 			if(res.real_num >= res.player_num){
-				next(null, {'code':201,'msg':'位置已经被占用！'});
+				next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_BLONG});
 				return;
 			}
 			//确定庄家位置是否有人 如果没有则最后一个进入的人不可以进入其他位置
 			if(res.real_num + 1 == res.player_num && res.game_type == 1){
 				if(res.location1 == null || res.location1 == 'null'){
 					if(location != 1){
-						next(null, {'code':201,'msg':'其他位置无法进入，只可以进入庄家位置!'});
+						next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_ZHUANG});
 						return;
 					}
 				}
@@ -242,7 +232,7 @@ handler.enter = function(msg, session, next) {
 				next(null, data);
 			});
 		}else{
-			next(null, {'code':202,'msg':'房间已经关闭！'});
+			next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_FAIL});
 		}
 	});
 /*}}}*/
@@ -253,7 +243,7 @@ handler.start_game = function(msg, session, next) {
 	var self = this;
 	var rid = msg.rid;
 	self.app.rpc.game.gameRemote.start_game(session, rid, self.app.get('serverId'), rid,false,function(){
-		next(null, {code:200});
+		next(null, {code:Code.OK});
 	});
 /*}}}*/
 };

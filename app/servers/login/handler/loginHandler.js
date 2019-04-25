@@ -33,14 +33,14 @@ handler.login = function (msg, session, next) {
 	//更新登录次数和时间
 	playerDao.get_player_by_player_id(player_id,function(err,player){
 		if(!!err){
-			next(null, {code:Code.SQL_ERROR,msg:err});
+			next(null, {code:Code.SQL_ERROR,msg:err.message});
 			return;
 		}
 		if(player == null){
 			playerDao.create_player_by_player_id(player_id,nick_name,sex_type,img_url,function(err,player){
 				if(!!err) {
 					logger.info('createPlayer err!',JSON.stringify(err));
-					next(null, {code: Code.SQL_ERROR, msg:err});
+					next(null, {code: Code.SQL_ERROR, msg:err.message});
 					return;
 				}
 				updateLogin(player);
@@ -50,7 +50,7 @@ handler.login = function (msg, session, next) {
 		}else{
 			playerDao.update_player_by_player_id(player_id,nick_name,img_url,sex_type,function(err,player){
 				if(!!err){
-					next(null, {code:Code.SQL_ERROR,msg:err});
+					next(null, {code:Code.SQL_ERROR,msg:err.message});
 					return;
 				}else{
 					updateLogin(player);

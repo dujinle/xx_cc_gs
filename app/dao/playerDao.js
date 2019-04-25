@@ -27,7 +27,7 @@ playerDao.create_player_by_player_id = function (player_id,nick_name,sex_type,he
     pomelo.app.get('dbclient').query(sql, args, function (err, res) {
         if (err) {
             logger.info('createPlayerByid into player table db fail');
-            utils.invokeCallback(cb, err.message, null);
+            utils.invokeCallback(cb, err, null);
         } else {
             playerDao.get_player_by_id(res.insertId, cb);
         }
@@ -45,7 +45,7 @@ playerDao.get_player_by_id = function (id, cb) {
     var args = [id];
     pomelo.app.get('dbclient').query(sql, args, function (err, res) {
         if (err) {
-            utils.invokeCallback(cb, err.message, null);
+            utils.invokeCallback(cb, err, null);
         } else {
             var rs = res[0];
             if (!!rs) {
@@ -64,7 +64,7 @@ playerDao.update_player_by_player_id = function (player_id,nick_name,head_img_ur
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (err) {
 			logger.info('playerDao.updatePlayerInfo failed......' + err);
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			playerDao.get_player_by_player_id(player_id,cb);
 		}
@@ -84,7 +84,7 @@ playerDao.get_player_by_player_id = function (player_id, cb) {
     pomelo.app.get('dbclient').query(sql, args, function (err, res) {
         if (!!err) {
             logger.info('playerDao.get_player_by_id', 'fail');
-            utils.invokeCallback(cb, err.message, null);
+            utils.invokeCallback(cb, err, null);
         } else {
             var rs = res[0];
             if (!!rs) {
@@ -105,7 +105,7 @@ playerDao.update_gonghui_id = function (id,gonghui_id, cb) {
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (err) {
 			logger.info('playerDao.updatePlayerInfo failed......' + err);
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			logger.info('playerDao.updatePlayerInfo succ');
 			utils.invokeCallback(cb, null, Code.OK);
@@ -126,7 +126,7 @@ playerDao.setStatus = function(id,status,cb){
     pomelo.app.get('dbclient').query(sql,args,function(err,res){
         if(!!err){
             logger.info('playerDao.setCLDays');
-            utils.invokeCallback(cb,err.message,null);
+            utils.invokeCallback(cb,err,null);
         }else{
             utils.invokeCallback(cb,null,Code.OK);
         }
@@ -162,7 +162,7 @@ playerDao.set_continue_login_days = function(id,flag,cb){
     pomelo.app.get('dbclient').query(sql,args,function(err,res){
         if(!!err){
             logger.info('playerDao.setCLDays');
-            utils.invokeCallback(cb,err.message,null);
+            utils.invokeCallback(cb,err,null);
         }else{
             utils.invokeCallback(cb,null,Code.OK);
         }
@@ -190,7 +190,7 @@ playerDao.addGold = function (id, gold, diamond, cb) {
             playerDao.get_player_by_id(id, function (err, res) { //res == player
                 if (err) {
                     logger.info('出错喽哦货2');
-                    utils.invokeCallback(cb,err.message,null);
+                    utils.invokeCallback(cb,err,null);
                 } else {
                     var rs = res;
                     logger.info('gold -- - - - --'+rs.gold,rs.diamond);
@@ -214,7 +214,7 @@ playerDao.buyDiamond = function(id,number,cb){
     pomelo.app.get('dbclient').query(sql,args,function(err,res){
         if(!!err){
             logger.info(err);
-            utils.invokeCallback(cb,err.message,null);
+            utils.invokeCallback(cb,err,null);
         }else{
             utils.invokeCallback(cb,null,Code.OK);
         }
@@ -284,12 +284,12 @@ playerDao.storeBuy = function(id,tag,cb){
     pomelo.app.get('dbclient').query(sql,args,function(err,res){
         if(!!err){
             logger.info(err);
-            utils.invokeCallback(cb,err.message,null);
+            utils.invokeCallback(cb,err,null);
         }else{
             playerDao.get_player_by_id(id,function(err,player){
                 if(!!err){
                     logger.info(err);
-                    utils.invokeCallback(cb,err.message,null);
+                    utils.invokeCallback(cb,err,null);
                 }else{
                     utils.invokeCallback(cb,null,player);
                 }
@@ -304,7 +304,7 @@ playerDao.feedback = function(id,title,content,cb){
     pomelo.app.get('dbclient').query(sql,args,function(err,res){
         if(!!err){
             logger.info(err);
-            utils.invokeCallback(cb,err.message,null);
+            utils.invokeCallback(cb,err,null);
         }else{
             utils.invokeCallback(cb,null,200);
         }
@@ -318,7 +318,7 @@ playerDao.update_game_info = function(data,cb){
 	var args = [id];
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (err) {
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			var rs = res[0];
 			var round_num = rs.round_num + 1;
@@ -336,7 +336,7 @@ playerDao.update_game_info = function(data,cb){
 			pomelo.app.get('dbclient').query(sql,args,function(err,res){
 				if(!!err){
 					logger.info(err);
-					utils.invokeCallback(cb,err.message,null);
+					utils.invokeCallback(cb,err,null);
 				}else{
 					logger.info("sub_fangka :" + JSON.stringify(res));
 					utils.invokeCallback(cb,null,res);
@@ -357,7 +357,7 @@ playerDao.sub_gold = function(id,gold,cb){
 	pomelo.app.get('dbclient').query(sql,args,function(err,res){
 		if(!!err){
 			logger.info(err);
-			utils.invokeCallback(cb,err.message,null);
+			utils.invokeCallback(cb,err,null);
 		}else{
 			utils.invokeCallback(cb,null,200);
 		}
@@ -371,7 +371,7 @@ playerDao.getFangKa = function(id,cb){
 	pomelo.app.get('dbclient').query(sql,args,function (err,res) {
 		if (!!err) {
 			logger.info(err);
-			utils.invokeCallback(cb,err.message,null);
+			utils.invokeCallback(cb,err,null);
 		}else{
 			if(res.length > 0){
 				utils.invokeCallback(cb,null,res[0].fangka);
@@ -388,7 +388,7 @@ playerDao.sub_fangka = function(id,fangka_num,cb){
 	pomelo.app.get('dbclient').query(sql,args,function(err,res){
 		if(!!err){
 			logger.info(err);
-			utils.invokeCallback(cb,err.message,null);
+			utils.invokeCallback(cb,err,null);
 		}else{
 			logger.info("sub_fangka :" + JSON.stringify(res));
 			utils.invokeCallback(cb,null,res);
@@ -403,7 +403,7 @@ playerDao.getGold = function(id,cb){
 	pomelo.app.get('dbclient').query(sql,args,function (err,res) {
 		if (!!err) {
 			logger.info(err);
-			utils.invokeCallback(cb,err.message,null);
+			utils.invokeCallback(cb,err,null);
 		}else{
 			if(res.length > 0){
 				utils.invokeCallback(cb,null,res[0].gold);
@@ -422,7 +422,7 @@ playerDao.subGold = function (id,subN,cb) {
     pomelo.app.get('dbclient').query(sql,args,function (err,res) {
         if (!!err) {
             logger.info(err);
-			utils.invokeCallback(cb,err.message,null);
+			utils.invokeCallback(cb,err,null);
         } else {
             if (res.affectedRows>=1){
                 //成功
@@ -431,7 +431,7 @@ playerDao.subGold = function (id,subN,cb) {
 				pomelo.app.get('dbclient').query(sql,args,function (err,res) {
 					if (!!err) {
 						logger.info(err);
-						utils.invokeCallback(cb,err.message,null);
+						utils.invokeCallback(cb,err,null);
 					}else{
 						if(res.length > 0){
 							utils.invokeCallback(cb,null,res[0].gold);

@@ -2,7 +2,7 @@
  * Created by WTF Wei on 2016/3/25.
  * Function :
  */
-
+var Code	  = require('../../../consts/code');
 var gBroadcastDao = require('../../../dao/gBroadcastDao');
 var playerDao = require('../../../dao/playerDao');
 var logger = require('pomelo-logger').getLogger('pomelo', __filename);
@@ -25,11 +25,11 @@ handler.gongGaoProcess = function(msg,session,next){
 		gBroadcastDao.getRowByType(type,function(err, res){
 			if(err){
 				logger.info(err.message + '===========err============');
-				next(null, {code: 500,msg: err.message});
+				next(null, {code: Code.SQL_ERROR,msg: err.message});
 			}else if(res != null){
-				next(null, {code: 200,msg: res});
+				next(null, {code: Code.OK,msg: res});
 			}else{
-				next(null, {code: 200,msg: "娱乐游戏！"});
+				next(null, {code: Code.OK,msg:Code.CODEMSG.COMMON.GONGGAO_NULL});
 			}
 		});
 	}

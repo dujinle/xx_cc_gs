@@ -34,7 +34,7 @@ remote.auth = function (token, cb) {
     var res = tokenService.parse(token, DEFAULT_SECRET);
     if (!res) {
         logger.error("非法的token");
-        cb(new Error('非法的token'));
+        cb(new Error(Code.CODEMSG.CONNECTOR.FA_TOKEN_INVALID));
         return;
     }
 
@@ -44,7 +44,7 @@ remote.auth = function (token, cb) {
 
     if (!checkExpire(res, this.expire)) {
         logger.info("token过期");
-        cb(new Error("token过期"));
+        cb(new Error(Code.CODEMSG.CONNECTOR.FA_TOKEN_EXPIRE));
         return;
     }
 
@@ -52,7 +52,7 @@ remote.auth = function (token, cb) {
     playerDao.get_player_by_id(res.player_id, function (err, player) {
         if (err) {
             logger.error('auth getplayerbyid err' + err);
-            cb(new Error(err));
+            cb(new Error(err.message));
             return;
         }
         cb(null,player);

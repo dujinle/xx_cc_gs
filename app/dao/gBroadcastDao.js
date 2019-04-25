@@ -19,7 +19,7 @@ gBroadcastDao.getRowByType = function(type,cb){
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
 			logger.info(err.message);
-			utils.invokeCallback(cb,'db gBroadcastDao:getRowByType error',null);
+			utils.invokeCallback(cb,err,null);
 		}else{
 			var length = res.length;
 			if(length >= 1){

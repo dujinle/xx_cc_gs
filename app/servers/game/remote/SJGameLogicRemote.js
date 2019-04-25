@@ -363,7 +363,7 @@ SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 													zhuang_local:zhuang_id
 												};
 												param['scores'][zhuang_id - 1] = 100;
-                        utils.pushMessage(rid,channel,param,cache);
+												utils.pushMessage(rid,channel,param,cache);
 												//channel.pushMessage(param);
 											});
 										});

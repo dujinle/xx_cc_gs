@@ -19,7 +19,7 @@ gonghuiDao.get_gonghui_by_id = function (id, cb) {
 		if (err !== null) {
 			logger.info(err);
 			logger.info('gonghuiDao.get_gonghui_by_id pomelo.app.get err');
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			if (!!res && res.length === 1) {
 				logger.info('cd gonghuiDao.get_gonghui_by_id from db', 'ok');
@@ -40,7 +40,7 @@ gonghuiDao.get_gonghui_by_gonghui_id = function (gonghui_id, cb) {
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (err !== null) {
 			logger.info('gonghuiDao.get_gonghui_by_id pomelo.app.get err');
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			if (!!res && res.length === 1) {
 				logger.info('cd gonghuiDao.get_gonghui_by_id from db', 'ok');
@@ -61,7 +61,7 @@ gonghuiDao.get_gonghui_by_player_id = function (player_id, cb) {
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if (err !== null) {
 			logger.info(err);
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			if (!!res && res.length === 1) {
 				var rs   = res[0];
@@ -82,8 +82,7 @@ gonghuiDao.xuka = function (gonghui_id,player_id,player_name,phone_num, cb) {
 		if (err !== null) {
 			logger.info('gonghuiDao.xuka');
 			logger.info(err.message);//ER_DUP_ENTRY: Duplicate entry '' for key 'INDEX_ACCOUNT_USERNAME'
-			logger.info(err);
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			logger.info('gonghuiDao.xuka succ insertId:' + res.insertId);
 			utils.invokeCallback(cb,null, res.insertId);
@@ -97,13 +96,12 @@ gonghuiDao.sub_gonghui_renshu = function (gonghui_id,value, cb) {
 
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if(err){
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		}else{
 			if(!res || res.length <= 0){
 				utils.invokeCallback(cb, null, null);
 			}else{
-				var rs = res[0];
-				utils.invokeCallback(cb, null, rs);
+				utils.invokeCallback(cb, null, gonghui_id);
 			}
 		}
 	});
@@ -115,7 +113,7 @@ gonghuiDao.update_gonghui = function (gonghui_id,danjia,xuanyan, cb) {
 
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if(err){
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		}else{
 			utils.invokeCallback(cb, null, gonghui_id);
 		}
@@ -131,11 +129,11 @@ gonghuiDao.add_gonghui_ans = function(player_id,player_name,gonghui_name,telphon
 	}else if(level == 3){
 		money = 5000;
 	}
-	var args      = [player_id,player_name,gonghui_name,telphone,level,loginTime,0,money];
+	var args = [player_id,player_name,gonghui_name,telphone,level,loginTime,0,money];
 
 	pomelo.app.get('dbclient').query(sql, args, function (err, res) {
 		if(err){
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		}else{
 			utils.invokeCallback(cb, null, res.insertId);
 		}
@@ -150,7 +148,7 @@ gonghuiDao.get_gonghui_ans_by_player_id = function(player_id,cb){
 		if (err !== null) {
 			logger.info(err);
 			logger.info('gonghuiDao.get_gonghui_by_id pomelo.app.get err');
-			utils.invokeCallback(cb, err.message, null);
+			utils.invokeCallback(cb, err, null);
 		} else {
 			if (!!res && res.length === 1) {
 				logger.info('cd gonghuiDao.get_gonghui_by_id from db', 'ok');
