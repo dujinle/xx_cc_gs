@@ -77,7 +77,7 @@ handler.game_process = function(msg,session,next){
 		}else{
 			SJGameLogicRemote.open(rid,msg.location,this.cache,channel,channelService);
 		}
-		next(null,{msg:"receive process successfully"});
+		next(null,{code:Code.FILTER,msg:"receive process successfully"});
 	}else if(process == 'qieguo'){
 		console.log('player qieguo');
 		if(game_type == 1){
