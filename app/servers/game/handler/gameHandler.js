@@ -4,6 +4,7 @@
 var crypto = require('crypto');
 var gameDao = require("../../../dao/gameDao");
 var delayDao = require("../../../dao/delayDao");
+var Code	  = require('../../../consts/code');
 var SJGameLogicRemote = require("../remote/SJGameLogicRemote");
 var QZGameLogicRemote = require("../remote/QZGameLogicRemote");
 var LZGameLogicRemote = require("../remote/LZGameLogicRemote");
@@ -46,7 +47,7 @@ handler.game_process = function(msg,session,next){
 		}else{
 			SJGameLogicRemote.ready(rid,msg.location,this.cache,channel,username);
 		}
-		next(null,{msg:"receive process successfully"});
+		next(null,{code:Code.FILTER,msg:"receive process successfully"});
 	}else if(process == 'xiazhu'){
 		console.log('player xiazhu');
 		if(game_type == 1){
@@ -56,7 +57,7 @@ handler.game_process = function(msg,session,next){
 		}else{
 			SJGameLogicRemote.xiazhu(rid,msg.location,msg.chips,this.cache,channel,channelService);
 		}
-		next(null,{msg:"receive process successfully"});
+		next(null,{code:Code.FILTER,msg:"receive process successfully"});
 	}else if(process == 'peipai'){
 		console.log('player peipai');
 		if(game_type == 1){
@@ -66,7 +67,7 @@ handler.game_process = function(msg,session,next){
 		}else{
 			SJGameLogicRemote.peipai(rid,msg.location,msg.peipai,msg.select,this.cache,channel,channelService);
 		}
-		next(null,{msg:"receive process successfully"});
+		next(null,{code:Code.FILTER,msg:"receive process successfully"});
 	}else if(process == 'open'){
 		console.log('player open');
 		if(game_type == 1){
@@ -86,7 +87,7 @@ handler.game_process = function(msg,session,next){
 		}else{
 			SJGameLogicRemote.qieguo(rid,msg.location,msg.flag,this.cache,channel,channelService);
 		}
-		next(null,{msg:"receive process successfully"});
+		next(null,{code:Code.FILTER,msg:"receive process successfully"});
 	}else if(process == 'get_user_info'){
 		console.log('player get_user_info');
 		if(game_type == 1){
@@ -96,7 +97,7 @@ handler.game_process = function(msg,session,next){
 		}else{
 			SJGameLogicRemote.get_local_player(rid,msg.send_from,msg.location,this.cache,channel,channelService);
 		}
-		next(null,{msg:"receive process successfully"});
+		next(null,{code:Code.FILTER,msg:"receive process successfully"});
 	}else if(process == 'send_gift'){
 		console.log('player send_gift');
 		if(game_type == 1){
@@ -106,12 +107,10 @@ handler.game_process = function(msg,session,next){
 		}else{
 			SJGameLogicRemote.send_gift(rid,msg.send_from,msg.send_to,msg.type,this.cache,channel,channelService);
 		}
-		next(null,{msg:"receive process successfully"});
+		next(null,{code:Code.FILTER,msg:"receive process successfully"});
 	}else{
 		console.log("Process invalid!");
-		next(null,{
-			msg:"receive process error"
-		});
+		next(null,{code:Code.FILTER,msg:"receive process error"});
 	}
 };
 

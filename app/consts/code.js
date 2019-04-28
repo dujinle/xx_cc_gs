@@ -3,6 +3,7 @@ module.exports = {
 	FAIL: 500, 
 	SQL_ERROR:111,
 	SQL_NULL:112,
+	FILTER:120,
 
 	LOGIN:{
 		FA_LOGIN_INVALID:	0001,
@@ -46,8 +47,11 @@ module.exports = {
 		CONNECTOR:{
 			FA_TOKEN_INVALID:'无效的token,请重新登录!',
 			FA_TOKEN_EXPIRE:'token已经过期,请重新登录!',
+			FK_ENTER_NOMORE:'房卡不够用无法进入游戏，请充值房卡！',
 			FK_CREATE_NOMORE:'房卡数量不够，请尽快去充值!',
 			FK_CREATE_SUCCESS:'创建房间成功！',
+			GD_ENTER_NOMORE:'没有金币无法进入游戏，请充值金币！',
+			CO_ENTER_ROOM_EMPTY:'没有找到房间信道！',
 			CO_ENTER_ROOM_FAIL:'本局游戏已经结束，房间已经解散，无法进入房间！',
 			CO_ENTER_ROOM_SUCCESS:'进入房间成功',
 			CO_ENTER_ROOM_BLONG:'位置已经被占用！',

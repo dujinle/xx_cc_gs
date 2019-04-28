@@ -1,6 +1,7 @@
 /**
  * Created by wuningjian on 2/23/16.
  */
+var Code	  = require('../../../consts/code');
 var gameDao   = require('../../../dao/gameDao');
 var playerDao = require('../../../dao/playerDao');
 var pomelo    = require('pomelo');
@@ -36,31 +37,31 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 				if(res.game_type == 1){
 					//抢庄 庄家消费所有玩家的房卡
 					if(location == 1 && player.fangka_num < res.player_num){
-						cb({'code':201,'msg':'房卡不够用无法进入游戏，请充值房卡！'});
+						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.FK_ENTER_NOMORE});
 						return;
 					}
 					if(player.gold <= 0){
-						cb({'code':201,'msg':'没有金币无法进入游戏，请充值金币！'});
+						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.GD_ENTER_NOMORE});
 						return;
 					}
 				}else if(res.game_type == 2){
 					//随机庄 每人消费一张房卡
 					if(player.fangka_num < 1){
-						cb({'code':201,'msg':'房卡不够用无法进入游戏，请充值房卡！'});
+						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.FK_ENTER_NOMORE});
 						return;
 					}
 					if(player.gold <= 0){
-						cb({'code':201,'msg':'没有金币无法进入游戏，请充值金币！'});
+						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.GD_ENTER_NOMORE});
 						return;
 					}
 				}else if(res.game_type == 3){
 					//转庄 每人消费一张房卡
 					if(player.fangka_num < 1){
-						cb({'code':201,'msg':'房卡不够用无法进入游戏，请充值房卡！'});
+						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.FK_ENTER_NOMORE});
 						return;
 					}
 					if(player.gold <= 0){
-						cb({'code':201,'msg':'没有金币无法进入游戏，请充值金币！'});
+						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.GD_ENTER_NOMORE});
 						return;
 					}
 				}
@@ -72,11 +73,11 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 					};
 					channel.pushMessage(param);
 				});
-				cb({'code':200,'msg':'进入游戏房间！','fangka_num': player.fangka_num});
+				cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS,'fangka_num': player.fangka_num});
 			});
 		});
 	}else{
-		cb({'code':202,'msg':'没有找到房间信道！'});
+		cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_EMPTY});
 	}
 /*}}}*/
 };
@@ -138,9 +139,9 @@ gameRemote.prototype.repair_enter_room = function(uid,uuid, sid, channel_id, fla
 				});
 			}
 		});
-		cb({'code':200,'msg':'进入游戏房间！'});
+		cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
 	}else{
-		cb({'code':202,'msg':'没有找到房间信道！'});
+		cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_EMPTY});
 	}
 /*}}}*/
 };
