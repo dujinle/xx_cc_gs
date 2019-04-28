@@ -180,7 +180,8 @@ LZGameLogicRemote.getCardArr = function(rid,cache){
 };
 
 LZGameLogicRemote.get_card_arr_from_cache = function(rid,cache){
-	var paiArr = cache.get(rid);
+	var cacheData = cache.get(rid);
+	var paiArr = cacheData.paixing;
 
 	logger.info("paiArr:"+paiArr);
 	var paixing = [];
