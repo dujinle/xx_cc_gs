@@ -343,7 +343,7 @@ SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 				}
 				gameDao.get_room_by_room_id(rid,function(err,room_info){
 					gameDao.get_players_location(rid,function(err,locations){
-						if(locations.length == reayd_num){
+						if(locations.length == ready_num){
 							var num1 = utils.get_random_num(1,6);
 							var num2 = utils.get_random_num(1,6);
 							var local = (num1 + num2) % locations.length;

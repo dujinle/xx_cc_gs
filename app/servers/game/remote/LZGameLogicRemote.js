@@ -344,7 +344,7 @@ LZGameLogicRemote.ready = function(rid,location,lun_zhuang_flag,cache,channel,us
 				}
 				gameDao.get_room_by_room_id(rid,function(err,room_info){
 					gameDao.get_players_location(rid,function(err,locations){
-						if(locations.length == reayd_num){
+						if(locations.length == ready_num){
 							var param = {
 								route:'onGetZhuang',
 								scores:[room_info.left_score_1,room_info.left_score_2,room_info.left_score_3,room_info.left_score_4]
