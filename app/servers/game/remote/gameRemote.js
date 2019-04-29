@@ -66,12 +66,15 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 					}
 				}
 				gameDao.add_player(rid,uid,location,function(err,res){
-					var param = {
-						route: 'onEnterRoom',
-						player: player,
-						location:location  //同时分配位置
-					};
-					channel.pushMessage(param);
+					if(res != null){
+						var param = {
+							route: 'onEnterRoom',
+							player: player,
+							real_num:res,
+							location:location  //同时分配位置
+						};
+						channel.pushMessage(param);
+					}
 				});
 				cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS,'fangka_num': player.fangka_num});
 			});
@@ -160,7 +163,7 @@ gameRemote.prototype.leave_room = function(uid, sid, channel_id,flag,location,cb
 				route: 'onLeaveRoom',
 				location:location,
 				player_id:username,
-				data:res
+				real_num:res
 			};
 			channel.pushMessage(param);
 		});

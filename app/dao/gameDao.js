@@ -601,6 +601,7 @@ gameDao.leave_room = function(rid,uid,cb){
 					break;
 				}
 			}
+			var real_num = room_info.real_num - 1;
 			sqlTemp.update(sql,args,function(err,res){
 				if(err!==null){
 					logger.error("db:leave_room step 2 error",err);
@@ -608,15 +609,15 @@ gameDao.leave_room = function(rid,uid,cb){
 				}else{
 					logger.info("leave_room step 2 success");
 					//cb(location,new_player_num);
-					sql = 'update game_room set real_num = real_num - 1 where rid = ?';
-					args = [rid];
+					sql = 'update game_room set real_num = ? where rid = ?';
+					args = [real_num,rid];
 					sqlTemp.update(sql,args,function(err,res){
 						if(err!==null){
 							logger.error("db:leave_room step 3 error",err);
 							utils.invokeCallback(cb,err,null);
 						}else{
 							logger.info("leave_room step 3 success");
-							utils.invokeCallback(cb,err,res[0]);
+							utils.invokeCallback(cb,null,real_num);
 						}
 					});
 				}
