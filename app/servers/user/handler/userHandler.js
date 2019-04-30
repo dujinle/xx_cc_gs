@@ -21,7 +21,7 @@ handler.userInfoProcess = function(msg,session,next){
 	if(process == "get_player"){
 		var player_id  = msg.player_id;
 		console.log('handler.get_player ', player_id);
-			console.log('start go into playerDao.updatePlayerInfo.......');
+		console.log('start go into playerDao.updatePlayerInfo.......');
 		playerDao.get_player_by_id(player_id, function (err, res) {
 			if (err) {
 				console.log(err.message + '===========err============');

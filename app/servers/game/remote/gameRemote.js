@@ -30,13 +30,13 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 
 	if( !! channel) {
 		channel.add(uid, sid);
-		gameDao.get_room_by_room_id(rid,function(err,res){
+		gameDao.get_room_by_room_id(rid,function(err,room_info){
 			playerDao.get_player_by_id(username,function(err,player){
 				//如果是房主进入房间则直接进入不用消费房卡，因为建房时已经消费
 				//判断玩家是否有金币和房卡 不够不允许进入游戏
-				if(res.game_type == 1){
+				if(room_info.game_type == 1){
 					//抢庄 庄家消费所有玩家的房卡
-					if(location == 1 && player.fangka_num < res.player_num){
+					if(location == 1 && player.fangka_num < room_info.player_num){
 						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.FK_ENTER_NOMORE});
 						return;
 					}
@@ -44,7 +44,7 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.GD_ENTER_NOMORE});
 						return;
 					}
-				}else if(res.game_type == 2){
+				}else if(room_info.game_type == 2){
 					//随机庄 每人消费一张房卡
 					if(player.fangka_num < 1){
 						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.FK_ENTER_NOMORE});
@@ -54,7 +54,7 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.GD_ENTER_NOMORE});
 						return;
 					}
-				}else if(res.game_type == 3){
+				}else if(room_info.game_type == 3){
 					//转庄 每人消费一张房卡
 					if(player.fangka_num < 1){
 						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.FK_ENTER_NOMORE});
@@ -65,12 +65,20 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 						return;
 					}
 				}
-				gameDao.add_player(rid,uid,location,function(err,res){
-					if(res != null){
+				var player_ids = [null,null,null,null];
+				for(var i = 1;i <= 4;i++){
+					var local = room_info['location' + i];
+					if(local != null && local != 'null'){
+						player_ids[i - 1] = local.split('*')[0];
+					}
+				}
+				gameDao.add_player(rid,uid,location,function(err,real_num){
+					if(real_num != null){
+						player_ids[location - 1] = username;
 						var param = {
 							route: 'onEnterRoom',
-							player: player,
-							real_num:res,
+							player: player_ids,
+							real_num:real_num,
 							location:location  //同时分配位置
 						};
 						channel.pushMessage(param);
