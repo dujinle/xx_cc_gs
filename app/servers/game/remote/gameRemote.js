@@ -84,7 +84,7 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 						channel.pushMessage(param);
 					}
 				});
-				cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS,'fangka_num': player.fangka_num});
+				cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
 			});
 		});
 	}else{
