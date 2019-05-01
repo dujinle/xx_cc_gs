@@ -95,7 +95,7 @@ handler.create = function(msg, session, next) {
 				if(err){
 					next(null, {code:Code.SQL_ERROR,msg:err.message});
 				}else{
-					next(null, {code:Code.OK,msg:Code.CODEMSG.CONNECTOR.FK_CREATE_SUCCESS});
+					next(null, {code:Code.OK,msg:Code.CODEMSG.CONNECTOR.FK_CREATE_SUCCESS,fangka_num:player.fangka_num - fangka_num});
 				}
 				return;
 			});
