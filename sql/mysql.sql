@@ -53,10 +53,12 @@ CREATE TABLE buy_fangka(
 	order_id   VARCHAR(32),\
 	player_id  INT,\
 	fangka_num INT,\
+	gold       INT,\
 	status     INT,\
 	creat_time BIGINT,\
 	pay_time   BIGINT,\
-	danjia     FLOAT,\
+	gold_danjia FLOAT DEFAULT 1.0,\
+	danjia     FLOAT DEFAULT 2.0,\
 	zongjia    FLOAT\
 );
 
