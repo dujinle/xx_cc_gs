@@ -1065,8 +1065,8 @@ gameDao.getTimeoutMark = function(rid,cb){
  * 重置数据
  * */
 gameDao.reset_room = function(rid,cb){
-	var sql = 'update game_room set peipai_num = ?, qieguo = ?,qieguo_flag = ? where rid=?';
-	var args =[0,0,0,rid];
+	var sql = 'update game_room set peipai_num = ?, qieguo = ?,qieguo_flag = ?,score_1 = ?,score_2 = ?,score_3 = ?,score_4 = ? where rid=?';
+	var args =[0,0,0,null,null,null,null,rid];
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
 			utils.invokeCallback(cb, err, null);
@@ -1093,13 +1093,13 @@ gameDao.reset_game_lunzhuang = function(rid,cb){
 			utils.invokeCallback(cb, err, null);
 		}else{
 			logger.info("gameDao.reset_room set pai success");
-			sql = 'select * from game_room where rid=?';
-			args = [rid];
-			sqlTemp.query(sql,args,function(err,res){
+			sql = 'update game_room set score_1 = ?,score_2 = ?,score_3 = ?,score_4 = ? where rid = ?';
+			args = [null,null,null,null,rid];
+			sqlTemp.update(sql,args,function(err,res){
 				if(err!==null){
 					utils.invokeCallback(cb, err, null);
 				}else{
-					utils.invokeCallback(cb, null, res[0]);
+					utils.invokeCallback(cb, null, rid);
 				}
 			});
 		}

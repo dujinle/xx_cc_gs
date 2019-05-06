@@ -768,7 +768,7 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 						param['lun_zhuang'] = false;
 						gameDao.remove_room(rid,function(err,res){
 							playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
-                cache.del(rid);
+								cache.del(rid);
 								console.log('进行游戏的最后结算 并删除房间！');
 							});
 						});
