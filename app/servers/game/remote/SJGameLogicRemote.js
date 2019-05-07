@@ -395,7 +395,7 @@ SJGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 				gameDao.get_room_by_room_id(rid,function(err,room_info){
 					var xiazhu_num = 0;
 					for(var i = 1;i <= 4;i++){
-						if(room_info['location' + i] == 3){
+						if(room_info['is_game_' + i] == 3){
 							xiazhu_num += 1;
 						}
 					}
