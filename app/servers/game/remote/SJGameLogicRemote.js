@@ -393,27 +393,24 @@ SJGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 			//channel.pushMessage(param);
 			setTimeout(function(){
 				gameDao.get_room_by_room_id(rid,function(err,room_info){
-					gameDao.get_every_score(rid,function(err,scores){
-						var xiazhu_num = 0;
-						for(var i = 0;i < scores.length;i++){
-							if(scores[i] == null){
-								continue;
-							}
+					var xiazhu_num = 0;
+					for(var i = 1;i <= 4;i++){
+						if(room_info['location' + i] == 3){
 							xiazhu_num += 1;
 						}
+					}
 
-						if(xiazhu_num >= users.length - 1){
-							var num1 = utils.get_random_num(1,6);
-							var num2 = utils.get_random_num(1,6);
-							var local = (num1 + num2) % 4;
-							if(local == 0){
-								local = 4;
-							}
-							gameDao.set_first_location(rid,local,4,function(err,res){
-								SJGameLogicRemote.fapai(rid,num1,num2,cache,channel,channelService);
-							});
+					if(xiazhu_num >= users.length - 1){
+						var num1 = utils.get_random_num(1,6);
+						var num2 = utils.get_random_num(1,6);
+						var local = (num1 + num2) % 4;
+						if(local == 0){
+							local = 4;
 						}
-					});
+						gameDao.set_first_location(rid,local,4,function(err,res){
+							SJGameLogicRemote.fapai(rid,num1,num2,cache,channel,channelService);
+						});
+					}
 				});
 			},2000);
 		});

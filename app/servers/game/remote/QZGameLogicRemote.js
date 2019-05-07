@@ -381,13 +381,12 @@ QZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 			utils.pushMessage(rid,channel,param,cache);
 			//channel.pushMessage(param);
 			setTimeout(function(){
-				gameDao.get_every_score(rid,function(err,scores){
+				gameDao.get_room_by_room_id(rid,function(err,room_info){
 					var xiazhu_num = 0;
-					for(var i = 0;i < scores.length;i++){
-						if(scores[i] == null){
-							continue;
+					for(var i = 1;i <= 4;i++){
+						if(room_info['location' + i] == 3){
+							xiazhu_num += 1;
 						}
-						xiazhu_num += 1;
 					}
 					if(xiazhu_num >= users.length - 1){
 						var num1 = utils.get_random_num(1,6);
