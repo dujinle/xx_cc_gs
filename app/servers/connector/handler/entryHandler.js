@@ -217,11 +217,10 @@ handler.enter = function(msg, session, next) {
 					}
 				}
 			}
-			
+			var rid = room_info.rid;
+			var uid = player_id + '*' + rid;
 			self.app.rpc.game.gameRemote.enter_room(session, uid, self.app.get('serverId'), rid, location,function(data){
 				if(data.code == Code.OK){
-					var rid = room_info.rid;
-					var uid = player_id + '*' + rid;
 					session.bind(uid);
 					session.set('rid', rid);
 					session.push('rid', function(err) {
