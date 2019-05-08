@@ -29,7 +29,6 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 	var self = this;
 
 	if( !! channel) {
-		channel.add(uid, sid);
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
 			playerDao.get_player_by_id(username,function(err,player){
 				//如果是房主进入房间则直接进入不用消费房卡，因为建房时已经消费
@@ -65,6 +64,7 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 						return;
 					}
 				}
+				channel.add(uid, sid);
 				var player_ids = [null,null,null,null];
 				for(var i = 1;i <= 4;i++){
 					var local = room_info['location' + i];

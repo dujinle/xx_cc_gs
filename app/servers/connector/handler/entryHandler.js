@@ -196,39 +196,42 @@ handler.enter = function(msg, session, next) {
 	var rid = msg.rid;
 	var location = msg.location;
 
-	gameDao.get_room_by_room_id(rid,function(err,res){
+	gameDao.get_room_by_room_id(rid,function(err,room_info){
 		if(err){
 			next(null, {code:Code.SQL_ERROR,msg:err.message});
-		}else if(res != null){
-			if(res['location' + location] != null && res['location' + location] != 'null'){
+		}else if(room_info != null){
+			if(room_info['location' + location] != null && room_info['location' + location] != 'null'){
 				next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_BLONG});
 				return;
 			}
-			if(res.real_num >= res.player_num){
+			if(room_info.real_num >= room_info.player_num){
 				next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_BLONG});
 				return;
 			}
 			//确定庄家位置是否有人 如果没有则最后一个进入的人不可以进入其他位置
-			if(res.real_num + 1 == res.player_num && res.game_type == 1){
-				if(res.location1 == null || res.location1 == 'null'){
+			if(room_info.real_num + 1 == room_info.player_num && room_info.game_type == 1){
+				if(room_info.location1 == null || room_info.location1 == 'null'){
 					if(location != 1){
 						next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_ZHUANG});
 						return;
 					}
 				}
 			}
-			var rid = res.rid;
-			var uid = player_id + '*' + rid;
-			session.bind(uid);
-			session.set('rid', rid);
-			session.push('rid', function(err) {
-				if(err) {
-					console.error('set rid for session service failed! error is : %j', err.stack);
-				}
-			});
-			session.on('closed', onUserLeave.bind(null, self.app));
-			logger.info("session id:" + session.id + " uid:" + session.uid);
+			
 			self.app.rpc.game.gameRemote.enter_room(session, uid, self.app.get('serverId'), rid, location,function(data){
+				if(data.code == Code.OK){
+					var rid = room_info.rid;
+					var uid = player_id + '*' + rid;
+					session.bind(uid);
+					session.set('rid', rid);
+					session.push('rid', function(err) {
+						if(err) {
+							console.error('set rid for session service failed! error is : %j', err.stack);
+						}
+					});
+					session.on('closed', onUserLeave.bind(null, self.app));
+					logger.info("session id:" + session.id + " uid:" + session.uid);
+				}
 				next(null, data);
 			});
 		}else{
