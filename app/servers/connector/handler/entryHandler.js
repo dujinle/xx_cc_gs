@@ -219,19 +219,18 @@ handler.enter = function(msg, session, next) {
 			}
 			var rid = room_info.rid;
 			var uid = player_id + '*' + rid;
+			session.bind(uid);
+			session.set('rid', rid);
+			session.push('rid', function(err) {
+				if(err) {
+					console.error('set rid for session service failed! error is : %j', err.stack);
+				}
+			});
+			session.on('closed', onUserLeave.bind(null, self.app));
+			logger.info("session id:" + session.id + " uid:" + session.uid);
+			
 			self.app.rpc.game.gameRemote.enter_room(session, uid, self.app.get('serverId'), rid, location,function(data){
 				console.log('enter_room',data);
-				if(data.code == Code.OK){
-					session.bind(uid);
-					session.set('rid', rid);
-					session.push('rid', function(err) {
-						if(err) {
-							console.error('set rid for session service failed! error is : %j', err.stack);
-						}
-					});
-					session.on('closed', onUserLeave.bind(null, self.app));
-					logger.info("session id:" + session.id + " uid:" + session.uid);
-				}
 				next(null, data);
 			});
 		}else{
