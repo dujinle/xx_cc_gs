@@ -446,7 +446,7 @@ gameDao.get_room_by_room_id = function(rid,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			if(!!res && res.length > 0){
-				logger.info("getRoom:"+JSON.stringify(res));
+				logger.info("getRoom: success");
 				utils.invokeCallback(cb,null,res[0]);
 			}else{
 				logger.info("getRoom: no found room......");
