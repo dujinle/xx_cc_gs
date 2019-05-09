@@ -543,17 +543,22 @@ LZGameLogicRemote.calc_score_zhangsha = function(rid,room_info,temp_score,cache,
 		}
 		if(room_info['location' + my_location] != null && room_info['location' + my_location] != 'null'){
 			if(temp_score[my_location - 1] > 0){
-				zhuang_score = zhuang_score - temp_score[my_location - 1];
-				//有剩余 则 进行分数操作
-				if(zhuang_score >= 0){
-					gameDao.sub_local_gold(rid,my_location,temp_score[my_location - 1],function(err,res){
-						temp_score[my_location - 1] = temp_score[my_location - 1];
-						callback(null);
-					});
-				}
-				else{
+				if(zhuang_score <= 0){
 					temp_score[my_location - 1] = 0;
 					callback(null);
+				}else{
+					zhuang_score = zhuang_score - temp_score[my_location - 1];
+					//有剩余 则 进行分数操作
+					if(zhuang_score >= 0){
+						gameDao.sub_local_gold(rid,my_location,temp_score[my_location - 1],function(err,res){
+							temp_score[my_location - 1] = temp_score[my_location - 1];
+							callback(null);
+						});
+					}
+					else{
+						temp_score[my_location - 1] = 0;
+						callback(null);
+					}
 				}
 			}
 			else{
