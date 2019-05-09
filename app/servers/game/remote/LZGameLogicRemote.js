@@ -534,6 +534,7 @@ LZGameLogicRemote.calc_score_zhangsha = function(rid,room_info,temp_score,cache,
 		}else{
 			callback(null);
 		}
+		console.log('calc_zhuang_win',temp_score,zhuang_score);
 	};
 	var calc_zhuang_lose = function(callback){
 		my_location = my_location + 1;
@@ -562,6 +563,7 @@ LZGameLogicRemote.calc_score_zhangsha = function(rid,room_info,temp_score,cache,
 		else{
 			callback(null);
 		}
+		console.log('calc_zhuang_lose',temp_score,zhuang_score);
 	};
 	async.waterfall([
 		calc_zhuang_win,
