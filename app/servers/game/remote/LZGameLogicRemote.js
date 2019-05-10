@@ -305,18 +305,18 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 							};
 							utils.pushMessage(rid,channel,param,cache);
 							//channel.pushMessage(param);
-							setTimeout(function(){
-								gameDao.get_peipai_num(rid,function(err,peipai_num){
-									if(users.length <= peipai_num){
+							gameDao.get_peipai_num(rid,function(err,peipai_num){
+								if(users.length <= peipai_num){
+									setTimeout(function(){
 										var param = {
 											route:'onPeiPaiFinish',
 											location:location
 										};
 										utils.pushMessage(rid,channel,param,cache);
 										//channel.pushMessage(param);
-									}
-								});
-							},1000);
+									},1000);
+								}
+							});
 						});
 					})
 				});
@@ -409,26 +409,26 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 			};
 			utils.pushMessage(rid,channel,param,cache);
 			//channel.pushMessage(param);
-			setTimeout(function(){
-				gameDao.get_room_by_room_id(rid,function(err,room_info){
-					gameDao.get_every_score(rid,function(err,scores){
-						var xiazhu_num = 0;
-						for(var i = 1;i <= 4;i++){
-							if(room_info['is_game_' + i] == 3){
-								xiazhu_num += 1;
+			gameDao.get_room_by_room_id(rid,function(err,room_info){
+				gameDao.get_every_score(rid,function(err,scores){
+					var xiazhu_num = 0;
+					for(var i = 1;i <= 4;i++){
+						if(room_info['is_game_' + i] == 3){
+							xiazhu_num += 1;
+						}
+					}
+					if(xiazhu_num >= users.length - 1){
+						var flag = 1;
+						for(var i = 0;i < scores.length;i++){
+							if(scores[i] == null || (room_info.zhuang_location - 1) == i){
+								continue;
+							}
+							if(scores[i][0] != room_info['left_score_' + room_info.zhuang_location]){
+								flag = 0;
+								break;
 							}
 						}
-						if(xiazhu_num >= users.length - 1){
-							var flag = 1;
-							for(var i = 0;i < scores.length;i++){
-								if(scores[i] == null || (room_info.zhuang_location - 1) == i){
-									continue;
-								}
-								if(scores[i][0] != room_info['left_score_' + room_info.zhuang_location]){
-									flag = 0;
-									break;
-								}
-							}
+						setTimeout(function(){
 							//玩家押满注 庄家需要明牌
 							gameDao.set_zhuang_mingpai(rid,flag,function(err,res){
 								var num1 = utils.get_random_num(1,6);
@@ -441,10 +441,10 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 									LZGameLogicRemote.fapai(rid,num1,num2,cache,channel,channelService);
 								});
 							});
-						}
-					});
+						},2000);
+					}
 				});
-			},2000);
+			});
 		});
 	});
 };
@@ -507,7 +507,7 @@ LZGameLogicRemote.open = function(rid,location,cache,channel,channelService){
 					LZGameLogicRemote.end_game(rid,locals_score,cache,channel,channelService);
 				});
 			});
-		},1000);
+		},2000);
 	});
 };
 

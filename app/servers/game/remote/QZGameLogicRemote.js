@@ -303,18 +303,18 @@ QZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 							};
 							utils.pushMessage(rid,channel,param,cache);
 							//channel.pushMessage(param);
-							setTimeout(function(){
-								gameDao.get_peipai_num(rid,function(err,peipai_num){
-									if(users.length <= peipai_num){
+							gameDao.get_peipai_num(rid,function(err,peipai_num){
+								if(users.length <= peipai_num){
+									setTimeout(function(){
 										var param = {
 											route:'onPeiPaiFinish',
 											location:location
 										};
 										utils.pushMessage(rid,channel,param,cache);
-										//channel.pushMessage(param);
-									}
-								});
-							},1000);
+									//channel.pushMessage(param);
+									},1000);
+								}
+							});
 						});
 					})
 				});
@@ -380,28 +380,28 @@ QZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 			};
 			utils.pushMessage(rid,channel,param,cache);
 			//channel.pushMessage(param);
-			setTimeout(function(){
-				gameDao.get_room_by_room_id(rid,function(err,room_info){
-					console.log('xiazhu:',room_info);
-					var xiazhu_num = 0;
-					for(var i = 1;i <= 4;i++){
-						if(room_info['is_game_' + i] == 3){
-							xiazhu_num += 1;
-						}
+			gameDao.get_room_by_room_id(rid,function(err,room_info){
+				console.log('xiazhu:',room_info);
+				var xiazhu_num = 0;
+				for(var i = 1;i <= 4;i++){
+					if(room_info['is_game_' + i] == 3){
+						xiazhu_num += 1;
 					}
-					if(xiazhu_num >= users.length - 1){
-						var num1 = utils.get_random_num(1,6);
-						var num2 = utils.get_random_num(1,6);
-						var local = (num1 + num2) % 4;
-						if(local == 0){
-							local = 4;
-						}
+				}
+				if(xiazhu_num >= users.length - 1){
+					var num1 = utils.get_random_num(1,6);
+					var num2 = utils.get_random_num(1,6);
+					var local = (num1 + num2) % 4;
+					if(local == 0){
+						local = 4;
+					}
+					setTimeout(function(){
 						gameDao.set_first_location(rid,local,4,function(err,res){
 							QZGameLogicRemote.fapai(rid,num1,num2,cache,channel,channelService);
 						});
-					}
-				});
-			},2000);
+					},2000);
+				}
+			});
 		});
 	});
 };
@@ -464,7 +464,7 @@ QZGameLogicRemote.open = function(rid,location,cache,channel,channelService){
 					QZGameLogicRemote.end_game(rid,locals_score,cache,channel,channelService);
 				});
 			});
-		},1000);
+		},2000);
 	});
 };
 
