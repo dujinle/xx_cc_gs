@@ -208,97 +208,106 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 				for(var i = 0; i < users.length; i++) {
 					users[i] = users[i].split('*')[0];
 				}
-				async.parallel([
-					function(callback){
-						if(users[0]!=null){
-							playerDao.get_player_by_id(users[0],function(err,res){
-								gameDao.get_player_local(rid,users[0],function(err,location){
-									if(room_info.game_type == 1 && location == 1){
-										playerDao.sub_fangka(users[0],users.length,function(err,pret){
-										})
-									}else if(room_info.game_type != 1){
-										playerDao.sub_fangka(users[0],1,function(err,pret){
-										});
-									}
-									res['location'] = location;
-									callback(null, res);
+				//再次确认一下是否有效的游戏 可以开始
+				if(room_info.real_num == room_info.player_num){
+					async.parallel([
+						function(callback){
+							if(users[0]!=null){
+								playerDao.get_player_by_id(users[0],function(err,res){
+									gameDao.get_player_local(rid,users[0],function(err,location){
+										if(room_info.game_type == 1 && location == 1){
+											playerDao.sub_fangka(users[0],users.length,function(err,pret){
+											})
+										}else if(room_info.game_type != 1){
+											playerDao.sub_fangka(users[0],1,function(err,pret){
+											});
+										}
+										res['location'] = location;
+										callback(null, res);
+									});
 								});
-							});
-						}else{
-							callback(null,'null');
-						}
-					},
-					function(callback){
-						if(users[1]!=null){
-							playerDao.get_player_by_id(users[1],function(err,res){
-								gameDao.get_player_local(rid,users[1],function(err,location){
-									if(room_info.game_type == 1 && location == 1){
-										playerDao.sub_fangka(users[0],users.length,function(err,pret){
-										})
-									}else if(room_info.game_type != 1){
-										playerDao.sub_fangka(users[0],1,function(err,pret){
-										});
-									}
-									res['location'] = location;
-									callback(null, res);
+							}else{
+								callback(null,'null');
+							}
+						},
+						function(callback){
+							if(users[1]!=null){
+								playerDao.get_player_by_id(users[1],function(err,res){
+									gameDao.get_player_local(rid,users[1],function(err,location){
+										if(room_info.game_type == 1 && location == 1){
+											playerDao.sub_fangka(users[0],users.length,function(err,pret){
+											})
+										}else if(room_info.game_type != 1){
+											playerDao.sub_fangka(users[0],1,function(err,pret){
+											});
+										}
+										res['location'] = location;
+										callback(null, res);
+									});
 								});
-							});
-						}else{
-							callback(null,'null');
-						}
-					},
-					function(callback){
-						if(users[2]!=null){
-							playerDao.get_player_by_id(users[2],function(err,res){
-								gameDao.get_player_local(rid,users[2],function(err,location){
-									if(room_info.game_type == 1 && location == 1){
-										playerDao.sub_fangka(users[0],users.length,function(err,pret){
-										})
-									}else if(room_info.game_type != 1){
-										playerDao.sub_fangka(users[0],1,function(err,pret){
-										});
-									}
-									res['location'] = location;
-									callback(null, res);
+							}else{
+								callback(null,'null');
+							}
+						},
+						function(callback){
+							if(users[2]!=null){
+								playerDao.get_player_by_id(users[2],function(err,res){
+									gameDao.get_player_local(rid,users[2],function(err,location){
+										if(room_info.game_type == 1 && location == 1){
+											playerDao.sub_fangka(users[0],users.length,function(err,pret){
+											})
+										}else if(room_info.game_type != 1){
+											playerDao.sub_fangka(users[0],1,function(err,pret){
+											});
+										}
+										res['location'] = location;
+										callback(null, res);
+									});
 								});
-							});
-						}else{
-							callback(null,'null');
-						}
-					},
-					function(callback){
-						if(users[3]!=null){
-							playerDao.get_player_by_id(users[3],function(err,res){
-								gameDao.get_player_local(rid,users[3],function(err,location){
-									if(room_info.game_type == 1 && location == 1){
-										playerDao.sub_fangka(users[0],users.length,function(err,pret){
-										})
-									}else if(room_info.game_type != 1){
-										playerDao.sub_fangka(users[0],1,function(err,pret){
-										});
-									}
-									res['location'] = location;
-									callback(null, res);
+							}else{
+								callback(null,'null');
+							}
+						},
+						function(callback){
+							if(users[3]!=null){
+								playerDao.get_player_by_id(users[3],function(err,res){
+									gameDao.get_player_local(rid,users[3],function(err,location){
+										if(room_info.game_type == 1 && location == 1){
+											playerDao.sub_fangka(users[0],users.length,function(err,pret){
+											})
+										}else if(room_info.game_type != 1){
+											playerDao.sub_fangka(users[0],1,function(err,pret){
+											});
+										}
+										res['location'] = location;
+										callback(null, res);
+									});
 								});
-							});
-						}else{
-							callback(null,'null');
+							}else{
+								callback(null,'null');
+							}
 						}
-					}
-				],
-				function(err, results){
+					],
+					function(err, results){
+						var param = {
+							route: 'onStartGame',
+							players: results
+						};
+						channel.pushMessage(param);
+						var cacheData = {
+							'channelMsg':[],
+							'paixing':null,
+							'connect':null
+						};
+						self.cache.put(rid,cacheData);
+					});
+				}else{
 					var param = {
-						route: 'onStartGame',
-						players: results
+						route: 'onStartFail',
+						msg: '其他玩家没有正常进入游戏'
 					};
 					channel.pushMessage(param);
-					var cacheData = {
-						'channelMsg':[],
-						'paixing':null,
-						'connect':null
-					};
-					self.cache.put(rid,cacheData);
-				});
+				}
 			});
 		});
 	}
@@ -339,7 +348,7 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 							route: 'onLeaveRoom',
 							location:location,
 							player_id:username,
-							data:res
+							real_num:res
 						};
 						channel.pushMessage(param);
 					});
