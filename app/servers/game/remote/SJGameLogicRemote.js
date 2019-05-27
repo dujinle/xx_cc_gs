@@ -384,14 +384,15 @@ SJGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 	logger.info("--------users in fapai:"+users);
 	gameDao.set_xiazhu(rid,location,chips,function(err,res){
 		gameDao.set_player_is_game(rid,location,3,function(err,res){
-			var param = {
-				route:'onXiazhu',
-				location:location,
-				chips:chips
-			};
-			utils.pushMessage(rid,channel,param,cache);
 			//channel.pushMessage(param);
 			gameDao.get_room_by_room_id(rid,function(err,room_info){
+				logger.info('xiazhu:',room_info);
+				var param = {
+					route:'onXiazhu',
+					location:location,
+					chips:chips
+				};
+				utils.pushMessage(rid,channel,param,cache);
 				var xiazhu_num = 0;
 				for(var i = 1;i <= 4;i++){
 					if(room_info['is_game_' + i] == 3){
