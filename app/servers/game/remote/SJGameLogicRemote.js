@@ -399,14 +399,14 @@ SJGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 					}
 				}
 
-				if(xiazhu_num >= users.length - 1){
+				if(xiazhu_num == users.length - 1){
+					var num1 = utils.get_random_num(1,6);
+					var num2 = utils.get_random_num(1,6);
+					var local = (num1 + num2) % 4;
+					if(local == 0){
+						local = 4;
+					}
 					setTimeout(function(){
-						var num1 = utils.get_random_num(1,6);
-						var num2 = utils.get_random_num(1,6);
-						var local = (num1 + num2) % 4;
-						if(local == 0){
-							local = 4;
-						}
 						gameDao.set_first_location(rid,local,4,function(err,res){
 							SJGameLogicRemote.fapai(rid,num1,num2,cache,channel,channelService);
 						});

@@ -388,7 +388,7 @@ QZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 						xiazhu_num += 1;
 					}
 				}
-				if(xiazhu_num >= users.length - 1){
+				if(xiazhu_num == users.length - 1){
 					var num1 = utils.get_random_num(1,6);
 					var num2 = utils.get_random_num(1,6);
 					var local = (num1 + num2) % 4;

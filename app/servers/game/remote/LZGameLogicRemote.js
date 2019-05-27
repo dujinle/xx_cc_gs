@@ -417,7 +417,7 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 							xiazhu_num += 1;
 						}
 					}
-					if(xiazhu_num >= users.length - 1){
+					if(xiazhu_num == users.length - 1){
 						var flag = 1;
 						for(var i = 0;i < scores.length;i++){
 							if(scores[i] == null || (room_info.zhuang_location - 1) == i){
@@ -428,20 +428,21 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 								break;
 							}
 						}
-						setTimeout(function(){
-							//玩家押满注 庄家需要明牌
-							gameDao.set_zhuang_mingpai(rid,flag,function(err,res){
-								var num1 = utils.get_random_num(1,6);
-								var num2 = utils.get_random_num(1,6);
-								var local = (num1 + num2) % 4;
-								if(local == 0){
-									local = 4;
-								}
+						
+						//玩家押满注 庄家需要明牌
+						gameDao.set_zhuang_mingpai(rid,flag,function(err,res){
+							var num1 = utils.get_random_num(1,6);
+							var num2 = utils.get_random_num(1,6);
+							var local = (num1 + num2) % 4;
+							if(local == 0){
+								local = 4;
+							}
+							setTimeout(function(){
 								gameDao.set_first_location(rid,local,4,function(err,res){
 									LZGameLogicRemote.fapai(rid,num1,num2,cache,channel,channelService);
 								});
-							});
-						},2000);
+							},2000);
+						});
 					}
 				});
 			});
