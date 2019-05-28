@@ -1120,3 +1120,77 @@ gameDao.remove_room = function(rid,cb){
 		}
 	});
 };
+
+/**
+ * 设置当前出牌玩家
+ * */
+gameDao.setCurPlayer = function(rid,cur_player,cb){
+    var sql = "update game_room set fangka_num = ? where rid = ?";
+    var args = [cur_player,rid];
+    sqlTemp.update(sql,args,function(err,res){
+        if(err!==null){
+            console.error("db:getCurPlayer error");
+            utils.invokeCallback(cb,err, null);
+        }else{
+            //cb(res[0].current_player);
+            console.log("db:getCurPlayer success");
+            //cb(cur_player);
+            utils.invokeCallback(cb,null, cur_player);
+        }
+    });
+};
+
+/**
+ * 根据当前正在出牌的玩家，更改为下一个出牌的玩家
+ * */
+gameDao.nextCurPlayer = function(rid,cb){
+    var sql = "select * from game_room where rid = ?";
+    var args = [rid];
+    sqlTemp.query(sql,args,function(err,res){
+        if(err!==null){
+            console.error("db:getCurPlayer error");
+            utils.invokeCallback(cb,err, null);
+        }else{
+            var i = res[0].fangka_num;
+			var status = res[0]['is_game_' + i];
+            for(var j = i + 1;j < 9;j++){
+				if(j > 4){
+					j =	j - 4;
+                }
+                if(res[0]['is_game_' + j] != status){
+					var sql = "update game_room set fangka_num = ? where room_num = ?";
+					var args = [j,rid];
+					sqlTemp.update(sql,args,function(err,res){
+						if(err!==null){
+							console.error("db:getCurPlayer error");
+							utils.invokeCallback(cb,err, null);
+						}else{
+							//cb(res[0].current_player);
+							console.log("db:getCurPlayer success");
+							//cb(j);
+							utils.invokeCallback(cb,null, j);
+						}
+					});
+					break;
+                }
+			}
+        }
+    });
+};
+
+/**
+ * 获取当前正在出牌的玩家
+ * */
+gameDao.getCurPlayer = function(rid,cb){
+    var sql = "select * from game_room where rid = ?";
+    var args = [rid];
+    sqlTemp.query(sql,args,function(err,res){
+        if(err!==null){
+            console.error("db:getCurPlayer error");
+            utils.invokeCallback(cb,err, null);
+        }else{
+            //cb(res[0].current_player);
+            utils.invokeCallback(cb,null, res[0].fangka_num);
+        }
+    });
+};

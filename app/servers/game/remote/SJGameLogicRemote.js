@@ -327,54 +327,64 @@ SJGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 
 SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 	gameDao.set_player_is_game(rid,location,1,function(err,res){
-		var param = {
-			route:'onReady',
-			location:location
-		};
-		utils.pushMessage(rid,channel,param,cache);
-		//channel.pushMessage(param);
+		gameDao.setCurPlayer(rid,location,function(err,cur_player){
+			var param = {
+				route:'onReady',
+				location:location
+			};
+			utils.pushMessage(rid,channel,param,cache);
+			//channel.pushMessage(param);
 
-		var ready_num = 0;
-		gameDao.get_all_is_game(rid,function(err,is_games){
-			if(is_games != null){
-				for(var i = 0;i < is_games.length;i++){
-					if(is_games[i] == 1){
+			gameDao.nextCurPlayer(rid,function(err,new_loc){
+				logger.info("nextCurPlayer success");
+				SJGameLogicRemote.changeCurPlayer(rid,new_loc,status,channel);
+				//出牌定时，重置定时器
+				delayDao.removeDelay(rid,function(){
+					logger.info("follow:removeDelay success");
+					delayDao.addDelay(rid,10,function(){
+						logger.info("follow:addDelay success");
+					});
+				});
+			});
+
+			gameDao.get_room_by_room_id(rid,function(err,room_info){
+				var ready_num = 0;
+				for(var i = 1;i <= 4;i++){
+					if(room_info['is_game_' + i] == 1){
 						ready_num = ready_num + 1;
 					}
 				}
-				gameDao.get_room_by_room_id(rid,function(err,room_info){
-					gameDao.get_players_location(rid,function(err,locations){
-						if(locations.length == ready_num){
-							var num1 = utils.get_random_num(1,6);
-							var num2 = utils.get_random_num(1,6);
-							var local = (num1 + num2) % locations.length;
-							if(local == 0){
-								local = locations.length;
-							}
-							var zhuang_id = locations[local - 1];
-							gameDao.set_all_player_is_game(rid,2,function(err,res){
-								setTimeout(function(){
-									gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
-										gameDao.sub_local_gold(rid,zhuang_id,100,function(err,res){
-											gameDao.set_is_gaming(rid,2,function(err,res){
-												var param = {
-													route:'onGetZhuang',
-													nums:[num1,num2],
-													scores:[room_info.left_score_1,room_info.left_score_2,room_info.left_score_3,room_info.left_score_4],
-													zhuang_local:zhuang_id
-												};
-												param['scores'][zhuang_id - 1] = 100;
-												utils.pushMessage(rid,channel,param,cache);
-												//channel.pushMessage(param);
-											});
+				gameDao.get_players_location(rid,function(err,locations){
+					if(locations.length == ready_num){
+						var num1 = utils.get_random_num(1,6);
+						var num2 = utils.get_random_num(1,6);
+						var local = (num1 + num2) % locations.length;
+						if(local == 0){
+							local = locations.length;
+						}
+						var zhuang_id = locations[local - 1];
+						gameDao.set_all_player_is_game(rid,2,function(err,res){
+							setTimeout(function(){
+								gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
+									gameDao.sub_local_gold(rid,zhuang_id,100,function(err,res){
+										gameDao.set_is_gaming(rid,2,function(err,res){
+											var param = {
+												route:'onGetZhuang',
+												nums:[num1,num2],
+												scores:[room_info.left_score_1,room_info.left_score_2,room_info.left_score_3,room_info.left_score_4],
+												zhuang_local:zhuang_id
+											};
+											param['scores'][zhuang_id - 1] = 100;
+											utils.pushMessage(rid,channel,param,cache);
+											//channel.pushMessage(param);
 										});
 									});
-								},1000);
-							});
-						}
-					});
+								});
+							},1000);
+						});
+					}
 				});
-			}
+			});
 		});
 	});
 };
@@ -670,4 +680,14 @@ SJGameLogicRemote.send_gift = function(rid,send_from,send_to,type,cache,channel,
 	};
 	utils.pushMessage(rid,channel,param,cache);
 	//channel.pushMessage(param);
+};
+
+/*采取依次操作方式 避免因为同时操作引起的 异步问题*/
+SJGameLogicRemote.changeCurPlayer = function(rid,location,status,channel){
+    var param = {
+        route:'onChangePlayer',
+        location:location,
+		status:status
+    };
+    channel.pushMessage(param);
 };
