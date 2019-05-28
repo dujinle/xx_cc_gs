@@ -337,7 +337,7 @@ SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 
 			gameDao.nextCurPlayer(rid,function(err,new_loc){
 				logger.info("nextCurPlayer success");
-				SJGameLogicRemote.changeCurPlayer(rid,new_loc,status,channel);
+				SJGameLogicRemote.changeCurPlayer(rid,new_loc,1,channel);
 				//出牌定时，重置定时器
 				delayDao.removeDelay(rid,function(){
 					logger.info("follow:removeDelay success");

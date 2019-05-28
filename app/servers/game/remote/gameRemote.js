@@ -4,6 +4,7 @@
 var Code	  = require('../../../consts/code');
 var gameDao   = require('../../../dao/gameDao');
 var playerDao = require('../../../dao/playerDao');
+var utils     = require('../../../util/utils');
 var pomelo    = require('pomelo');
 var gameLogicRemote = require('./gameLogicRemote');
 var async     = require('async');
