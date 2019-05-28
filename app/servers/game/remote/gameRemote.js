@@ -1,8 +1,10 @@
 /**
  * Created by wuningjian on 2/23/16.
  */
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 var Code	  = require('../../../consts/code');
 var gameDao   = require('../../../dao/gameDao');
+var delayDao   = require('../../../dao/delayDao');
 var playerDao = require('../../../dao/playerDao');
 var utils     = require('../../../util/utils');
 var pomelo    = require('pomelo');
@@ -305,9 +307,9 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 							};
 							self.cache.put(rid,cacheData);
 							delayDao.removeDelay(rid,function(){
-								logger.info("follow:removeDelay success");
+								logger.info("start game :removeDelay success");
 								delayDao.addDelay(rid,10,function(){
-									logger.info("follow:addDelay success");
+									logger.info("start game:addDelay success");
 								});
 							});
 						});
