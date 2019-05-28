@@ -289,17 +289,27 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 						}
 					],
 					function(err, results){
-						var param = {
-							route: 'onStartGame',
-							players: results
-						};
-						channel.pushMessage(param);
-						var cacheData = {
-							'channelMsg':[],
-							'paixing':null,
-							'connect':null
-						};
-						self.cache.put(rid,cacheData);
+						var random_uid = utils.get_random_num(0,room_info.real_num);
+						gameDao.get_player_local(rid,users[random_uid],function(err,location){
+							var param = {
+								route: 'onStartGame',
+								players: results,
+								location:location
+							};
+							channel.pushMessage(param);
+							var cacheData = {
+								'channelMsg':[],
+								'paixing':null,
+								'connect':null
+							};
+							self.cache.put(rid,cacheData);
+							delayDao.removeDelay(rid,function(){
+								logger.info("follow:removeDelay success");
+								delayDao.addDelay(rid,10,function(){
+									logger.info("follow:addDelay success");
+								});
+							});
+						});
 					});
 				}else{
 					var param = {
