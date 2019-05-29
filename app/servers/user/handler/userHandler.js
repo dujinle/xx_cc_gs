@@ -2,6 +2,7 @@
  * Created by WTF Wei on 2016/3/25.
  * Function :
  */
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 var Code	  = require('../../../consts/code');
 var playerDao = require('../../../dao/playerDao');
 var userDao = require('../../../dao/userDao');
@@ -20,12 +21,12 @@ handler.userInfoProcess = function(msg,session,next){
 	var process = msg.process;
 	if(process == "get_player"){
 		var player_id  = msg.player_id;
-		console.log('handler.get_player ', player_id);
-		console.log('start go into playerDao.updatePlayerInfo.......');
+		logger.info('handler.get_player ', player_id);
+		logger.info('start go into playerDao.updatePlayerInfo.......');
 		playerDao.get_player_by_id(player_id, function (err, res) {
 			if (err) {
-				console.log(err.message + '===========err============');
-				console.log(err);
+				logger.info(err.message + '===========err============');
+				logger.info(err);
 				next(null, {code: Code.SQL_ERROR,msg: err.message});
 			}else{
 				next(null, {code: Code.OK,msg: res});

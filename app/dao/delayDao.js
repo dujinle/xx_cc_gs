@@ -1,6 +1,7 @@
 /**
  * Created by WTF on 2016/3/10.
  */
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 var util = require('../util/utils');
 var Redis = require('ioredis');
 var redis = new Redis();
@@ -22,17 +23,17 @@ delayDao.addDelay = function(channel,timeout,cb){
     redis.select(9,function(err){
         if(err) {
             code=500;
-            console.log('select9' + err);
+            logger.info('select9' + err);
             util.invokeCallback(cb,err,code);
         }
         redis.multi()
             .set(channel, 'content')
             .expire(channel, timeout)
             .exec(function(err) {
-                console.log(channel,timeout);
+                logger.info(channel,timeout);
                 if(err) {
                     code = 500;
-                    console.log("添加计划事件失败 : " + 'content');
+                    logger.info("添加计划事件失败 : " + 'content');
                     util.invokeCallback(cb,err,code);
                     return;
                 }else{
@@ -45,12 +46,12 @@ delayDao.addDelay = function(channel,timeout,cb){
 delayDao.removeDelay = function(channel,cb){
     redis.select(9, function(err) {
         if(err){
-			console.log("removeDelay error:" + err);
+			logger.info("removeDelay error:" + err);
 			process.exit(4);
 		}
         redis.del(channel,function(err){
-			console.log("redis.del:.......");
-			console.log(err);
+			logger.info("redis.del:.......");
+			logger.info(err);
 		});
         cb();
     });
@@ -60,21 +61,20 @@ delayDao.removeDelay = function(channel,cb){
  * 启动监听
  */
 delayDao.startListener = function(){
-    //
     redis.select(9, function(err) {
         if(err) process.exit(4);
         redis.subscribe("__keyevent@9__:expired", function() {
-            console.log("订阅过期频道成功");
+            logger.info("订阅过期频道成功");
         });
         redis.subscribe("__keyevent@9__:del",function(){
-            console.log("订阅删除频道成功");
+            logger.info("订阅删除频道成功");
         });
     });
 
     // 监听从 `订阅频道` 来的消息
     redis.on("message", function(sub,key){
-        //console.log('get message');
-        console.log(sub,key+'被删除了/已过期了');
+        logger.info('get message');
+        logger.info(sub,key+'被删除了/已过期了');
         //example key表示pomelo的一个channel名(也就是addDelay传入的channel参数)，获取channel之后，向该channel发送消息
 
     });
@@ -83,10 +83,10 @@ delayDao.startListener = function(){
 delayDao.stopDelay = function(){
     redis.select(9, function(err) {
         redis.unsubscribe("__keyevent@9__:expired", function() {
-            //console.log("退订过期频道成功");
+            logger.info("退订过期频道成功");
         });
         redis.unsubscribe("__keyevent@9__:del", function() {
-            //console.log("退订删除频道成功");
+            logger.info("退订删除频道成功");
         })
     });
 };
