@@ -62,7 +62,6 @@ SJGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 				//channel.pushMessage(param);
 			});
 		}
-	
 
 		//3000ms为发牌动作执行时间间隔
 		setTimeout(function(){
@@ -81,58 +80,67 @@ SJGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 				paixing = SJGameLogicRemote.get_card_arr_from_cache(rid,cache);
 			}
 			gameDao.sub_round(rid,round,function(err,my_round){
-				var first_location = roomInfo.zhuang_location + 1;
-				if(first_location > 4){
-					first_location = first_location - 4;
-				}
-				async.waterfall([
-					function(cb){
-						gameDao.update_pai(rid,paixing[0],1,function(err){
-							gameDao.set_player_is_game(rid,1,4,function(err,res){
-								logger.info("gameDao.updatePai location 1 success");
-								cb(null);
-							});
-						});
-					},
-					function(cb){
-						gameDao.update_pai(rid,paixing[1],2,function(err){
-							gameDao.set_player_is_game(rid,2,4,function(err,res){
-								logger.info("gameDao.updatePai location 2 success");
-								cb(null);
-							});
-						});
-					},
-					function(cb){
-						gameDao.update_pai(rid,paixing[2],3,function(err){
-							gameDao.set_player_is_game(rid,3,4,function(err,res){
-								logger.info("gameDao.updatePai location 3 success");
-								cb(null);
-							});
-						});
-					},
-					function(cb){
-						gameDao.update_pai(rid,paixing[3],4,function(err){
-							gameDao.set_player_is_game(rid,4,4,function(err,res){
-								logger.info("gameDao.updatePai success");
-								cb(null);
-							});
-						});
+				gameDao.get_players_location(rid,function(err,locations){
+					var first_location = roomInfo.zhuang_location + 1;
+					for(var i = 0;i < locations.length;i++){
+						if(roomInfo.zhuang_location == locations[i]){
+							if(i == locations.length - 1){
+								first_location = locations[0];
+							}else{
+								first_location = locations[i + 1];
+							}
+							break;
+						}
 					}
-				],function(err,result){
-					var param = {
-						route:'onShoupai',
-						paixing:paixing,
-						round:my_round,
-						location:first_location
-					};
-					utils.pushMessage(rid,channel,param,cache);
-					delayDao.removeDelay(rid,function(){
-						logger.info("follow:removeDelay success");
-						delayDao.addDelay(rid,10,function(){
-							logger.info("follow:addDelay success");
+					async.waterfall([
+						function(cb){
+							gameDao.update_pai(rid,paixing[0],1,function(err){
+								gameDao.set_player_is_game(rid,1,4,function(err,res){
+									logger.info("gameDao.updatePai location 1 success");
+									cb(null);
+								});
+							});
+						},
+						function(cb){
+							gameDao.update_pai(rid,paixing[1],2,function(err){
+								gameDao.set_player_is_game(rid,2,4,function(err,res){
+									logger.info("gameDao.updatePai location 2 success");
+									cb(null);
+								});
+							});
+						},
+						function(cb){
+							gameDao.update_pai(rid,paixing[2],3,function(err){
+								gameDao.set_player_is_game(rid,3,4,function(err,res){
+									logger.info("gameDao.updatePai location 3 success");
+									cb(null);
+								});
+							});
+						},
+						function(cb){
+							gameDao.update_pai(rid,paixing[3],4,function(err){
+								gameDao.set_player_is_game(rid,4,4,function(err,res){
+									logger.info("gameDao.updatePai success");
+									cb(null);
+								});
+							});
+						}
+					],function(err,result){
+						var param = {
+							route:'onShoupai',
+							paixing:paixing,
+							round:my_round,
+							location:first_location
+						};
+						utils.pushMessage(rid,channel,param,cache);
+						delayDao.removeDelay(rid,function(){
+							logger.info("follow:removeDelay success");
+							delayDao.addDelay(rid,10,function(){
+								logger.info("follow:addDelay success");
+							});
 						});
+						//channel.pushMessage(param);
 					});
-					//channel.pushMessage(param);
 				});
 			});
 		},3000);
@@ -315,29 +323,29 @@ SJGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 									flag:flag
 								};
 								utils.pushMessage(rid,channel,param,cache);
-								gameDao.nextCurPlayer(rid,function(err,new_loc){
-									logger.info("nextCurPlayer success");
-									SJGameLogicRemote.changeCurPlayer(rid,new_loc,5,channel);
-									//出牌定时，重置定时器
-									delayDao.removeDelay(rid,function(){
-										logger.info("follow:removeDelay success");
-										delayDao.addDelay(rid,10,function(){
-											logger.info("follow:addDelay success");
-										});
-									});
-								});
 								//channel.pushMessage(param);
 								gameDao.get_peipai_num(rid,function(err,peipai_num){
-									if(users.length <= peipai_num){
-										setTimeout(function(){
-											var param = {
-												route:'onPeiPaiFinish',
-												location:location
-											};
-											utils.pushMessage(rid,channel,param,cache);
-										//channel.pushMessage(param);
-										},1000);
-									}
+									delayDao.removeDelay(rid,function(){
+										if(users.length <= peipai_num){
+											setTimeout(function(){
+												var param = {
+													route:'onPeiPaiFinish',
+													location:location
+												};
+												utils.pushMessage(rid,channel,param,cache);
+											//channel.pushMessage(param);
+											},1000);
+										}else{
+											gameDao.nextCurPlayer(rid,function(err,new_loc){
+												logger.info("nextCurPlayer success");
+												SJGameLogicRemote.changeCurPlayer(rid,new_loc,5,channel);
+												//出牌定时，重置定时器
+												delayDao.addDelay(rid,10,function(){
+													logger.info("follow:addDelay success");
+												});
+											});
+										}
+									});
 								});
 							});
 						})
@@ -347,7 +355,6 @@ SJGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 		});
 	});
 };
-
 
 SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 	gameDao.set_player_is_game(rid,location,1,function(err,res){
@@ -434,41 +441,39 @@ SJGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 					chips:chips
 				};
 				utils.pushMessage(rid,channel,param,cache);
-				gameDao.nextCurPlayer(rid,function(err,new_loc){
-					logger.info("nextCurPlayer success");
-					SJGameLogicRemote.changeCurPlayer(rid,new_loc,3,channel);
-					//出牌定时，重置定时器
-					delayDao.removeDelay(rid,function(){
-						logger.info("follow:removeDelay success");
-						delayDao.addDelay(rid,10,function(){
-							logger.info("follow:addDelay success");
-						});
-					});
-				});
 				
 				gameDao.get_room_by_room_id(rid,function(err,room_info){
 					logger.info('xiazhu:',room_info);
-					
-					var xiazhu_num = 0;
-					for(var i = 1;i <= 4;i++){
-						if(room_info['is_game_' + i] == 3){
-							xiazhu_num += 1;
+					delayDao.removeDelay(rid,function(){
+						var xiazhu_num = 0;
+						for(var i = 1;i <= 4;i++){
+							if(room_info['is_game_' + i] == 3){
+								xiazhu_num += 1;
+							}
 						}
-					}
-
-					if(xiazhu_num == users.length - 1){
-						var num1 = utils.get_random_num(1,6);
-						var num2 = utils.get_random_num(1,6);
-						var local = (num1 + num2) % 4;
-						if(local == 0){
-							local = 4;
-						}
-						setTimeout(function(){
-							gameDao.set_first_location(rid,local,4,function(err,res){
-								SJGameLogicRemote.fapai(rid,num1,num2,cache,channel,channelService);
+						if(xiazhu_num == users.length - 1){
+							var num1 = utils.get_random_num(1,6);
+							var num2 = utils.get_random_num(1,6);
+							var local = (num1 + num2) % 4;
+							if(local == 0){
+								local = 4;
+							}
+							setTimeout(function(){
+								gameDao.set_first_location(rid,local,4,function(err,res){
+									SJGameLogicRemote.fapai(rid,num1,num2,cache,channel,channelService);
+								});
+							},2000);
+						}else{
+							gameDao.nextCurPlayer(rid,function(err,new_loc){
+								logger.info("nextCurPlayer success");
+								SJGameLogicRemote.changeCurPlayer(rid,new_loc,3,channel);
+								//出牌定时，重置定时器
+								delayDao.addDelay(rid,10,function(){
+									logger.info("xiazhu:addDelay success");
+								});
 							});
-						},2000);
-					}
+						}
+					});
 				});
 			});
 		});
