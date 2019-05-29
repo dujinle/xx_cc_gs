@@ -293,7 +293,8 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 					],
 					function(err, results){
 						gameDao.get_players_location(rid,function(err,locations){
-							var random_uid = utils.get_random_num(0,locations.length);
+							var random_uid = utils.get_random_num(0,locations.length - 1);
+							logger.info('start game start location:',random_uid,locations);
 							var param = {
 								route: 'onStartGame',
 								players: results,
@@ -306,11 +307,8 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 								'connect':null
 							};
 							self.cache.put(rid,cacheData);
-							delayDao.removeDelay(rid,function(){
-								logger.info("start game :removeDelay success");
-								delayDao.addDelay(rid,10,function(){
-									logger.info("start game:addDelay success");
-								});
+							delayDao.addDelay(rid,10,function(){
+								logger.info("start game:addDelay success");
 							});
 						});
 					});
