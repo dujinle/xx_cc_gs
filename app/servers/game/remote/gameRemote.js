@@ -292,12 +292,12 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 						}
 					],
 					function(err, results){
-						var random_uid = utils.get_random_num(0,room_info.real_num);
-						gameDao.get_player_local(rid,users[random_uid],function(err,location){
+						gameDao.get_players_location(rid,function(err,locations){
+							var random_uid = utils.get_random_num(0,locations.length);
 							var param = {
 								route: 'onStartGame',
 								players: results,
-								location:location
+								location:locations[random_uid]
 							};
 							channel.pushMessage(param);
 							var cacheData = {

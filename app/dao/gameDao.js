@@ -1151,13 +1151,14 @@ gameDao.nextCurPlayer = function(rid,cb){
             console.error("db:getCurPlayer error");
             utils.invokeCallback(cb,err, null);
         }else{
-            var i = res[0].fangka_num;
-			var status = res[0]['is_game_' + i];
+			var room_info = res[0];
+            var i = room_info.fangka_num;
+			var status = room_info['is_game_' + i];
             for(var j = i + 1;j < 9;j++){
 				if(j > 4){
 					j =	j - 4;
                 }
-                if(res[0]['is_game_' + j] != status){
+                if(room_info['is_game_' + j] != status && room_info['location' + j] != null && room_info['location' + j] != 'null'){
 					var sql = "update game_room set fangka_num = ? where room_num = ?";
 					var args = [j,rid];
 					sqlTemp.update(sql,args,function(err,res){
