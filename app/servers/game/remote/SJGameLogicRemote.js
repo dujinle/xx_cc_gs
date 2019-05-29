@@ -358,13 +358,13 @@ SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 			};
 			utils.pushMessage(rid,channel,param,cache);
 			//channel.pushMessage(param);
-
-			gameDao.nextCurPlayer(rid,function(err,new_loc){
-				logger.info("nextCurPlayer success");
-				SJGameLogicRemote.changeCurPlayer(rid,new_loc,1,channel);
-				//出牌定时，重置定时器
-				delayDao.removeDelay(rid,function(){
-					logger.info("follow:removeDelay success");
+			delayDao.removeDelay(rid,function(){
+				logger.info("follow:removeDelay success");
+				gameDao.nextCurPlayer(rid,function(err,new_loc){
+					logger.info("nextCurPlayer success");
+					SJGameLogicRemote.changeCurPlayer(rid,new_loc,1,channel);
+					//出牌定时，重置定时器
+					
 					delayDao.addDelay(rid,10,function(){
 						logger.info("follow:addDelay success");
 					});
@@ -387,10 +387,11 @@ SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 							local = locations.length;
 						}
 						var zhuang_id = locations[local - 1];
-						var first_location = zhuang_id + 1;
-						if(first_location > 4){
-							first_location = first_location - 4;
+						if(local == locations.length){
+							local = 0;
 						}
+						var first_location = locations[local];
+						logger.info('get zhuang location info');
 						gameDao.set_all_player_is_game(rid,2,function(err,res){
 							setTimeout(function(){
 								gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
