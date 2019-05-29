@@ -1,7 +1,7 @@
 /**
  * Created by WTF on 2016/3/9.
  */
-
+var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 var Redis = require('ioredis');
 var pomelo = require('pomelo');
 var redis = new Redis();
@@ -26,18 +26,18 @@ var Listenner = function(app) {
     redis.select(9, function(err) {
         if(err) process.exit(4);
         redis.subscribe("__keyevent@9__:expired", function() {
-            console.log("--------add expired channel ok");
+            logger.info("--------add expired channel ok");
         });
         redis.subscribe("__keyevent@9__:del",function(){
-            console.log("--------add del channel ok");
+            logger.info("--------add del channel ok");
         });
     });
 
     // 监听从订阅频道来的消息
     redis.on("message", function(sub,key){
-        //console.log('get message');
-        console.log(sub,key+'del-------expiredc');
-        console.log(JSON.stringify(key));
+        logger.info('get message');
+        logger.info(sub,key+'del-------expiredc');
+        logger.info(JSON.stringify(key));
         //example key表示pomelo的一个channel名(也就是addDelay传入的channel参数)
 
         //获取channel之后，向该channel发送消息
@@ -55,15 +55,13 @@ var Listenner = function(app) {
                 gameLogicRemote.throw(app,userAndRoom,key,location,channel,username,channelService);
             });
         });
-
-
     });
 };
 
 Listenner.name = '__Listenner__';
 
 Listenner.prototype.start = function (cb) {
-    console.log('Listenner Start');
+    logger.info('Listenner Start');
     var self = this;
 
     process.nextTick(cb);
