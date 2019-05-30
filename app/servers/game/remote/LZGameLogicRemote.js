@@ -436,7 +436,7 @@ LZGameLogicRemote.ready = function(rid,location,lun_zhuang_flag,cache,channel,us
 						}
 					});
 				});
-			}
+			});
 		});
 	});
 };
