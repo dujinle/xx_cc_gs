@@ -306,11 +306,8 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 								'connect':null
 							};
 							self.cache.put(rid,cacheData);
-							delayDao.removeDelay(rid,function(){
-								logger.info("start game :removeDelay success");
-								delayDao.addDelay(rid,10,function(){
-									logger.info("start game:addDelay success");
-								});
+							delayDao.addDelay(rid,10,function(){
+								logger.info("start game:addDelay success");
 							});
 						});
 					});
