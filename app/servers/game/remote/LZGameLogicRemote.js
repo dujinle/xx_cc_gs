@@ -336,6 +336,10 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 												};
 												utils.pushMessage(rid,channel,param,cache);
 												//channel.pushMessage(param);
+												//出牌定时，重置定时器
+												delayDao.addDelay(rid,10,function(){
+													logger.info("follow:addDelay success");
+												});
 											},1000);
 										}else{
 											gameDao.nextCurPlayer(rid,function(err,new_loc){
@@ -357,7 +361,6 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 		});
 	});
 };
-
 
 LZGameLogicRemote.ready = function(rid,location,lun_zhuang_flag,cache,channel,username){
 	gameDao.set_player_is_game(rid,location,1,function(err,res){
@@ -511,11 +514,13 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 LZGameLogicRemote.open = function(rid,location,cache,channel,channelService){
 	gameDao.get_all_pai(rid,function(err,all_pai){
 		gameDao.set_all_player_is_game(rid,6,function(err,is_game){
-			var param = {
-				route:'onOpen',
-				all_pai:all_pai
-			};
-			utils.pushMessage(rid,channel,param,cache);
+			delayDao.removeDelay(rid,function(){
+				var param = {
+					route:'onOpen',
+					all_pai:all_pai
+				};
+				utils.pushMessage(rid,channel,param,cache);
+			});
 			//channel.pushMessage(param);
 		});
 		setTimeout(function(){

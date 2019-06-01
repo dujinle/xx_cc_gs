@@ -333,6 +333,9 @@ SJGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 													location:location
 												};
 												utils.pushMessage(rid,channel,param,cache);
+												delayDao.addDelay(rid,10,function(){
+													logger.info("follow:addDelay success");
+												});
 											//channel.pushMessage(param);
 											},1000);
 										}else{
@@ -483,11 +486,13 @@ SJGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 SJGameLogicRemote.open = function(rid,location,cache,channel,channelService){
 	gameDao.get_all_pai(rid,function(err,all_pai){
 		gameDao.set_all_player_is_game(rid,6,function(err,is_game){
-			var param = {
-				route:'onOpen',
-				all_pai:all_pai
-			};
-			utils.pushMessage(rid,channel,param,cache);
+			delayDao.removeDelay(rid,function(){
+				var param = {
+					route:'onOpen',
+					all_pai:all_pai
+				};
+				utils.pushMessage(rid,channel,param,cache);
+			});
 			//channel.pushMessage(param);
 		});
 		setTimeout(function(){
@@ -637,6 +642,9 @@ SJGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,cache,ch
 				gameDao.set_all_player_is_game(rid,7,function(err,res){
 					gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
 						utils.pushMessage(rid,channel,param,cache);
+						delayDao.addDelay(rid,10,function(){
+							logger.info("xiazhu:addDelay success");
+						});
 						//channel.pushMessage(param);
 					});
 				});
@@ -662,6 +670,11 @@ SJGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 					'flag':flag
 				};
 				utils.pushMessage(rid,channel,param,cache);
+				delayDao.removeDelay(rid,function(){
+					delayDao.addDelay(rid,10,function(){
+						logger.info("ready:addDelay success");
+					});
+				});
 				//channel.pushMessage(param);
 			});
 		});
@@ -698,8 +711,10 @@ SJGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 					//进行游戏的最后结算 并删除房间
 					gameDao.remove_room(rid,function(err,res){
 						playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
-							cache.del(rid);
-							console.log('进行游戏的最后结算 并删除房间！');
+							delayDao.removeDelay(rid,function(){
+								cache.del(rid);
+								console.log('进行游戏的最后结算 并删除房间！');
+							});
 						});
 					});
 				});
