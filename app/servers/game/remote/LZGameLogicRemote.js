@@ -513,7 +513,7 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 										});
 									});
 								});
-							});
+							}
 						});
 					});
 				});
