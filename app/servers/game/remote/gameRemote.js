@@ -8,7 +8,6 @@ var delayDao   = require('../../../dao/delayDao');
 var playerDao = require('../../../dao/playerDao');
 var utils     = require('../../../util/utils');
 var pomelo    = require('pomelo');
-var gameLogicRemote = require('./gameLogicRemote');
 var async     = require('async');
 
 /*
