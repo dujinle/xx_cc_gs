@@ -951,7 +951,7 @@ LZGameLogicRemote.timeOutLogic = function(rid,cache,channel,channelService){
 				}else if(is_game_local == 2){
 					LZGameLogicRemote.xiazhu(rid,local,[0,0],cache,channel,channelService);
 				}else if(is_game_local == 4){
-					LZGameLogicRemote.peipai(rid,local,null,[0,1],cache,channel,null){
+					LZGameLogicRemote.peipai(rid,local,null,[0,1],cache,channel,null);
 				}else if(is_game_local == 6){
 					LZGameLogicRemote.open(rid,local,cache,channel,channelService);
 				}else if(is_game_local == 8){

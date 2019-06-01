@@ -793,7 +793,7 @@ SJGameLogicRemote.timeOutLogic = function(rid,cache,channel,channelService){
 				}else if(is_game_local == 2){
 					SJGameLogicRemote.xiazhu(rid,local,[0,0],cache,channel,channelService);
 				}else if(is_game_local == 4){
-					SJGameLogicRemote.peipai(rid,local,null,[0,1],cache,channel,null){
+					SJGameLogicRemote.peipai(rid,local,null,[0,1],cache,channel,null);
 				}else if(is_game_local == 6){
 					SJGameLogicRemote.open(rid,local,cache,channel,channelService);
 				}else if(is_game_local == 8){
