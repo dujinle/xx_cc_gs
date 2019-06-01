@@ -3,7 +3,6 @@
  */
 var gameDao = require('../../../dao/gameDao');
 var pomelo = require('pomelo');
-var gameLogicRemote = require('./gameLogicRemote');
 
 module.exports = function(app){
     return new timeoutRemote(app);
