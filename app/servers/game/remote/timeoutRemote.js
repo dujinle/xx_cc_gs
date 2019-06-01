@@ -14,7 +14,7 @@ var timeoutRemote = function(app){
     this.channelService = app.get('channelService');
 };
 
-timeoutRemote.prototype.timeoutThrow = function(num,cb){
+timeoutRemote.prototype.timeoutThrow = function(rid,num,cb){
     console.log("timeoutRemote Throw"+num);
     cb();
 };

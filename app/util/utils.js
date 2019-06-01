@@ -124,3 +124,17 @@ utils.pushMessage = function(rid,channel,param,cache){
 	cache.put(rid,cacheData);
 	console.log('cacheData update after',cacheData);
 };
+/*找到下一个有效的玩家位置*/
+utils.get_next_location = function(room_info,cur_local){
+	var zhuang_id = cur_local + 1;
+	while(true){
+		if(zhuang_id > 4){
+			zhuang_id = 1;
+		}
+		if(room_info['location' + zhuang_id] != null && room_info['location' + zhuang_id] != 'null'){
+			break;
+		}
+		zhuang_id = zhuang_id + 1;
+	}
+	return zhuang_id;
+};

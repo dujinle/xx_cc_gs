@@ -126,11 +126,11 @@ CREATE TABLE game_room(
 	first_fapai INT DEFAULT 0,\
 	game_type VARCHAR(10),\
 	max_type  INT,\
-	fangka_num INT,\
-	fangka_type INT,\
-	wait_time INT DEFAULT 0,\
+	cur_player INT,\
+	mingpai_flag INT,\
+	lun_zhuang INT DEFAULT 0,\
 	creat_time BIGINT,\
-	timeout_mark BIGINT,\
+	timeout_mark INT DEFAULT 0,\
 	player_num INT DEFAULT 0,\
 	real_num   INT DEFAULT 0,\
 	zhuang_location INT,\
@@ -138,9 +138,6 @@ CREATE TABLE game_room(
 	round INT DEFAULT 0,\
 	cur_turn INT DEFAULT 0,\
 	qieguo   INT DEFAULT 0,\
-	qieguo_flag INT DEFAULT 0,\
-	qiang_num  INT DEFAULT 0,\
-	qiang_flag VARCHAR(120) DEFAULT '[]',\
 	location1 VARCHAR(20) DEFAULT 'null',\
 	location2 VARCHAR(20) DEFAULT 'null',\
 	location3 VARCHAR(20) DEFAULT 'null',\

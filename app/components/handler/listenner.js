@@ -6,7 +6,10 @@ var Redis = require('ioredis');
 var pomelo = require('pomelo');
 var redis = new Redis();
 var gameDao = require("../../dao/gameDao");
-var gameLogicRemote = require("../../servers/game/remote/gameLogicRemote");
+
+var LZGameLogicRemote = require("../../servers/game/remote/LZGameLogicRemote");
+var QZGameLogicRemote = require("../../servers/game/remote/QZGameLogicRemote");
+var SJGameLogicRemote = require("../../servers/game/remote/SJGameLogicRemote");
 //var delayDao = require('../dao/delayDao');
 
 module.exports = function(app) {
@@ -20,6 +23,7 @@ var Listenner = function(app) {
     this.app = app;
     this.interval = DEFAULT_INTERVAL;
     this.timerId = null;
+	this.cache = app.get('cache');
     //this.gameDao = require('../dao/gameDao');
     //this.gameLogicRemote = require('../game/remote/gameLogicRemote');
 
@@ -36,25 +40,23 @@ var Listenner = function(app) {
     // 监听从订阅频道来的消息
     redis.on("message", function(sub,key){
         logger.info('get message');
-        logger.info(sub,key+'del-------expiredc');
-        logger.info(JSON.stringify(key));
+        logger.info(sub,key,'del-------expiredc');
         //example key表示pomelo的一个channel名(也就是addDelay传入的channel参数)
-
+		
         //获取channel之后，向该channel发送消息
         var channelService = app.get('channelService');
         var channel = channelService.getChannel(key, true);
-        var param = {
-            route:'onNext',
-            next:'next'
-        };
-        channel.pushMessage(param);
-
-        gameDao.getCurPlayer(key,function(err,location){
-            gameDao.getLocalPlayer(key,location,function(err,userAndRoom,loc){
-                var username = userAndRoom.split('*')[0];
-                gameLogicRemote.throw(app,userAndRoom,key,location,channel,username,channelService);
-            });
-        });
+		gameDao.get_room_by_room_id(key,function(err,room_info){
+			if(room_info.game_type == 1){
+				 QZGameLogicRemote.timeOutLogic(key,this.cache,channel,channelService);
+			}
+			if(room_info.game_type == 2){
+				 SJGameLogicRemote.timeOutLogic(key,this.cache,channel,channelService);
+			}
+			if(room_info.game_type == 3){
+				 LZGameLogicRemote.timeOutLogic(key,this.cache,channel,channelService);
+			}
+		});
     });
 };
 

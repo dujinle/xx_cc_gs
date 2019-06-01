@@ -11,6 +11,12 @@ var pomelo    = require('pomelo');
 var gameLogicRemote = require('./gameLogicRemote');
 var async     = require('async');
 
+/*
+游戏类型:
+ 1 抢庄
+ 2 随机庄
+ 3 转庄
+*/
 
 module.exports = function(app) {
     return new gameRemote(app);
@@ -307,8 +313,10 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 								'connect':null
 							};
 							self.cache.put(rid,cacheData);
-							delayDao.addDelay(rid,10,function(){
-								logger.info("start game:addDelay success");
+							gameDao.setTimeoutMark(rid,locations[random_uid],function(err,res){
+								delayDao.addDelay(rid,10,function(){
+									logger.info("start game:addDelay success");
+								});
 							});
 						});
 					});

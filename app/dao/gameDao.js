@@ -14,11 +14,11 @@ gameDao.create_room_by_player_id = function(player_id,nick_name,room_type,renshu
 	var room_num = utils.random6num();
 
 	var now = Date.now();
-	var sql = 'insert into game_room (room_num,fangzhu_id,fangzhu_name,game_type,player_num,max_type,creat_time,wait_time) values(?,?,?,?,?,?,?,0)';
+	var sql = 'insert into game_room (room_num,fangzhu_id,fangzhu_name,game_type,player_num,max_type,creat_time,lun_zhuang) values(?,?,?,?,?,?,?,0)';
 	if(room_type != 3){
-		sql = 'insert into game_room (room_num,fangzhu_id,fangzhu_name,game_type,player_num,max_type,creat_time,wait_time,zhuang_score) values(?,?,?,?,?,?,?,0,100)';
+		sql = 'insert into game_room (room_num,fangzhu_id,fangzhu_name,game_type,player_num,max_type,creat_time,lun_zhuang,zhuang_score) values(?,?,?,?,?,?,?,0,100)';
 	}else{
-		sql = 'insert into game_room (room_num,fangzhu_id,fangzhu_name,game_type,player_num,max_type,creat_time,wait_time,zhuang_score) values(?,?,?,?,?,?,?,0,50)';
+		sql = 'insert into game_room (room_num,fangzhu_id,fangzhu_name,game_type,player_num,max_type,creat_time,lun_zhuang,zhuang_score) values(?,?,?,?,?,?,?,0,50)';
 	}
 	var args = [room_num,player_id,nick_name,room_type + '',renshu,max_type,now];
 	sqlTemp.insert(sql,args,function(err,res){
@@ -27,27 +27,6 @@ gameDao.create_room_by_player_id = function(player_id,nick_name,room_type,renshu
 			utils.invokeCallback(cb,err,null)
 		}else{
 			utils.invokeCallback(cb,null,res.insertId);
-		}
-	});
-/*}}}*/
-};
-
-gameDao.get_qiang_zhuang = function(rid,cb){
-/*{{{*/
-	var sql = 'select * from game_room where rid = ?';
-	var args = [rid];
-	sqlTemp.query(sql,args,function(err,res){
-		if(err!==null){
-			utils.invokeCallback(cb,err,null);
-		}else{
-			if(!!res && res.length > 0){
-				logger.info("getRoom:"+JSON.stringify(res));
-				var qiang_zhuang = JSON.parse(res[0].qiang_flag);
-				utils.invokeCallback(cb,null,qiang_zhuang);
-			}else{
-				logger.info("getRoom: no found room......");
-				utils.invokeCallback(cb,null,null);
-			}
 		}
 	});
 /*}}}*/
@@ -79,26 +58,6 @@ gameDao.get_all_is_game = function(rid,cb){
 /*}}}*/
 };
 
-gameDao.get_qiang_num = function(rid,cb){
-/*{{{*/
-	var sql = 'select * from game_room where rid = ?';
-	var args = [rid];
-	sqlTemp.query(sql,args,function(err,res){
-		if(err!==null){
-			utils.invokeCallback(cb,err,null);
-		}else{
-			if(!!res && res.length > 0){
-				logger.info("get_qiang_num:"+JSON.stringify(res));
-				utils.invokeCallback(cb,null,res[0].qiang_num);
-			}else{
-				logger.info("get_qiang_num: no found room......");
-				utils.invokeCallback(cb,null,null);
-			}
-		}
-	});
-/*}}}*/
-};
-
 gameDao.get_max_type = function(rid,cb){
 /*{{{*/
 	var sql = 'select * from game_room where rid = ?';
@@ -119,42 +78,10 @@ gameDao.get_max_type = function(rid,cb){
 /*}}}*/
 };
 
-gameDao.set_qiang_zhuang = function(rid,location,flag,cb){
-/*{{{*/
-	var sql = 'select * from game_room where rid = ?';
-	var args = [rid];
-	sqlTemp.query(sql,args,function(err,res){
-		if(err!==null){
-			utils.invokeCallback(cb,err,null);
-		}else{
-			if(!!res && res.length > 0){
-				logger.info("set_qiang_zhuang:"+JSON.stringify(res));
-				var qiang_zhuang = JSON.parse(res[0].qiang_flag);
-				if(flag == true){
-					qiang_zhuang.push(location);
-				}
-				sql = 'update game_room set qiang_flag = ?,qiang_num = qiang_num + 1 where rid = ?';
-				args = [JSON.stringify(qiang_zhuang),rid];
-				sqlTemp.query(sql,args,function(err,res){
-					if(err!==null){
-						logger.info("update game_room set qiang_flag" + err.message);
-						utils.invokeCallback(cb,err,null);
-					}else{
-						utils.invokeCallback(cb,null,qiang_zhuang);
-					}
-				});
-			}else{
-				utils.invokeCallback(cb,null,null);
-			}
-		}
-	});
-/*}}}*/
-};
-
 gameDao.sub_lun_zhuang = function(rid,value,cb){
 /*{{{*/
 	var args = [value,rid];
-	var sql = 'update game_room set wait_time = wait_time + ? where rid = ?';
+	var sql = 'update game_room set lun_zhuang = lun_zhuang + ? where rid = ?';
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
 			logger.info("update game_room set_lun_zhuang",err.message);
@@ -175,10 +102,10 @@ gameDao.get_lun_zhuang = function(rid,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			if(!!res && res.length > 0){
-				logger.info("get_qiang_num:"+JSON.stringify(res));
-				utils.invokeCallback(cb,null,res[0].wait_time);
+				logger.info("get_lun_zhuang:",JSON.stringify(res));
+				utils.invokeCallback(cb,null,res[0].lun_zhuang);
 			}else{
-				logger.info("get_qiang_num: no found room......");
+				logger.info("get_lun_zhuang: no found room......");
 				utils.invokeCallback(cb,null,null);
 			}
 		}
@@ -217,7 +144,7 @@ gameDao.sub_local_gold = function(rid,location,score,cb){
 	var args = [score,rid];
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
-			logger.info("update game_room set qiang_flag" + err.message);
+			logger.info("sub_local_gold",err.message);
 			utils.invokeCallback(cb,err,null);
 		}else{
 			utils.invokeCallback(cb,null,200);
@@ -271,21 +198,6 @@ gameDao.set_qieguo = function(rid,qieguo,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			utils.invokeCallback(cb,null,qieguo);
-		}
-	});
-/*}}}*/
-};
-
-gameDao.set_qieguo_flag = function(rid,qieguo_flag,cb){
-/*{{{*/
-	logger.info("set_qieguo_flag:" + qieguo_flag);
-	var sql = 'update game_room set qieguo_flag = ? where rid = ?';
-	args = [qieguo_flag,rid];
-	sqlTemp.query(sql,args,function(err,res){
-		if(err!==null){
-			utils.invokeCallback(cb,err,null);
-		}else{
-			utils.invokeCallback(cb,null,qieguo_flag);
 		}
 	});
 /*}}}*/
@@ -391,7 +303,7 @@ gameDao.set_zhuang_location = function(rid,location,cb){
 gameDao.set_zhuang_mingpai = function(rid,flag,cb){
 /*{{{*/
 	logger.info("set_zhuang_mingpai:"+flag);
-	sql = 'update game_room set fangka_type = ? where rid = ?';
+	sql = 'update game_room set mingpai_flag = ? where rid = ?';
 	args = [flag,rid];
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
@@ -1065,8 +977,8 @@ gameDao.getTimeoutMark = function(rid,cb){
  * 重置数据
  * */
 gameDao.reset_room = function(rid,cb){
-	var sql = 'update game_room set peipai_num = ?, qieguo = ?,qieguo_flag = ?,score_1 = ?,score_2 = ?,score_3 = ?,score_4 = ? where rid=?';
-	var args =[0,0,0,null,null,null,null,rid];
+	var sql = 'update game_room set peipai_num = ?, qieguo = ?,score_1 = ?,score_2 = ?,score_3 = ?,score_4 = ? where rid=?';
+	var args =[0,0,null,null,null,null,rid];
 	sqlTemp.update(sql,args,function(err,res){
 		if(err!==null){
 			utils.invokeCallback(cb, err, null);
@@ -1125,7 +1037,7 @@ gameDao.remove_room = function(rid,cb){
  * 设置当前出牌玩家
  * */
 gameDao.setCurPlayer = function(rid,cur_player,cb){
-    var sql = "update game_room set fangka_num = ? where rid = ?";
+    var sql = "update game_room set cur_player = ? where rid = ?";
     var args = [cur_player,rid];
     sqlTemp.update(sql,args,function(err,res){
         if(err!==null){
@@ -1152,7 +1064,7 @@ gameDao.nextCurPlayer = function(rid,cb){
             utils.invokeCallback(cb,err, null);
         }else{
 			var room_info = res[0];
-            var i = room_info.fangka_num;
+            var i = room_info.cur_player;
 			var status = room_info['is_game_' + i];
             for(var j = i + 1;j < 9;j++){
 				if(j > 4){
@@ -1191,7 +1103,7 @@ gameDao.getCurPlayer = function(rid,cb){
             utils.invokeCallback(cb,err, null);
         }else{
             //cb(res[0].current_player);
-            utils.invokeCallback(cb,null, res[0].fangka_num);
+            utils.invokeCallback(cb,null, res[0].cur_player);
         }
     });
 };
