@@ -87,7 +87,7 @@ LZGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 			}
 			gameDao.sub_round(rid,round,function(err,my_round){
 				gameDao.get_players_location(rid,function(err,locations){
-					var first_location = var first_location = utils.get_next_location(roomInfo,roomInfo.zhuang_location);
+					var first_location = utils.get_next_location(roomInfo,roomInfo.zhuang_location);
 					async.waterfall([
 						function(cb){
 							gameDao.update_pai(rid,paixing[0],1,function(err){

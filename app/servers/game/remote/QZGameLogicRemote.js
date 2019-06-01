@@ -390,7 +390,7 @@ QZGameLogicRemote.ready = function(rid,location,cache,channel,username){
 					delayDao.removeDelay(rid,function(){
 						logger.info("ready:removeDelay success");
 						if(locations.length == ready_num){
-							var first_location utils.get_next_location(room_info,room_info.zhuang_location);
+							var first_location = utils.get_next_location(room_info,room_info.zhuang_location);
 							gameDao.set_all_player_is_game(rid,2,function(err,res){
 								setTimeout(function(){
 									gameDao.sub_local_gold(rid,room_info.zhuang_location,100,function(err,res){
