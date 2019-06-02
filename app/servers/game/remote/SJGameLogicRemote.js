@@ -646,16 +646,16 @@ SJGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,cache,ch
 					'route':'onEnd',
 					'scores':temp_score
 				};
-				var first_location = roomInfo.zhuang_location;
+				var first_location = room_info.zhuang_location;
 				if(res['left_score_' + res.zhuang_location] >= 500){
 					param['isqie'] = 2;
-					first_location = roomInfo.zhuang_location;
+					first_location = room_info.zhuang_location;
 				}else if(res['left_score_' + res.zhuang_location] == 0){
 					param['isqie'] = 2;
-					first_location = roomInfo.zhuang_location;
+					first_location = room_info.zhuang_location;
 				}else if(res.round >= 3 && cache.get(rid) != null){
 					param['isqie'] = 1;
-					first_location = roomInfo.zhuang_location;
+					first_location = room_info.zhuang_location;
 				}else{
 					param['isqie'] = 0;
 					first_location = utils.get_next_location(room_info,first_location);
