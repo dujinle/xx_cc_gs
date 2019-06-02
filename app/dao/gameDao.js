@@ -567,7 +567,7 @@ gameDao.start_game = function(rid,cb){
 gameDao.get_player_local = function(rid,player_id,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
-	var location;
+	var location = -1;
 	logger.info("--------------player input getplayerlocal"+player_id);
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
@@ -587,7 +587,9 @@ gameDao.get_player_local = function(rid,player_id,cb){
 				utils.invokeCallback(cb, "db:getPlayerLocal2 error", null);
 			}
 			//cb(location);
-			utils.invokeCallback(cb,null , location);
+			if(location != -1){
+				utils.invokeCallback(cb,null , location);
+			}
 		}
 	});
 };
@@ -595,7 +597,7 @@ gameDao.get_player_local = function(rid,player_id,cb){
 gameDao.get_local_player_id = function(rid,location,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
-	var player_id;
+	var player_id = -1;
 	logger.info("--------------player input get_local_player_id" + location);
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){
@@ -615,7 +617,9 @@ gameDao.get_local_player_id = function(rid,location,cb){
 				utils.invokeCallback(cb, "db:getPlayerLocal2 error", null);
 			}
 			//cb(location);
-			utils.invokeCallback(cb,null , player_id);
+			if(player_id != -1){
+				utils.invokeCallback(cb,null , player_id);
+			}
 		}
 	});
 };
