@@ -424,7 +424,7 @@ gameDao.add_player = function(rid,uid,location,cb){
 			utils.invokeCallback(cb,err,null);
 		}else{
 			var room_info = res[0];
-			if(room_info['location' + location] != null && room_info['location' + location] != 'null'){
+			if(room_info['location' + location] == null || room_info['location' + location] == 'null'){
 				var sql2 = '';
 				var args2 = [];
 				switch(location){
