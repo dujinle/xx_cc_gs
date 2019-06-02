@@ -72,6 +72,10 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 						return;
 					}
 				}
+				if(room_info['location' + location] != null && room_info['location' + location] != 'null'){
+					cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_BLONG});
+					return;
+				}
 				channel.add(uid, sid);
 				var player_ids = [null,null,null,null];
 				for(var i = 1;i <= 4;i++){
@@ -80,6 +84,7 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 						player_ids[i - 1] = local.split('*')[0];
 					}
 				}
+				
 				gameDao.add_player(rid,uid,location,function(err,real_num){
 					if(real_num != null){
 						player_ids[location - 1] = username;
