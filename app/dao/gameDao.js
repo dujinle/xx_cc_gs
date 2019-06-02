@@ -627,7 +627,6 @@ gameDao.get_local_player_id = function(rid,location,cb){
 gameDao.get_players_location = function(rid,cb){
 	var sql = 'select * from game_room where rid = ?';
 	var args = [rid];
-	var location;
 	logger.info("--------------player input getplayerslocal");
 	sqlTemp.query(sql,args,function(err,res){
 		if(err!==null){

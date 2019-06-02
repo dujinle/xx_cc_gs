@@ -76,26 +76,26 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 					cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_BLONG});
 					return;
 				}
-				channel.add(uid, sid);
-				var player_ids = [null,null,null,null];
-				for(var i = 1;i <= 4;i++){
-					var local = room_info['location' + i];
-					if(local != null && local != 'null'){
-						player_ids[i - 1] = local.split('*')[0];
-					}
-				}
-				
 				gameDao.add_player(rid,uid,location,function(err,real_num){
 					if(real_num != null){
-						player_ids[location - 1] = username;
-						var param = {
-							route: 'onEnterRoom',
-							player: player_ids,
-							real_num:real_num,
-							location:location  //同时分配位置
-						};
-						channel.pushMessage(param);
-						cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
+						channel.add(uid, sid);
+						gameDao.get_room_by_room_id(rid,function(err,room_info){
+							var player_ids = [null,null,null,null];
+							for(var i = 1;i <= 4;i++){
+								var local = room_info['location' + i];
+								if(local != null && local != 'null'){
+									player_ids[i - 1] = local.split('*')[0];
+								}
+							}
+							var param = {
+								route: 'onEnterRoom',
+								player: player_ids,
+								real_num:real_num,
+								location:location  //同时分配位置
+							};
+							channel.pushMessage(param);
+							cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
+						});
 					}else{
 						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_BLONG});
 					}
