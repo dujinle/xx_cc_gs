@@ -1071,7 +1071,7 @@ gameDao.nextCurPlayer = function(rid,cb){
 					j =	j - 4;
                 }
                 if(room_info['is_game_' + j] != status && room_info['location' + j] != null && room_info['location' + j] != 'null'){
-					var sql = "update game_room set fangka_num = ? where room_num = ?";
+					var sql = "update game_room set cur_player = ? where room_num = ?";
 					var args = [j,rid];
 					sqlTemp.update(sql,args,function(err,res){
 						if(err!==null){
