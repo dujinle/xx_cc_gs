@@ -26,7 +26,7 @@ var Listenner = function(app) {
 	this.cache = app.get('cache');
     //this.gameDao = require('../dao/gameDao');
     //this.gameLogicRemote = require('../game/remote/gameLogicRemote');
-
+	var self = this;
     redis.select(9, function(err) {
         if(err) process.exit(4);
         redis.subscribe("__keyevent@9__:expired", function() {
@@ -48,13 +48,13 @@ var Listenner = function(app) {
         var channel = channelService.getChannel(key, true);
 		gameDao.get_room_by_room_id(key,function(err,room_info){
 			if(room_info.game_type == 1){
-				 QZGameLogicRemote.timeOutLogic(key,this.cache,channel,channelService);
+				 QZGameLogicRemote.timeOutLogic(key,self.cache,channel,channelService);
 			}
 			if(room_info.game_type == 2){
-				 SJGameLogicRemote.timeOutLogic(key,this.cache,channel,channelService);
+				 SJGameLogicRemote.timeOutLogic(key,self.cache,channel,channelService);
 			}
 			if(room_info.game_type == 3){
-				 LZGameLogicRemote.timeOutLogic(key,this.cache,channel,channelService);
+				 LZGameLogicRemote.timeOutLogic(key,self.cache,channel,channelService);
 			}
 		});
     });
