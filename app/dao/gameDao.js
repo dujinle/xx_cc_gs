@@ -423,52 +423,57 @@ gameDao.add_player = function(rid,uid,location,cb){
 			logger.error("db:add_player step 1 error");
 			utils.invokeCallback(cb,err,null);
 		}else{
-			//更改玩家数量
-			new_player_num = res[0].real_num+1;
-			var sql1 = 'update game_room set real_num = ? where rid = ?';
-			var args1 = [new_player_num,rid];
-			logger.info("args1:",args1,location);
-			sqlTemp.update(sql1,args1,function(err,res){
-				if(err!==null){
-					logger.error("db:add_player step 2 error");
-					utils.invokeCallback(cb,err,null);
-				}else{
-					logger.info("db:add_player step 1 success");
-					//location 添加对应玩家名
-					var sql2 = '';
-					var args2 = [];
-					switch(location){
-						case 1:
-							sql2 = 'update game_room set location1 = ? where rid = ?';
-							args2 = [uid,rid];
-							break;
-						case 2:
-							sql2 = 'update game_room set location2 = ? where rid = ?';
-							args2 = [uid,rid];
-							break;
-						case 3:
-							sql2 = 'update game_room set location3 = ? where rid = ?';
-							args2 = [uid,rid];
-							break;
-						case 4:
-							sql2 = 'update game_room set location4 = ? where rid = ?';
-							args2 = [uid,rid];
-							break;
-						default:
-							logger.error("add_player step 3 error");
-					}
-					sqlTemp.update(sql2,args2,function(err,res){
-						if(err!==null){
-							logger.error("db:add_player step 3 error");
-							utils.invokeCallback(cb,err,null);
-						}else{
-							logger.info("add_player step 3 success");
-							//cb(location,new_player_num);
-							utils.invokeCallback(cb,err,new_player_num);
-						}
-					});
+			var room_info = res[0];
+			if(room_info['location' + location] != null && room_info['location' + location] != 'null'){
+				var sql2 = '';
+				var args2 = [];
+				switch(location){
+					case 1:
+						sql2 = 'update game_room set location1 = ? where rid = ?';
+						args2 = [uid,rid];
+						break;
+					case 2:
+						sql2 = 'update game_room set location2 = ? where rid = ?';
+						args2 = [uid,rid];
+						break;
+					case 3:
+						sql2 = 'update game_room set location3 = ? where rid = ?';
+						args2 = [uid,rid];
+						break;
+					case 4:
+						sql2 = 'update game_room set location4 = ? where rid = ?';
+						args2 = [uid,rid];
+						break;
+					default:
+						logger.error("add_player step 3 error");
 				}
-			});
+
+				sqlTemp.update(sql2,args2,function(err,res){
+					if(err!==null){
+						logger.error("db:add_player step 3 error");
+						utils.invokeCallback(cb,err,null);
+					}else{
+						logger.info("add_player step 3 success");
+						//cb(location,new_player_num);
+						new_player_num = room_info.real_num + 1;
+						var sql1 = 'update game_room set real_num = ? where rid = ?';
+						var args1 = [new_player_num,rid];
+						logger.info("args1:",args1,location);
+						sqlTemp.update(sql1,args1,function(err,res){
+							if(err!==null){
+								logger.error("db:add_player step 2 error");
+								utils.invokeCallback(cb,err,null);
+							}else{
+								logger.info("db:add_player step 1 success");
+								utils.invokeCallback(cb,err,new_player_num);
+							}
+						});
+					}
+				});
+			}else{
+				logger.error("db:add_player 位置已经被占用");
+				utils.invokeCallback(cb,{message:'位置已经被占用'},null);
+			}
 		}
 	});
 /*}}}*/

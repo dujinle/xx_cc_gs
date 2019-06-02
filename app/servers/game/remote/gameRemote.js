@@ -95,9 +95,11 @@ gameRemote.prototype.enter_room = function(uid, sid, channel_id, location,cb) {
 							location:location  //同时分配位置
 						};
 						channel.pushMessage(param);
+						cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
+					}else{
+						cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_BLONG});
 					}
 				});
-				cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
 			});
 		});
 	}else{
