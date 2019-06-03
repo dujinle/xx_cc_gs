@@ -128,41 +128,39 @@ gameRemote.prototype.repair_enter_room = function(uid,uuid, sid, channel_id, fla
 				}
 			}
 			if(location != -1){
-				gameDao.add_player(rid,uid,location,function(err,res){
-					var param = {
-						route: 'onRepairEnterRoom',
-						location:location  //同时分配位置
-					};
-					channel.pushMessage(param);
-					//更新一下玩家的网络状态
-					var cacheData = self.cache.get(rid);
-					console.log('onRepairEnterRoom',cacheData);
-					var send_flag = false;
-					for(var i = 0;i < cacheData.channelMsg.length;i++){
-						var msg = cacheData.channelMsg[i];
-						if(uuid == null){
-							send_flag = true;
-						}else if(msg.uuid == uuid){
-							send_flag = true;
-							continue;
-						}
-						if(send_flag == true){
-							channelService.pushMessageByUids(msg.route,msg,[{'uid':uid,'sid':sid}]);
-						}
+				var param = {
+					route: 'onRepairEnterRoom',
+					location:location  //同时分配位置
+				};
+				channel.pushMessage(param);
+				//更新一下玩家的网络状态
+				var cacheData = self.cache.get(rid);
+				console.log('onRepairEnterRoom',cacheData);
+				var send_flag = false;
+				for(var i = 0;i < cacheData.channelMsg.length;i++){
+					var msg = cacheData.channelMsg[i];
+					if(uuid == null){
+						send_flag = true;
+					}else if(msg.uuid == uuid){
+						send_flag = true;
+						continue;
 					}
-					if(cacheData.connect != null){
-						cacheData.connect.type = 'Connect';
-						clearTimeout(cacheData.connect.func);
-						self.cache.put(rid,cacheData);
-					}else{
-						cacheData.connect = {
-							'type':'Connect',
-							'time':(new Date()).getDate(),
-							'func':null
-						}
-						self.cache.put(rid,cacheData);
+					if(send_flag == true){
+						channelService.pushMessageByUids(msg.route,msg,[{'uid':uid,'sid':sid}]);
 					}
-				});
+				}
+				if(cacheData.connect != null){
+					cacheData.connect.type = 'Connect';
+					clearTimeout(cacheData.connect.func);
+					self.cache.put(rid,cacheData);
+				}else{
+					cacheData.connect = {
+						'type':'Connect',
+						'time':(new Date()).getDate(),
+						'func':null
+					}
+					self.cache.put(rid,cacheData);
+				}
 			}
 		});
 		cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
@@ -364,6 +362,20 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 		if(cacheData != null && cacheData.connect && cacheData.connect.type == 'Connect'){
 			return;
 		}
+		//玩家全部退出了游戏
+		if(users.length == 0){
+			if(cacheData.connect != null){
+				clearTimeout(cacheData.connect.func);
+				gameDao.dissolve_room(rid,function(err,res){
+					self.cache.del(rid);
+				});
+			}else{
+				gameDao.dissolve_room(rid,function(err,res){
+				});
+			}
+			cb(users);
+			return;
+		}
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
 			gameDao.get_player_local(rid,username,function(err,location){
 				//游戏没有开始直接退出放间
@@ -377,30 +389,38 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 						};
 						channel.pushMessage(param);
 					});
+				}else if(room_info.is_gaming == -1){
+					var param = {
+						'route':'onKick',
+						'location':location
+					};
+					channel.pushMessage(param);
 				}else if(room_info.is_gaming != -1){
 					var param = {
 						'route':'onKick',
 						'location':location
 					};
 					channel.pushMessage(param);
-					var t = setTimeout(function(){
-						//玩家超时之后解散房间但是保留房间信息 以便于确认信息
-						gameDao.dissolve_room(rid,function(err,res){
-							var p = {
-								'route':'onQuit',
-								'location':location
-							};
-							channel.pushMessage(p);
-							self.cache.del(rid);
-							cb(users);
-						});
-					},1000 * 30 * 5);
-					cacheData.connect = {
-						'type':'disConnect',
-						'time':(new Date()).getDate(),
-						'func':t
-					}
-					self.cache.put(rid,cacheData);
+					delayDao.removeDelay(rid,function(){
+						var t = setTimeout(function(){
+							//玩家超时之后解散房间但是保留房间信息 以便于确认信息
+							gameDao.dissolve_room(rid,function(err,res){
+								var p = {
+									'route':'onQuit',
+									'location':location
+								};
+								channel.pushMessage(p);
+								self.cache.del(rid);
+								cb(users);
+							});
+						},1000 * 30 * 5);
+						cacheData.connect = {
+							'type':'disConnect',
+							'time':(new Date()).getDate(),
+							'func':t
+						}
+						self.cache.put(rid,cacheData);
+					});
 				}
 			});
 		});
