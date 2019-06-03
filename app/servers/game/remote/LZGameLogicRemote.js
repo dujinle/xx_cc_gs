@@ -350,7 +350,7 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 										}else{
 											gameDao.nextCurPlayer(rid,function(err,new_loc){
 												logger.info("nextCurPlayer success");
-												SJGameLogicRemote.changeCurPlayer(rid,new_loc,5,channel);
+												LZGameLogicRemote.changeCurPlayer(rid,new_loc,5,channel);
 												//出牌定时，重置定时器
 												gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 													delayDao.addDelay(rid,10,function(){
