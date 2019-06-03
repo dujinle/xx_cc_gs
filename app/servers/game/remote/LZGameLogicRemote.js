@@ -410,7 +410,8 @@ LZGameLogicRemote.ready = function(rid,location,lun_zhuang_flag,cache,channel,us
 								}
 								param['location'] = locations[local];
 							}else{
-								param['zhuang_local'] = utils.get_next_location(room_info,zhuang_id);
+								zhuang_id = utils.get_next_location(room_info,zhuang_id);
+								param['zhuang_local'] = zhuang_id;
 								param['location'] = utils.get_next_location(room_info,zhuang_id);
 							}
 							gameDao.set_all_player_is_game(rid,2,function(err,res){
