@@ -274,6 +274,7 @@ QZGameLogicRemote.bipai = function(rid,location1,location2,cb){
 QZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,username){
 	var users = channel.getMembers();
 	var paixing = new Array();
+	var marks = new Array();
 	gameDao.set_player_is_game(rid,location,Code.GAME.PEIPAI,function(err,res){
 		gameDao.setCurPlayer(rid,location,function(err,cur_player){
 			gameDao.get_pai(rid,location,function(err,res){
