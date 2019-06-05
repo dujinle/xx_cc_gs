@@ -2,6 +2,7 @@
  * Created by wuningjian on 3/3/16.
  */
 var logger = require('pomelo-logger').getLogger('pomelo', __filename);
+var Code	  = require('../../../consts/code');
 var gameDao   = require('../../../dao/gameDao');
 var playerDao = require('../../../dao/playerDao');
 var delayDao  = require('../../../dao/delayDao');
@@ -91,7 +92,7 @@ LZGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 					async.waterfall([
 						function(cb){
 							gameDao.update_pai(rid,paixing[0],1,function(err){
-								gameDao.set_player_is_game(rid,1,4,function(err,res){
+								gameDao.set_player_is_game(rid,1,Code.GAME.FAPAI,function(err,res){
 									logger.info("gameDao.updatePai location 1 success");
 									cb(null);
 								});
@@ -99,7 +100,7 @@ LZGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 						},
 						function(cb){
 							gameDao.update_pai(rid,paixing[1],2,function(err){
-								gameDao.set_player_is_game(rid,2,4,function(err,res){
+								gameDao.set_player_is_game(rid,2,Code.GAME.FAPAI,function(err,res){
 									logger.info("gameDao.updatePai location 2 success");
 									cb(null);
 								});
@@ -107,7 +108,7 @@ LZGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 						},
 						function(cb){
 							gameDao.update_pai(rid,paixing[2],3,function(err){
-								gameDao.set_player_is_game(rid,3,4,function(err,res){
+								gameDao.set_player_is_game(rid,3,Code.GAME.FAPAI,function(err,res){
 									logger.info("gameDao.updatePai location 3 success");
 									cb(null);
 								});
@@ -115,7 +116,7 @@ LZGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 						},
 						function(cb){
 							gameDao.update_pai(rid,paixing[3],4,function(err){
-								gameDao.set_player_is_game(rid,4,4,function(err,res){
+								gameDao.set_player_is_game(rid,4,Code.GAME.FAPAI,function(err,res){
 									logger.info("gameDao.updatePai success");
 									cb(null);
 								});
@@ -276,7 +277,7 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 	var users = channel.getMembers();
 	var paixing = new Array();
 	var marks = new Array();
-	gameDao.set_player_is_game(rid,location,5,function(err,res){
+	gameDao.set_player_is_game(rid,location,Code.GAME.PEIPAI,function(err,res){
 		gameDao.setCurPlayer(rid,location,function(err,cur_player){
 			gameDao.get_pai(rid,location,function(err,res){
 				for(var i = 0; i < res.length;i++){
@@ -330,7 +331,7 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 								gameDao.get_peipai_num(rid,function(err,peipai_num){
 									delayDao.removeDelay(rid,function(){
 										if(users.length <= peipai_num){
-											gameDao.set_all_player_is_game(rid,6,function(err,is_game){
+											gameDao.set_all_player_is_game(rid,Code.GAME.PEIPAI_FINISH,function(err,is_game){
 												setTimeout(function(){
 													var param = {
 														route:'onPeiPaiFinish',
@@ -371,7 +372,7 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 };
 
 LZGameLogicRemote.ready = function(rid,location,lun_zhuang_flag,cache,channel,username){
-	gameDao.set_player_is_game(rid,location,1,function(err,res){
+	gameDao.set_player_is_game(rid,location,Code.GAME.READY,function(err,res){
 		gameDao.setCurPlayer(rid,location,function(err,cur_player){
 			var param = {
 				route:'onReady',
@@ -414,21 +415,19 @@ LZGameLogicRemote.ready = function(rid,location,lun_zhuang_flag,cache,channel,us
 								param['zhuang_local'] = zhuang_id;
 								param['location'] = utils.get_next_location(room_info,zhuang_id);
 							}
-							gameDao.set_all_player_is_game(rid,2,function(err,res){
+							gameDao.set_all_player_is_game(rid,Code.GAME.READY_FINISH,function(err,res){
 								setTimeout(function(){
 									gameDao.set_zhuang_location(rid,zhuang_id,function(err,res){
 										gameDao.sub_lun_zhuang(rid,1,function(err,res){
 											gameDao.sub_local_gold(rid,zhuang_id,50,function(err,res){
-												gameDao.set_is_gaming(rid,2,function(err,res){
-													param['scores'][zhuang_id - 1] = 50;
-													utils.pushMessage(rid,channel,param,cache);
-													gameDao.setTimeoutMark(rid,param['location'],function(err,res){
-														delayDao.addDelay(rid,10,function(){
-															logger.info("ready:addDelay success");
-														});
+												param['scores'][zhuang_id - 1] = 50;
+												utils.pushMessage(rid,channel,param,cache);
+												gameDao.setTimeoutMark(rid,param['location'],function(err,res){
+													delayDao.addDelay(rid,10,function(){
+														logger.info("ready:addDelay success");
 													});
-													//channel.pushMessage(param);
 												});
+												//channel.pushMessage(param);
 											});
 										});
 									});
@@ -458,7 +457,7 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 	var users = channel.getMembers();
 	logger.info("--------users in fapai:"+users);
 	gameDao.set_xiazhu(rid,location,chips,function(err,res){
-		gameDao.set_player_is_game(rid,location,3,function(err,res){
+		gameDao.set_player_is_game(rid,location,Code.GAME.XIAZHU,function(err,res){
 			gameDao.setCurPlayer(rid,location,function(err,cur_player){
 			//channel.pushMessage(param);
 				var param = {
@@ -525,7 +524,7 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 
 LZGameLogicRemote.open = function(rid,location,cache,channel,channelService){
 	gameDao.get_all_pai(rid,function(err,all_pai){
-		gameDao.set_all_player_is_game(rid,7,function(err,is_game){
+		gameDao.set_all_player_is_game(rid,Code.GAME.OPEN_PAI,function(err,is_game){
 			delayDao.removeDelay(rid,function(){
 				var param = {
 					route:'onOpen',
@@ -680,7 +679,7 @@ LZGameLogicRemote.calc_score_zhangsha = function(rid,room_info,temp_score,cache,
 					param['isqie'] = 0;
 					first_location = utils.get_next_location(room_info,first_location);
 				}
-				gameDao.set_all_player_is_game(rid,8,function(err,res){
+				gameDao.set_all_player_is_game(rid,Code.GAME.IS_QIEGUO,function(err,res){
 					gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
 						utils.pushMessage(rid,channel,param,cache);
 						gameDao.setTimeoutMark(rid,first_location,function(err,res){
@@ -793,7 +792,7 @@ LZGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,cache,ch
 					param['isqie'] = 0;
 					first_location = utils.get_next_location(room_info,first_location);
 				}
-				gameDao.set_all_player_is_game(rid,8,function(err,res){
+				gameDao.set_all_player_is_game(rid,Code.GAME.IS_QIEGUO,function(err,res){
 					gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
 						utils.pushMessage(rid,channel,param,cache);
 						gameDao.setTimeoutMark(rid,first_location,function(err,res){
@@ -824,7 +823,7 @@ LZGameLogicRemote.end_game = function(rid,locals_score,cache,channel,channelServ
 
 LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelService){
 	if(flag == false){
-		gameDao.set_all_player_is_game(rid,9,function(err,is_game){
+		gameDao.set_all_player_is_game(rid,Code.GAME.QIEGUO,function(err,is_game){
 			var param = {
 				'route':'onQieguo',
 				'flag':flag
@@ -844,7 +843,7 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 		});
 	}else{
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
-			gameDao.set_all_player_is_game(rid,9,function(err,is_game){
+			gameDao.set_all_player_is_game(rid,Code.GAME.QIEGUO,function(err,is_game){
 				//更新每一个玩家的金币数量
 				for(var i = 1;i < 5;i++){
 					var my_location = room_info['location' + i];

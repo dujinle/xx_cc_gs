@@ -6,6 +6,7 @@ var Redis = require('ioredis');
 var pomelo = require('pomelo');
 var redis = new Redis();
 var gameDao = require("../../dao/gameDao");
+var Code	= require('../../consts/code');
 
 var LZGameLogicRemote = require("../../servers/game/remote/LZGameLogicRemote");
 var QZGameLogicRemote = require("../../servers/game/remote/QZGameLogicRemote");
@@ -43,18 +44,41 @@ var Listenner = function(app) {
         logger.info(sub,key,'del-------expiredc');
         //example key表示pomelo的一个channel名(也就是addDelay传入的channel参数)
 		
-        //获取channel之后，向该channel发送消息
-        var channelService = app.get('channelService');
-        var channel = channelService.getChannel(key, true);
-		gameDao.get_room_by_room_id(key,function(err,room_info){
-			if(room_info.game_type == 1){
-				 QZGameLogicRemote.timeOutLogic(key,self.cache,channel,channelService);
-			}
-			if(room_info.game_type == 2){
-				 SJGameLogicRemote.timeOutLogic(key,self.cache,channel,channelService);
-			}
-			if(room_info.game_type == 3){
-				 LZGameLogicRemote.timeOutLogic(key,self.cache,channel,channelService);
+        var rid = key.split('*')[1];
+		var username = key.split('*')[0];
+		if(rid == null){
+			rid = username;
+		}
+		//获取channel之后，向该channel发送消息
+		var channelService = app.get('channelService');
+		var channel = channelService.getChannel(rid, false);
+		if(channel == null){
+			return;
+		}
+		gameDao.get_room_by_room_id(rid,function(err,room_info){
+			if(room_info.is_gaming == Code.GAME.START){
+				if(room_info.game_type == 1){
+					 QZGameLogicRemote.timeOutLogic(rid,self.cache,channel,channelService);
+				}
+				if(room_info.game_type == 2){
+					 SJGameLogicRemote.timeOutLogic(rid,self.cache,channel,channelService);
+				}
+				if(room_info.game_type == 3){
+					 LZGameLogicRemote.timeOutLogic(rid,self.cache,channel,channelService);
+				}
+			}else{
+				gameDao.get_player_local(rid,username,function(err,location){
+					gameDao.dissolve_room(rid,function(err,res){
+						if(location != null){
+							var p = {
+								'route':'onQuit',
+								'location':location
+							};
+							channel.pushMessage(p);
+							self.cache.del(rid);
+						}
+					});
+				});
 			}
 		});
     });
