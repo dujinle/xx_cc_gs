@@ -351,7 +351,7 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 										}else{
 											gameDao.nextCurPlayer(rid,function(err,new_loc){
 												logger.info("nextCurPlayer success");
-												LZGameLogicRemote.changeCurPlayer(rid,new_loc,5,channel);
+												LZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.PEIPAI,cache,channel);
 												//出牌定时，重置定时器
 												gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 													delayDao.addDelay(rid,10,function(){
@@ -437,7 +437,7 @@ LZGameLogicRemote.ready = function(rid,location,lun_zhuang_flag,cache,channel,us
 							logger.info("ready:removeDelay success");
 							gameDao.nextCurPlayer(rid,function(err,new_loc){
 								logger.info("ready nextCurPlayer success");
-								LZGameLogicRemote.changeCurPlayer(rid,new_loc,1,channel);
+								LZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.READY,cache,channel);
 								//出牌定时，重置定时器
 								gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 									delayDao.addDelay(rid,10,function(){
@@ -505,7 +505,7 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 							}else{
 								gameDao.nextCurPlayer(rid,function(err,new_loc){
 									logger.info("nextCurPlayer success");
-									LZGameLogicRemote.changeCurPlayer(rid,new_loc,3,channel);
+									LZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.XIAZHU,cache,channel);
 									//出牌定时，重置定时器
 									gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 										delayDao.addDelay(rid,10,function(){
@@ -928,13 +928,13 @@ LZGameLogicRemote.send_gift = function(rid,send_from,send_to,type,cache,channel,
 	//channel.pushMessage(param);
 };
 /*采取依次操作方式 避免因为同时操作引起的 异步问题*/
-LZGameLogicRemote.changeCurPlayer = function(rid,location,status,channel){
+LZGameLogicRemote.changeCurPlayer = function(rid,location,status,cache,channel){
     var param = {
         route:'onChangePlayer',
         location:location,
 		status:status
     };
-    channel.pushMessage(param);
+    utils.pushMessage(rid,channel,param,cache);
 };
 
 LZGameLogicRemote.timeOutLogic = function(rid,cache,channel,channelService){

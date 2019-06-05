@@ -349,7 +349,7 @@ QZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 										}else{
 											gameDao.nextCurPlayer(rid,function(err,new_loc){
 												logger.info("nextCurPlayer success");
-												QZGameLogicRemote.changeCurPlayer(rid,new_loc,5,channel);
+												QZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.PEIPAI,channel);
 												//出牌定时，重置定时器
 												gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 													delayDao.addDelay(rid,10,function(){
@@ -417,7 +417,7 @@ QZGameLogicRemote.ready = function(rid,location,cache,channel,username){
 						}else{
 							gameDao.nextCurPlayer(rid,function(err,new_loc){
 								logger.info("ready nextCurPlayer success");
-								QZGameLogicRemote.changeCurPlayer(rid,new_loc,1,channel);
+								QZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.READY,cache,channel);
 								//出牌定时，重置定时器
 								gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 									delayDao.addDelay(rid,10,function(){
@@ -470,7 +470,7 @@ QZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 						}else{
 							gameDao.nextCurPlayer(rid,function(err,new_loc){
 								logger.info("nextCurPlayer success");
-								QZGameLogicRemote.changeCurPlayer(rid,new_loc,3,channel);
+								QZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.XIAZHU,cache,channel);
 								//出牌定时，重置定时器
 								gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 									delayDao.addDelay(rid,10,function(){
@@ -760,13 +760,13 @@ QZGameLogicRemote.send_gift = function(rid,send_from,send_to,type,cache,channel,
 	//channel.pushMessage(param);
 };
 /*采取依次操作方式 避免因为同时操作引起的 异步问题*/
-QZGameLogicRemote.changeCurPlayer = function(rid,location,status,channel){
+QZGameLogicRemote.changeCurPlayer = function(rid,location,status,cache,channel){
     var param = {
         route:'onChangePlayer',
         location:location,
 		status:status
     };
-    channel.pushMessage(param);
+    utils.pushMessage(rid,channel,param,cache);
 };
 
 QZGameLogicRemote.timeOutLogic = function(rid,cache,channel,channelService){
