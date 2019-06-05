@@ -120,50 +120,39 @@ gameRemote.prototype.repair_enter_room = function(uid,uuid, sid, channel_id, fla
 	if( !! channel) {
 		channel.add(uid, sid);
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
-			var location = -1;
-			for(var i = 1;i <= 4;i++){
-				if(room_info['location' + i] == uid){
-					location = i;
-					break;
-				}
+			if(room_info.is_gaming == Code.GAME.FINISH){
+				cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_FAIL,type:'exit'});
+				return;
 			}
-			if(location != -1){
-				var param = {
-					route: 'onRepairEnterRoom',
-					location:location  //同时分配位置
-				};
-				channel.pushMessage(param);
-				//更新一下玩家的网络状态
-				var cacheData = self.cache.get(rid);
-				console.log('onRepairEnterRoom',cacheData);
-				var send_flag = false;
-				for(var i = 0;i < cacheData.channelMsg.length;i++){
-					var msg = cacheData.channelMsg[i];
-					if(uuid == null){
-						send_flag = true;
-					}else if(msg.uuid == uuid){
-						send_flag = true;
-						continue;
-					}
-					if(send_flag == true){
-						channelService.pushMessageByUids(msg.route,msg,[{'uid':uid,'sid':sid}]);
-					}
-				}
-				if(cacheData.connect != null){
-					cacheData.connect.type = 'Connect';
-					clearTimeout(cacheData.connect.func);
-					self.cache.put(rid,cacheData);
-				}else{
-					cacheData.connect = {
-						'type':'Connect',
-						'time':(new Date()).getDate(),
-						'func':null
-					}
-					self.cache.put(rid,cacheData);
-				}
-			}
+			delayDao.removeDelay(uid,function(err,res){
+				gameDao.get_player_local(rid,username,function(err,location){
+					gameDao.set_is_gaming(rid,room_info.is_gaming - Code.GAME.DISCONNECT,function(err,is_gaming){
+						var param = {
+							route: 'onRepairEnterRoom',
+							location:location  //同时分配位置
+						};
+						channel.pushMessage(param);
+						//更新一下玩家的网络状态
+						var cacheData = self.cache.get(rid);
+						logger.info('onRepairEnterRoom',cacheData);
+						var send_flag = false;
+						for(var i = 0;i < cacheData.channelMsg.length;i++){
+							var msg = cacheData.channelMsg[i];
+							if(uuid == null){
+								send_flag = true;
+							}else if(msg.uuid == uuid){
+								send_flag = true;
+								continue;
+							}
+							if(send_flag == true){
+								channelService.pushMessageByUids(msg.route,msg,[{'uid':uid,'sid':sid}]);
+							}
+						}
+					});
+				});
+				cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
+			});
 		});
-		cb({code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_SUCCESS});
 	}else{
 		cb({code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_EMPTY});
 	}
@@ -212,7 +201,7 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 	var self = this;
 
 	if( !! channel) {
-		gameDao.start_game(rid,function(err,res){
+		gameDao.set_is_gaming(rid,Code.GAME.START,function(err,res){
 			gameDao.get_room_by_room_id(rid,function(err,room_info){
 				if(room_info.game_type == 1){
 					gameDao.set_zhuang_location(rid,1,function(err,ret){});
@@ -342,44 +331,23 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
  * 用户离开房间，剔除用户
  * */
 gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
-	console.log('gameRemote.prototype.kick.........');
+	logger.info('gameRemote.prototype.kick uid:',uid,'sid:',sid);
 	var self = this;
 	var channel = this.channelService.getChannel(channel_id, false);
 	// leave channel
 	var rid = uid.split('*')[1];
 	var username = uid.split('*')[0];
-	console.log("--------uid:"+uid);
-	console.log("--------sid:"+sid);
 	if( !! channel) {
-		var users_ext = channel.getMembers();
-		console.log("------------users_ext:"+users_ext);
 		var abc = channel.leave(uid, sid);
-		console.log("------------leave status:"+abc);
 		var users = channel.getMembers();
-		console.log("------------users:"+users);
+		//运行此函数 说明玩家已经进入游戏 2步:
+		//1，游戏如果没有开始则直接离开房间
+		//2，游戏已经开始 则频道进行掉线通知，如果一定时间内没有上线则进行游戏取消操作
 		//再次确认是否已经断开网络，如果不是则 消除当前的断网信息
-		var cacheData = self.cache.get(rid);
-		if(cacheData != null && cacheData.connect && cacheData.connect.type == 'Connect'){
-			return;
-		}
-		//玩家全部退出了游戏
-		if(users.length == 0){
-			if(cacheData.connect != null){
-				clearTimeout(cacheData.connect.func);
-				gameDao.dissolve_room(rid,function(err,res){
-					self.cache.del(rid);
-				});
-			}else{
-				gameDao.dissolve_room(rid,function(err,res){
-				});
-			}
-			cb(users);
-			return;
-		}
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
 			gameDao.get_player_local(rid,username,function(err,location){
 				//游戏没有开始直接退出放间
-				if(room_info.is_gaming == 0){
+				if(room_info.is_gaming == Code.GAME.UNSTART){
 					gameDao.leave_room(rid,uid,function(err,res){
 						var param = {
 							route: 'onLeaveRoom',
@@ -389,40 +357,33 @@ gameRemote.prototype.kick = function(uid, sid, channel_id,cb) {
 						};
 						channel.pushMessage(param);
 					});
-				}else if(room_info.is_gaming == -1){
-					var param = {
-						'route':'onKick',
-						'location':location
-					};
-					channel.pushMessage(param);
-				}else if(room_info.is_gaming != -1){
-					var param = {
-						'route':'onKick',
-						'location':location
-					};
-					channel.pushMessage(param);
-					delayDao.removeDelay(rid,function(){
-						var t = setTimeout(function(){
-							//玩家超时之后解散房间但是保留房间信息 以便于确认信息
-							gameDao.dissolve_room(rid,function(err,res){
-								var p = {
-									'route':'onQuit',
-									'location':location
-								};
-								channel.pushMessage(p);
-								self.cache.del(rid);
-								cb(users);
+				}//如果游戏结束则通知离开游戏界面
+				else if(room_info.is_gaming == Code.GAME.FINISH){
+					logger.info('game is finish');
+				}
+				else{
+					//删除定时事件
+					delayDao.removeDelay(rid,function(err,res){
+						var param = {
+							'route':'onKick',
+							'location':location,
+							'delay_time':Code.GAME.DISTIME
+						};
+						channel.pushMessage(param);
+						gameDao.set_is_gaming(rid,room_info.is_gaming + Code.GAME.DISCONNECT,function(err,res){
+							delayDao.addDelay(uid,Code.GAME.DISTIME,function(err,res){
+								logger.info('玩家掉线超时设置');
 							});
-						},1000 * 30 * 5);
-						cacheData.connect = {
-							'type':'disConnect',
-							'time':(new Date()).getDate(),
-							'func':t
-						}
-						self.cache.put(rid,cacheData);
+						});
 					});
 				}
 			});
+			//玩家全部退出了游戏
+			if(users.length == 0 && room_info.is_gaming != Code.GAME.UNSTART){
+				gameDao.dissolve_room(rid,function(err,res){
+					self.cache.del(rid);
+				});
+			}
 		});
 	}
 	cb(null);
