@@ -349,7 +349,7 @@ SJGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 										}else{
 											gameDao.nextCurPlayer(rid,function(err,new_loc){
 												logger.info("nextCurPlayer success");
-												SJGameLogicRemote.changeCurPlayer(rid,new_loc,5,channel);
+												SJGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.PEIPAI,cache,channel);
 												//出牌定时，重置定时器
 												gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 													delayDao.addDelay(rid,10,function(){
@@ -428,7 +428,7 @@ SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 							logger.info("ready:removeDelay success");
 							gameDao.nextCurPlayer(rid,function(err,new_loc){
 								logger.info("ready nextCurPlayer success");
-								SJGameLogicRemote.changeCurPlayer(rid,new_loc,1,channel);
+								SJGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.READY,cache,channel);
 								//出牌定时，重置定时器
 								gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 									delayDao.addDelay(rid,10,function(){
@@ -482,7 +482,7 @@ SJGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 						}else{
 							gameDao.nextCurPlayer(rid,function(err,new_loc){
 								logger.info("nextCurPlayer success");
-								SJGameLogicRemote.changeCurPlayer(rid,new_loc,3,channel);
+								SJGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.XIAZHU,cache,channel);
 								//出牌定时，重置定时器
 								gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 									delayDao.addDelay(rid,10,function(){
@@ -773,13 +773,14 @@ SJGameLogicRemote.send_gift = function(rid,send_from,send_to,type,cache,channel,
 };
 
 /*采取依次操作方式 避免因为同时操作引起的 异步问题*/
-SJGameLogicRemote.changeCurPlayer = function(rid,location,status,channel){
+SJGameLogicRemote.changeCurPlayer = function(rid,location,status,cache,channel){
     var param = {
         route:'onChangePlayer',
         location:location,
 		status:status
     };
-    channel.pushMessage(param);
+	utils.pushMessage(rid,channel,param,cache);
+    //channel.pushMessage(param);
 };
 
 SJGameLogicRemote.timeOutLogic = function(rid,cache,channel,channelService){

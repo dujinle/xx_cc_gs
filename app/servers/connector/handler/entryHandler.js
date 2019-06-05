@@ -147,7 +147,7 @@ handler.repair_enter_room = function(msg, session, next) {
 		if(err){
 			next(null, {code:Code.SQL_ERROR,msg:err.message});
 		}else if(res != null){
-			if(res.is_gaming == -1){
+			if(res.is_gaming == Code.GAME.FINISH){
 				next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_FAIL});
 				return;
 			}
