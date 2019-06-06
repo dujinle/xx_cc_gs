@@ -40,7 +40,7 @@ module.exports = {
 		FINISH:-1,
 		DISCONNECT:1,
 		DISTIME:90,
-		DELAYTIME:10
+		DELAYTIME:20
 	},
 	CHAT: {
 		FA_CHANNEL_CREATE: 		3001, 
