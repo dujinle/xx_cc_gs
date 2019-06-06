@@ -148,7 +148,7 @@ handler.repair_enter_room = function(msg, session, next) {
 			next(null, {code:Code.SQL_ERROR,msg:err.message});
 		}else if(res != null){
 			if(res.is_gaming == Code.GAME.FINISH){
-				next(null, {code:Code.FAIL,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_FAIL});
+				next(null, {code:Code.OK,msg:Code.CODEMSG.CONNECTOR.CO_ENTER_ROOM_FAIL});
 				return;
 			}
 			var uid = player_id + '*' + rid;
