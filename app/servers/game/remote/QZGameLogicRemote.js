@@ -349,7 +349,7 @@ QZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 										}else{
 											gameDao.nextCurPlayer(rid,function(err,new_loc){
 												logger.info("nextCurPlayer success");
-												QZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.PEIPAI,channel);
+												QZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.PEIPAI,cache,channel);
 												//出牌定时，重置定时器
 												gameDao.setTimeoutMark(rid,new_loc,function(err,res){
 													delayDao.addDelay(rid,10,function(){
