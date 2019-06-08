@@ -130,7 +130,7 @@ SJGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 						delayDao.removeDelay(rid,function(){
 							logger.info("follow:removeDelay success");
 							gameDao.setTimeoutMark(rid,first_location,function(err,res){
-								delayDao.addDelay(rid,10,function(){
+								delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 									logger.info("ready:addDelay success");
 								});
 							});
@@ -338,7 +338,7 @@ SJGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 													utils.pushMessage(rid,channel,param,cache);
 													gameDao.get_room_by_room_id(rid,function(err,roomInfo){
 														gameDao.setTimeoutMark(rid,roomInfo.zhuang_location,function(err,res){
-															delayDao.addDelay(rid,10,function(){
+															delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 																logger.info("ready:addDelay success");
 															});
 														});
@@ -352,7 +352,7 @@ SJGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 												SJGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.PEIPAI,cache,channel);
 												//出牌定时，重置定时器
 												gameDao.setTimeoutMark(rid,new_loc,function(err,res){
-													delayDao.addDelay(rid,10,function(){
+													delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 														logger.info("ready:addDelay success");
 													});
 												});
@@ -415,7 +415,7 @@ SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 											param['scores'][zhuang_id - 1] = 100;
 											utils.pushMessage(rid,channel,param,cache);
 											gameDao.setTimeoutMark(rid,first_location,function(err,res){
-												delayDao.addDelay(rid,10,function(){
+												delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 													logger.info("ready:addDelay success");
 												});
 											});
@@ -431,7 +431,7 @@ SJGameLogicRemote.ready = function(rid,location,cache,channel,username){
 								SJGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.READY,cache,channel);
 								//出牌定时，重置定时器
 								gameDao.setTimeoutMark(rid,new_loc,function(err,res){
-									delayDao.addDelay(rid,10,function(){
+									delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 										logger.info("ready:addDelay success");
 									});
 								});
@@ -485,7 +485,7 @@ SJGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 								SJGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.XIAZHU,cache,channel);
 								//出牌定时，重置定时器
 								gameDao.setTimeoutMark(rid,new_loc,function(err,res){
-									delayDao.addDelay(rid,10,function(){
+									delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 										logger.info("ready:addDelay success");
 									});
 								});
@@ -663,7 +663,7 @@ SJGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,cache,ch
 					gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
 						utils.pushMessage(rid,channel,param,cache);
 						gameDao.setTimeoutMark(rid,first_location,function(err,res){
-							delayDao.addDelay(rid,10,function(){
+							delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 								logger.info("ready:addDelay success");
 							});
 						});
@@ -695,7 +695,7 @@ SJGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 				var first_location = utils.get_next_location(room_info,room_info.zhuang_location);
 				delayDao.removeDelay(rid,function(){
 					gameDao.setTimeoutMark(rid,first_location,function(err,res){
-						delayDao.addDelay(rid,10,function(){
+						delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 							logger.info("ready:addDelay success");
 						});
 					});

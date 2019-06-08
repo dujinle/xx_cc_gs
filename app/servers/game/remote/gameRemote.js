@@ -307,7 +307,7 @@ gameRemote.prototype.start_game = function(rid, sid, channel_id,flag,cb) {
 							};
 							self.cache.put(rid,cacheData);
 							gameDao.setTimeoutMark(rid,locations[random_uid],function(err,res){
-								delayDao.addDelay(rid,10,function(){
+								delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 									logger.info("start game:addDelay success");
 								});
 							});

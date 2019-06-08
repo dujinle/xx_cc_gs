@@ -133,7 +133,7 @@ LZGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 						delayDao.removeDelay(rid,function(){
 							logger.info("follow:removeDelay success");
 							gameDao.setTimeoutMark(rid,first_location,function(err,res){
-								delayDao.addDelay(rid,10,function(){
+								delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 									logger.info("ready:addDelay success");
 								});
 							});
@@ -340,7 +340,7 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 													utils.pushMessage(rid,channel,param,cache);
 													gameDao.get_room_by_room_id(rid,function(err,roomInfo){
 														gameDao.setTimeoutMark(rid,roomInfo.zhuang_location,function(err,res){
-															delayDao.addDelay(rid,10,function(){
+															delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 																logger.info("ready:addDelay success");
 															});
 														});
@@ -354,7 +354,7 @@ LZGameLogicRemote.peipai = function(rid,location,marks,select,cache,channel,user
 												LZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.PEIPAI,cache,channel);
 												//出牌定时，重置定时器
 												gameDao.setTimeoutMark(rid,new_loc,function(err,res){
-													delayDao.addDelay(rid,10,function(){
+													delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 														logger.info("ready:addDelay success");
 													});
 												});
@@ -423,7 +423,7 @@ LZGameLogicRemote.ready = function(rid,location,lun_zhuang_flag,cache,channel,us
 												param['scores'][zhuang_id - 1] = 50;
 												utils.pushMessage(rid,channel,param,cache);
 												gameDao.setTimeoutMark(rid,param['location'],function(err,res){
-													delayDao.addDelay(rid,10,function(){
+													delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 														logger.info("ready:addDelay success");
 													});
 												});
@@ -440,7 +440,7 @@ LZGameLogicRemote.ready = function(rid,location,lun_zhuang_flag,cache,channel,us
 								LZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.READY,cache,channel);
 								//出牌定时，重置定时器
 								gameDao.setTimeoutMark(rid,new_loc,function(err,res){
-									delayDao.addDelay(rid,10,function(){
+									delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 										logger.info("ready:addDelay success");
 									});
 								});
@@ -508,7 +508,7 @@ LZGameLogicRemote.xiazhu = function(rid,location,chips,cache,channel,channelServ
 									LZGameLogicRemote.changeCurPlayer(rid,new_loc,Code.GAME.XIAZHU,cache,channel);
 									//出牌定时，重置定时器
 									gameDao.setTimeoutMark(rid,new_loc,function(err,res){
-										delayDao.addDelay(rid,10,function(){
+										delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 											logger.info("ready:addDelay success");
 										});
 									});
@@ -683,7 +683,7 @@ LZGameLogicRemote.calc_score_zhangsha = function(rid,room_info,temp_score,cache,
 					gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
 						utils.pushMessage(rid,channel,param,cache);
 						gameDao.setTimeoutMark(rid,first_location,function(err,res){
-							delayDao.addDelay(rid,10,function(){
+							delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 								logger.info("ready:addDelay success");
 							});
 						});
@@ -796,7 +796,7 @@ LZGameLogicRemote.calc_score_normal = function(rid,room_info,temp_score,cache,ch
 					gameDao.set_qieguo(rid,param['isqie'],function(err,qieguo){
 						utils.pushMessage(rid,channel,param,cache);
 						gameDao.setTimeoutMark(rid,first_location,function(err,res){
-							delayDao.addDelay(rid,10,function(){
+							delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 								logger.info("ready:addDelay success");
 							});
 						});
@@ -833,7 +833,7 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 				var first_location = utils.get_next_location(room_info,room_info.zhuang_location);
 				delayDao.removeDelay(rid,function(){
 					gameDao.setTimeoutMark(rid,first_location,function(err,res){
-						delayDao.addDelay(rid,10,function(){
+						delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 							logger.info("ready:addDelay success");
 						});
 					});
@@ -889,7 +889,7 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 					param['location'] = utils.get_next_location(room_info,room_info.zhuang_location);
 					delayDao.removeDelay(rid,function(){
 						gameDao.setTimeoutMark(rid,param['location'],function(err,res){
-							delayDao.addDelay(rid,10,function(){
+							delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
 								logger.info("ready:addDelay success");
 							});
 						});
