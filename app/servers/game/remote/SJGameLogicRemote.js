@@ -867,7 +867,7 @@ SJGameLogicRemote.changeCurPlayer = function(rid,location,status,cache,channel){
 		SJGameLogicRemote.peipai_tips(rid,location,function(paix){
 			param['tip'] = paix;
 			utils.pushMessage(rid,channel,param,cache);
-		}
+		});
 	}else{
 		utils.pushMessage(rid,channel,param,cache);
 	}
