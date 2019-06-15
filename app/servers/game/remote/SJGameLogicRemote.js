@@ -172,17 +172,17 @@ SJGameLogicRemote.peipai_tips = function(rid,location,callback){
 					paijiuDao.get_paijiu_by_paixing(max_type,px1,function(err,res_1){
 						paijiuDao.get_paijiu_by_paixing(max_type,px2,function(err,res_2){
 							console.log('peipai_tips',res_1.score + res_2.score);
-							cb(null,res_1.score + res_2.score);
+							cb(null,[res_1.score + res_2.score]);
 						});
 					});
 				});
 			},
-			function(cb){
+			function(scores,cb){
 				let px1 = p2[0] + '+' + p2[1];
 				if(p2[0] > p2[1]){
 					px1 = p2[1] + "+" + p2[0];
 				}
-				var px2 = p2[2] + '+' + p2[3];
+				let px2 = p2[2] + '+' + p2[3];
 				if(p2[2] > p2[3]){
 					px2 = p2[3] + "+" + p2[2];
 				}
@@ -190,17 +190,18 @@ SJGameLogicRemote.peipai_tips = function(rid,location,callback){
 					paijiuDao.get_paijiu_by_paixing(max_type,px1,function(err,res_1){
 						paijiuDao.get_paijiu_by_paixing(max_type,px2,function(err,res_2){
 							console.log('peipai_tips',res_1.score + res_2.score);
-							cb(null,res_1.score + res_2.score);
+							scores.push(res_1.score + res_2.score);
+							cb(null,scores);
 						});
 					});
 				});
 			},
-			function(cb){
+			function(scores,cb){
 				let px1 = p3[0] + '+' + p3[1];
 				if(p3[0] > p3[1]){
 					px1 = p3[1] + "+" + p3[0];
 				}
-				var px2 = p3[2] + '+' + p3[3];
+				let px2 = p3[2] + '+' + p3[3];
 				if(p3[2] > p3[3]){
 					px2 = p3[3] + "+" + p3[2];
 				}
@@ -208,7 +209,8 @@ SJGameLogicRemote.peipai_tips = function(rid,location,callback){
 					paijiuDao.get_paijiu_by_paixing(max_type,px1,function(err,res_1){
 						paijiuDao.get_paijiu_by_paixing(max_type,px2,function(err,res_2){
 							console.log('peipai_tips',res_1.score + res_2.score);
-							cb(null,res_1.score + res_2.score);
+							scores.push(res_1.score + res_2.score);
+							cb(null,scores);
 						});
 					});
 				});
