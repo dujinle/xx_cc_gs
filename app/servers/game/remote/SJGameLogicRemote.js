@@ -120,18 +120,21 @@ SJGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 							});
 						}
 					],function(err,result){
-						var param = {
-							route:'onShoupai',
-							paixing:paixing,
-							round:my_round,
-							location:first_location
-						};
-						utils.pushMessage(rid,channel,param,cache);
-						delayDao.removeDelay(rid,function(){
-							logger.info("follow:removeDelay success");
-							gameDao.setTimeoutMark(rid,first_location,function(err,res){
-								delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
-									logger.info("ready:addDelay success");
+						SJGameLogicRemote.peipai_tips(rid,first_location,function(paix){
+							var param = {
+								route:'onShoupai',
+								paixing:paixing,
+								round:my_round,
+								location:first_location,
+								tip:paix
+							};
+							utils.pushMessage(rid,channel,param,cache);
+							delayDao.removeDelay(rid,function(){
+								logger.info("follow:removeDelay success");
+								gameDao.setTimeoutMark(rid,first_location,function(err,res){
+									delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
+										logger.info("ready:addDelay success");
+									});
 								});
 							});
 						});
@@ -143,6 +146,96 @@ SJGameLogicRemote.fapai = function(rid,num1,num2,cache,channel,channelService){
 	});
 };
 
+SJGameLogicRemote.peipai_tips = function(rid,location,callback){
+	//对牌型进行自动配牌提示
+	/*(1)1-2;3-4;
+	  (2)1-3;2-4;
+	  (3)1-4;2-3;
+	*/
+	var pxing = [[1,2],[1,3],[1,4]];
+	gameDao.get_pai(rid,location,function(err,res){
+		var p1 = [res[0],res[1],res[2],res[3]];
+		var p2 = [res[0],res[2],res[1],res[3]];
+		var p3 = [res[0],res[3],res[1],res[2]];
+		
+		var px1_1 = p1[0] + '+' p1[1];
+		if(p1[0] > p1[1]){
+			px1_1 = p1[1] + "+" + p1[0];
+		}
+		var px1_2 = p1[2] + '+' p1[3];
+		if(p1[2] > p1[3]){
+			px1_2 = p1[3] + "+" + p1[2];
+		}
+		async.waterfall([
+			function(cb){
+				let px1 = p1[0] + '+' p1[1];
+				if(p1[0] > p1[1]){
+					px1 = p1[1] + "+" + p1[0];
+				}
+				let px2 = p1[2] + '+' p1[3];
+				if(p1[2] > p1[3]){
+					px2 = p1[3] + "+" + p1[2];
+				}
+				gameDao.get_max_type(rid,function(err,max_type){
+					paijiuDao.get_paijiu_by_paixing(max_type,px1,function(err,res_1){
+						paijiuDao.get_paijiu_by_paixing(max_type,px2,function(err,res_2){
+							console.log('peipai_tips',res_1.score + res_2.score);
+							cb(null,res_1.score + res_2.score);
+						});
+					});
+				});
+			},
+			function(cb){
+				let px1 = p2[0] + '+' p2[1];
+				if(p2[0] > p2[1]){
+					px1 = p2[1] + "+" + p2[0];
+				}
+				var px2 = p2[2] + '+' p2[3];
+				if(p2[2] > p2[3]){
+					px2 = p2[3] + "+" + p2[2];
+				}
+				gameDao.get_max_type(rid,function(err,max_type){
+					paijiuDao.get_paijiu_by_paixing(max_type,px1,function(err,res_1){
+						paijiuDao.get_paijiu_by_paixing(max_type,px2,function(err,res_2){
+							console.log('peipai_tips',res_1.score + res_2.score);
+							cb(null,res_1.score + res_2.score);
+						});
+					});
+				});
+			},
+			function(cb){
+				let px1 = p3[0] + '+' p3[1];
+				if(p3[0] > p3[1]){
+					px1 = p3[1] + "+" + p3[0];
+				}
+				var px2 = p3[2] + '+' p3[3];
+				if(p3[2] > p3[3]){
+					px2 = p3[3] + "+" + p3[2];
+				}
+				gameDao.get_max_type(rid,function(err,max_type){
+					paijiuDao.get_paijiu_by_paixing(max_type,px1,function(err,res_1){
+						paijiuDao.get_paijiu_by_paixing(max_type,px2,function(err,res_2){
+							console.log('peipai_tips',res_1.score + res_2.score);
+							cb(null,res_1.score + res_2.score);
+						});
+					});
+				});
+			}
+		],function(err,result){
+			var max = 0;
+			var max_id = 0;
+			
+			for(var i = 0;i < result.length;i++){
+				var score = result[i];
+				if(score >= max){
+					max = score;
+					max_id = i;
+				}
+			}
+			callback(pxing[max_id]);
+		});
+	});
+};
 /**
  * 分牌逻辑，调用后返回牌型数组
  * */
@@ -774,13 +867,19 @@ SJGameLogicRemote.send_gift = function(rid,send_from,send_to,type,cache,channel,
 
 /*采取依次操作方式 避免因为同时操作引起的 异步问题*/
 SJGameLogicRemote.changeCurPlayer = function(rid,location,status,cache,channel){
-    var param = {
+	var param = {
         route:'onChangePlayer',
         location:location,
 		status:status
     };
-	utils.pushMessage(rid,channel,param,cache);
-    //channel.pushMessage(param);
+	if(status == Code.GAME.PEIPAI){
+		SJGameLogicRemote.peipai_tips(rid,location,function(paix){
+			param['tip'] = paix;
+			utils.pushMessage(rid,channel,param,cache);
+		}
+	}else{
+		utils.pushMessage(rid,channel,param,cache);
+	}
 };
 
 SJGameLogicRemote.timeOutLogic = function(rid,cache,channel,channelService){
