@@ -158,21 +158,13 @@ SJGameLogicRemote.peipai_tips = function(rid,location,callback){
 		var p2 = [res[0],res[2],res[1],res[3]];
 		var p3 = [res[0],res[3],res[1],res[2]];
 		
-		var px1_1 = p1[0] + '+' p1[1];
-		if(p1[0] > p1[1]){
-			px1_1 = p1[1] + "+" + p1[0];
-		}
-		var px1_2 = p1[2] + '+' p1[3];
-		if(p1[2] > p1[3]){
-			px1_2 = p1[3] + "+" + p1[2];
-		}
 		async.waterfall([
 			function(cb){
-				let px1 = p1[0] + '+' p1[1];
+				let px1 = p1[0] + '+' + p1[1];
 				if(p1[0] > p1[1]){
 					px1 = p1[1] + "+" + p1[0];
 				}
-				let px2 = p1[2] + '+' p1[3];
+				let px2 = p1[2] + '+' + p1[3];
 				if(p1[2] > p1[3]){
 					px2 = p1[3] + "+" + p1[2];
 				}
@@ -186,11 +178,11 @@ SJGameLogicRemote.peipai_tips = function(rid,location,callback){
 				});
 			},
 			function(cb){
-				let px1 = p2[0] + '+' p2[1];
+				let px1 = p2[0] + '+' + p2[1];
 				if(p2[0] > p2[1]){
 					px1 = p2[1] + "+" + p2[0];
 				}
-				var px2 = p2[2] + '+' p2[3];
+				var px2 = p2[2] + '+' + p2[3];
 				if(p2[2] > p2[3]){
 					px2 = p2[3] + "+" + p2[2];
 				}
@@ -204,11 +196,11 @@ SJGameLogicRemote.peipai_tips = function(rid,location,callback){
 				});
 			},
 			function(cb){
-				let px1 = p3[0] + '+' p3[1];
+				let px1 = p3[0] + '+' + p3[1];
 				if(p3[0] > p3[1]){
 					px1 = p3[1] + "+" + p3[0];
 				}
-				var px2 = p3[2] + '+' p3[3];
+				var px2 = p3[2] + '+' + p3[3];
 				if(p3[2] > p3[3]){
 					px2 = p3[3] + "+" + p3[2];
 				}
@@ -224,7 +216,6 @@ SJGameLogicRemote.peipai_tips = function(rid,location,callback){
 		],function(err,result){
 			var max = 0;
 			var max_id = 0;
-			
 			for(var i = 0;i < result.length;i++){
 				var score = result[i];
 				if(score >= max){
