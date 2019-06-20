@@ -910,14 +910,14 @@ LZGameLogicRemote.end_game = function(rid,locals_score,cache,channel,channelServ
 LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelService){
 	if(flag == false){
 		gameDao.set_all_player_is_game(rid,Code.GAME.QIEGUO,function(err,is_game){
-			var first_location = utils.get_next_location(room_info,room_info.zhuang_location);
-			var param = {
-				'route':'onQieguo',
-				'flag':flag,
-				'location':first_location
-			};
-			utils.pushMessage(rid,channel,param,cache);
 			gameDao.get_room_by_room_id(rid,function(err,room_info){
+				var first_location = utils.get_next_location(room_info,room_info.zhuang_location);
+				var param = {
+					'route':'onQieguo',
+					'flag':flag,
+					'location':first_location
+				};
+				utils.pushMessage(rid,channel,param,cache);
 				delayDao.removeDelay(rid,function(){
 					gameDao.setTimeoutMark(rid,first_location,function(err,res){
 						delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
