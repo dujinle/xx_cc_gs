@@ -927,7 +927,8 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 			});
 			//channel.pushMessage(param);
 		});
-	}else{
+	}
+	else{
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
 			gameDao.set_all_player_is_game(rid,Code.GAME.QIEGUO,function(err,is_game){
 				//更新每一个玩家的金币数量
@@ -958,6 +959,7 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 				if(room_info.lun_zhuang >= room_info.player_num){
 					/*游戏结束房主获取一个金币*/
 					param['lun_zhuang'] = false;
+					utils.pushMessage(rid,channel,param,cache);
 					gameDao.remove_room(rid,function(err,res){
 						playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
 							delayDao.removeDelay(rid,function(){
@@ -970,9 +972,11 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 				else{
 					gameDao.reset_game_lunzhuang(rid,function(err,res){
 						console.log('reset_game_lunzhuang rid:',rid);
+						param['lun_zhuang'] = true;
+						param['location'] = utils.get_next_location(room_info,room_info.zhuang_location);
+						utils.pushMessage(rid,channel,param,cache);
 					});
-					param['lun_zhuang'] = true;
-					param['location'] = utils.get_next_location(room_info,room_info.zhuang_location);
+					
 					delayDao.removeDelay(rid,function(){
 						gameDao.setTimeoutMark(rid,param['location'],function(err,res){
 							delayDao.addDelay(rid,Code.GAME.DELAYTIME,function(){
@@ -981,7 +985,6 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 						});
 					});
 				}
-				utils.pushMessage(rid,channel,param,cache);
 				//channel.pushMessage(param);
 			});
 		});
@@ -1035,19 +1038,24 @@ LZGameLogicRemote.timeOutLogic = function(rid,cache,channel,channelService){
 		gameDao.get_room_by_room_id(rid,function(err,room_info){
 			if(local != 0){
 				var is_game_local = room_info['is_game_' + local];
-				if(is_game_local == 0 || is_game_local == 9){
-					if(room_info.lun_zhuang >= room_info.player_num){
-						LZGameLogicRemote.ready(rid,local,false,cache,channel,null);
-					}else{
-						LZGameLogicRemote.ready(rid,local,true,cache,channel,null);
-					}
-				}else if(is_game_local == 2){
+				//如果玩家的状态为0则没有进行过轮庄操作
+				if(is_game_local == 0){
+					LZGameLogicRemote.ready(rid,local,false,cache,channel,null);
+				}
+				//如果玩家的状态为9则没有进行过轮庄操作
+				else if(is_game_local == 9){
+					LZGameLogicRemote.ready(rid,local,true,cache,channel,null);
+				}
+				else if(is_game_local == 2){
 					LZGameLogicRemote.xiazhu(rid,local,[0,0],cache,channel,channelService);
-				}else if(is_game_local == 4){
+				}
+				else if(is_game_local == 4){
 					LZGameLogicRemote.peipai(rid,local,null,[0,1],cache,channel,null);
-				}else if(is_game_local == 6){
+				}
+				else if(is_game_local == 6){
 					LZGameLogicRemote.open(rid,local,cache,channel,channelService);
-				}else if(is_game_local == 8){
+				}
+				else if(is_game_local == 8){
 					LZGameLogicRemote.qieguo(rid,local,true,cache,channel,channelService);
 				}
 			}
