@@ -4,6 +4,7 @@
 var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 var Code	  = require('../../../consts/code');
 var gameDao   = require('../../../dao/gameDao');
+var gameInfoDao = require('../../../dao/gameInfoDao');
 var playerDao = require('../../../dao/playerDao');
 var delayDao  = require('../../../dao/delayDao');
 var paijiuDao  = require('../../../dao/paijiuDao');
@@ -807,11 +808,13 @@ QZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 				utils.pushMessage(rid,channel,param,cache);
 				//channel.pushMessage(param);
 				//进行游戏的最后结算 并删除房间
-				gameDao.remove_room(rid,function(err,res){
-					playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
-						delayDao.removeDelay(rid,function(){
-							cache.del(rid);
-							console.log('进行游戏的最后结算 并删除房间！');
+				gameInfoDao.update_game(room_info,function(err,res){
+					gameDao.remove_room(rid,function(err,res){
+						playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
+							delayDao.removeDelay(rid,function(){
+								cache.del(rid);
+								console.log('进行游戏的最后结算 并删除房间！');
+							});
 						});
 					});
 				});

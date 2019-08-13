@@ -64,13 +64,19 @@ CREATE TABLE buy_fangka(
 
 CREATE TABLE game_history(
 	id INT PRIMARY KEY AUTO_INCREMENT,\
-	player_id  INT,\
+	location1  INT DEFAULT -1,\
+	location2  INT DEFAULT -1,\
+	location3  INT DEFAULT -1,\
+	location4  INT DEFAULT -1,\
 	renshu     INT DEFAULT 0,\
 	status     INT,\
-	use_fangka INT DEFAULT 0,\
-	game_status INT,\
+	game_type  INT,\
+	score1  INT DEFAULT 0,\
+	score2  INT DEFAULT 0,\
+	score3  INT DEFAULT 0,\
+	score4  INT DEFAULT 0,\
 	creat_time  BIGINT,\
-	room_num   INT\
+	room_num   VARCHAR(6)\
 );
 
 CREATE TABLE gonghui(

@@ -4,6 +4,7 @@
 var logger = require('pomelo-logger').getLogger('pomelo', __filename);
 var Code	  = require('../../../consts/code');
 var gameDao   = require('../../../dao/gameDao');
+var gameInfoDao   = require('../../../dao/gameInfoDao');
 var playerDao = require('../../../dao/playerDao');
 var delayDao  = require('../../../dao/delayDao');
 var paijiuDao  = require('../../../dao/paijiuDao');
@@ -961,21 +962,25 @@ LZGameLogicRemote.qieguo = function(rid,location,flag,cache,channel,channelServi
 					/*游戏结束房主获取一个金币*/
 					param['lun_zhuang'] = false;
 					utils.pushMessage(rid,channel,param,cache);
-					gameDao.remove_room(rid,function(err,res){
-						playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
-							delayDao.removeDelay(rid,function(){
-								cache.del(rid);
-								console.log('进行游戏的最后结算 并删除房间！');
+					gameInfoDao.update_game(room_info,function(err,res){
+						gameDao.remove_room(rid,function(err,res){
+							playerDao.sub_gold(room_info.fangzhu_id,1,function(err,res){
+								delayDao.removeDelay(rid,function(){
+									cache.del(rid);
+									console.log('进行游戏的最后结算 并删除房间！');
+								});
 							});
 						});
 					});
 				}
 				else{
-					gameDao.reset_game_lunzhuang(rid,function(err,res){
-						console.log('reset_game_lunzhuang rid:',rid);
-						param['lun_zhuang'] = true;
-						param['location'] = utils.get_next_location(room_info,room_info.zhuang_location);
-						utils.pushMessage(rid,channel,param,cache);
+					gameInfoDao.update_game(room_info,function(err,res){
+						gameDao.reset_game_lunzhuang(rid,function(err,res){
+							console.log('reset_game_lunzhuang rid:',rid);
+							param['lun_zhuang'] = true;
+							param['location'] = utils.get_next_location(room_info,room_info.zhuang_location);
+							utils.pushMessage(rid,channel,param,cache);
+						});
 					});
 					
 					delayDao.removeDelay(rid,function(){
