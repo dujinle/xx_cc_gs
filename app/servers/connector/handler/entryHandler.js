@@ -114,7 +114,7 @@ handler.get_room_info = function(msg, session, next) {
 			if(err){
 				next(null, {code:Code.SQL_ERROR,msg:err.message});
 			}else if(res == null){
-				next(null, {code:Code.SQL_NULL,msg:Code.CODEMSG.COMMON.SQL_NULL});
+				next(null, {code:Code.FILTER,msg:Code.CODEMSG.COMMON.SQL_NULL});
 			}else{
 				next(null, {code:Code.OK,msg:res});
 			}
